@@ -1,0 +1,15 @@
+[
+  {
+    "id": "event1",
+    "eventDate": "01.05.2025",
+    "eventType": "Offline",
+    "eventName": "InnovateX Hackathon 2025",
+    "location": "Indian Institute of Technology, Delhi",
+    "prizeAmount": "₹2,00,000",
+    "eventCode": "IH2025",
+    "teamMembers": ["John", "Jack", "Joe"],
+    "applyButtonText": "Apply On Duty",
+    "Requested By" : "Jack",
+    "imageUrl": "https://images.unsplash.com/photo-1579567761406-46847DC88898?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8YWklMjBoYWNrYXRob258ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=500&q=60"
+  }
+]

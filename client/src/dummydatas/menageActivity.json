@@ -1,0 +1,38 @@
+[
+    {
+        "event_name" : "Student Feedback Survey Q1 2025",
+        "Description" : "Quarterly feedback collection for curriculum improvement",
+        "Start_date" : "2025-01-15",
+        "End_date" : "2025-01-30",
+        "location" : "Bit Auditorium",
+        "visibility" : "All Students",
+        "Event_type" : "Survey"
+    },
+    {
+        "event_name" : "Student Feedback Survey Q1 2026",
+        "Description" : "Quarterly feedback collection for curriculum improvement",
+        "Start_date" : "2025-01-15",
+        "End_date" : "2025-01-30",
+        "location" : "Bit Auditorium",
+        "visibility" : "All Students",
+        "Event_type" : "Survey"
+    },
+    {
+        "event_name" : "Student Feedback Survey Q1 2027",
+        "Description" : "Quarterly feedback collection for curriculum improvement",
+        "Start_date" : "2025-01-15",
+        "End_date" : "2025-01-30",
+        "location" : "Bit Auditorium",
+        "visibility" : "All Students",
+        "Event_type" : "Survey"
+    },
+    {
+        "event_name" : "Student Feedback Survey Q1 2028",
+        "Description" : "Quarterly feedback collection for curriculum improvement",
+        "Start_date" : "2025-01-15",
+        "End_date" : "2025-01-30",
+        "location" : "Bit Auditorium",
+        "visibility" : "All Students",
+        "Event_type" : "Survey"
+    }
+]

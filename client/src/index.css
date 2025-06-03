@@ -1,0 +1,50 @@
+@import "tailwindcss";
+@theme {
+  --color-primary: #0200e1;
+  --color-secondary: #9b9aff;
+  --color-text: #888888;
+  --fontFamily: {
+    /* sans: ['"DM Sans"', 'sans-serif'],   'dm': ['"DM Sans"', 'sans-serif'] */
+  },
+}
+.dm{
+  font-family: "DM Sans", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 600;
+  font-style: normal;
+}
+.caveat{
+  font-family: "Caveat", cursive;
+  font-optical-sizing: auto;
+  font-weight:500;
+  font-style: normal;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f0f0f0;
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background-color: #0200e1;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: #1a1aff;
+}
+.js-plotly-plot .plotly .cursor-crosshair {
+  cursor: default !important;
+}
+@keyframes loadingSlide {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(300%);
+  }
+}
