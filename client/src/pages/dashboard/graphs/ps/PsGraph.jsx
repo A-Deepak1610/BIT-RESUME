@@ -1,27 +1,28 @@
 import React, { useState, useRef, useEffect } from "react";
-// Removed dummy data imports as we'll fetch
-// import psCompletionData from "../../../../dummydatas/PSdatas.json";
-// import PsAttempts from "../../../../dummydatas/PsAttempts.json";
 import SkillCard from "./SkillCard";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import useAuth from "../../../../store/UseAuth";
 
+const FIXED_DOMAINS_ORDER = ["CS", "Electrical", "Soft Skills", "Non-Technical"];
+
 const PsSkillGraph = () => {
-  const [activeTab, setActiveTab] = useState("CS");
-  const [isMobileDomainPopoverOpen, setIsMobileDomainPopoverOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState(FIXED_DOMAINS_ORDER[0]);
+  const [isMobileDomainPopoverOpen, setIsMobileDomainPopoverOpen] =
+    useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [hoveredSkillInfo, setHoveredSkillInfo] = useState(null);
   const mobileDomainPopoverRef = useRef(null);
   const popoverAttemptsRef = useRef(null);
   const containerRef = useRef(null);
-  const {fetchUser,rollno}=useAuth();
+  const { fetchUser, rollno } = useAuth();
   useEffect(() => {
     fetchUser();
   }, []);
   const [skillCompletionData, setSkillCompletionData] = useState([]);
   const [skillAttemptsData, setSkillAttemptsData] = useState([]);
-  const [isLoading, setIsLoading] = useState(true); 
+  const [isLoading, setIsLoading] = useState(true);
   const API_URL = import.meta.env.VITE_API_URL;
+
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 640);
@@ -38,19 +39,18 @@ const PsSkillGraph = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        credentials:"include"
+        credentials: "include",
       });
       if (!res.ok) {
         throw new Error(`HTTP Error for attempts: ${res.status}`);
       }
       const data = await res.json();
-      // console.log("Data fetched successfully for attempts:", data);
       setSkillAttemptsData(Array.isArray(data) ? data : []);
-      return data; 
+      return data;
     } catch (error) {
       console.error("Fetch error for attempts:", error);
-      setSkillAttemptsData([]); 
-      return []; 
+      setSkillAttemptsData([]);
+      return [];
     }
   };
 
@@ -61,21 +61,21 @@ const PsSkillGraph = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        credentials:"include"
+        credentials: "include",
       });
       if (!res.ok) {
         throw new Error(`HTTP Error for levels status: ${res.status}`);
       }
       const data = await res.json();
-      // console.log("Data fetched successfully for levels status:", data);
-      setSkillCompletionData(Array.isArray(data) ? data : []); 
+      setSkillCompletionData(Array.isArray(data) ? data : []);
       return data;
     } catch (error) {
       console.error("Fetch error for levels status:", error);
       setSkillCompletionData([]);
-      return []; 
+      return [];
     }
   };
+
   useEffect(() => {
     setIsLoading(true);
     Promise.all([fetchPsCompletionData(), fetchPsAttempts()])
@@ -85,8 +85,7 @@ const PsSkillGraph = () => {
       .catch(() => {
         setIsLoading(false);
       });
-  }, []); 
-
+  }, [rollno]); 
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -102,9 +101,12 @@ const PsSkillGraph = () => {
     };
   }, []);
 
-
   useEffect(() => {
-    if (hoveredSkillInfo && !hoveredSkillInfo.hasBeenPositioned && popoverAttemptsRef.current) {
+    if (
+      hoveredSkillInfo &&
+      !hoveredSkillInfo.hasBeenPositioned &&
+      popoverAttemptsRef.current
+    ) {
       const popoverElement = popoverAttemptsRef.current;
       const popoverRect = popoverElement.getBoundingClientRect();
       const viewportWidth = window.innerWidth;
@@ -120,14 +122,20 @@ const PsSkillGraph = () => {
       if (newFinalX + popoverRect.width + margin > viewportWidth) {
         newFinalX = cursorX - popoverRect.width - offset;
       }
-      newFinalX = Math.max(margin, Math.min(newFinalX, viewportWidth - popoverRect.width - margin));
+      newFinalX = Math.max(
+        margin,
+        Math.min(newFinalX, viewportWidth - popoverRect.width - margin)
+      );
 
       if (newFinalY + popoverRect.height + margin > viewportHeight) {
         newFinalY = cursorY - popoverRect.height - offset;
       }
-      newFinalY = Math.max(margin, Math.min(newFinalY, viewportHeight - popoverRect.height - margin));
+      newFinalY = Math.max(
+        margin,
+        Math.min(newFinalY, viewportHeight - popoverRect.height - margin)
+      );
 
-      setHoveredSkillInfo(prev => ({
+      setHoveredSkillInfo((prev) => ({
         ...prev,
         finalX: newFinalX,
         finalY: newFinalY,
@@ -135,12 +143,12 @@ const PsSkillGraph = () => {
       }));
     }
   }, [hoveredSkillInfo]);
+
   const filteredSkills = skillCompletionData.filter(
     (skill) => skill.skilldomain === activeTab
   );
-  const domains = skillCompletionData.length > 0 
-    ? [...new Set(skillCompletionData.map(skill => skill.skilldomain))] 
-    : ["CS", "Electrical", "Soft Skills", "Non-Technical"]; 
+
+  const domains = FIXED_DOMAINS_ORDER;
 
   const handleTabChange = (domain) => {
     setActiveTab(domain);
@@ -149,28 +157,31 @@ const PsSkillGraph = () => {
 
   const handleSkillCardMouseEnter = (skillData, event) => {
     const relevantAttemptsEntries = skillAttemptsData.filter(
-      (attempt) => attempt.skilldomain === skillData.skilldomain && attempt.skillname === skillData.skillname
+      (attempt) =>
+        attempt.skilldomain === skillData.skilldomain &&
+        attempt.skillname === skillData.skillname
     );
 
     const formattedAttempts = {};
     if (relevantAttemptsEntries.length > 0) {
-      relevantAttemptsEntries.forEach(attemptEntry => {
-        formattedAttempts[`level-${attemptEntry.skilllevel}`] = attemptEntry.attempts;
+      relevantAttemptsEntries.forEach((attemptEntry) => {
+        formattedAttempts[`level-${attemptEntry.skilllevel}`] =
+          attemptEntry.attempts;
       });
     }
     const allLevelsAttempts = {};
     for (let i = 1; i <= skillData.totallevels; i++) {
-        allLevelsAttempts[`level-${i}`] = formattedAttempts[`level-${i}`] || 0;
+      allLevelsAttempts[`level-${i}`] = formattedAttempts[`level-${i}`] || 0;
     }
-    
+
     setHoveredSkillInfo({
       skillName: skillData.skillname,
       domain: skillData.skilldomain,
       attempts: allLevelsAttempts,
       cursorX: event.clientX,
       cursorY: event.clientY,
-      finalX: event.clientX + 15, 
-      finalY: event.clientY + 15, 
+      finalX: event.clientX + 15,
+      finalY: event.clientY + 15,
       hasBeenPositioned: false,
     });
   };
@@ -180,7 +191,11 @@ const PsSkillGraph = () => {
   };
 
   if (isLoading) {
-    return <div className="flex justify-center items-center h-full">Loading skills...</div>;
+    return (
+      <div className="flex justify-center items-center h-full">
+        Loading skills...
+      </div>
+    );
   }
 
   return (
@@ -190,20 +205,23 @@ const PsSkillGraph = () => {
           Skill Completion Status
         </h1>
         {isMobile && (
-          <div 
-            className="relative" 
+          <div
+            className="relative"
             ref={mobileDomainPopoverRef}
-            onMouseEnter={() => setIsMobileDomainPopoverOpen(true)}
-            onMouseLeave={() => setIsMobileDomainPopoverOpen(false)}
+            onMouseEnter={() => setIsMobileDomainPopoverOpen(true)} // Consider onClick for touch devices
+            onMouseLeave={() => setIsMobileDomainPopoverOpen(false)} // Consider managing with click
           >
             <button
+              onClick={() => setIsMobileDomainPopoverOpen(prev => !prev)} // Toggle on click for mobile
               className="flex items-center gap-1 px-3 py-1 rounded-md bg-[#2d4bff] text-white hover:bg-gray-200 transition-colors"
               aria-haspopup="true"
               aria-expanded={isMobileDomainPopoverOpen}
             >
               <span className="text-sm font-medium">{activeTab}</span>
               <KeyboardArrowDownIcon
-                className={`transition-transform ${isMobileDomainPopoverOpen ? "rotate-180" : ""}`}
+                className={`transition-transform ${
+                  isMobileDomainPopoverOpen ? "rotate-180" : ""
+                }`}
               />
             </button>
             {isMobileDomainPopoverOpen && (
@@ -243,21 +261,21 @@ const PsSkillGraph = () => {
         ))}
       </div>
 
-      <div 
+      <div
         ref={containerRef}
         className="mt-4 overflow-y-auto flex-grow"
         style={{
-          height: "calc(2 * (70px + 1rem))",
-          maxHeight: "calc(2 * (105px + 1rem))" 
+          minHeight: "150px", 
+          maxHeight: "calc(2 * (105px + 1rem))", 
         }}
       >
         {filteredSkills.length > 0 ? (
           <div className="grid lg:grid-cols-3 xl:grid-cols-5 grid-cols-2 gap-4 justify-items-center">
             {filteredSkills.map((skillItem) => (
               <SkillCard
-                key={`${skillItem.skilldomain}-${skillItem.skillname}`} 
+                key={`${skillItem.skilldomain}-${skillItem.skillname}`}
                 skillName={skillItem.skillname}
-                completed={parseInt(skillItem.skilllevel, 10) || 0} 
+                completed={parseInt(skillItem.skilllevel, 10) || 0}
                 totalLevels={skillItem.totallevels}
                 onMouseEnter={(e) => handleSkillCardMouseEnter(skillItem, e)}
                 onMouseLeave={handleSkillCardMouseLeave}
@@ -265,7 +283,9 @@ const PsSkillGraph = () => {
             ))}
           </div>
         ) : (
-          <div className="text-center text-gray-500 mt-4">No skills to display for this domain.</div>
+          <div className="text-center text-gray-500 mt-4">
+            No skills to display for this domain.
+          </div>
         )}
       </div>
 
@@ -277,22 +297,27 @@ const PsSkillGraph = () => {
             top: `${hoveredSkillInfo.finalY}px`,
             left: `${hoveredSkillInfo.finalX}px`,
             pointerEvents: "none",
-            opacity: hoveredSkillInfo.hasBeenPositioned ? 1 : 0, 
+            opacity: hoveredSkillInfo.hasBeenPositioned ? 1 : 0,
             transition: "opacity 0.1s ease-in-out",
           }}
         >
           <h4 className="font-semibold mb-1">
             {hoveredSkillInfo.skillName} ({hoveredSkillInfo.domain}) - Attempts
           </h4>
-          {hoveredSkillInfo.attempts && Object.keys(hoveredSkillInfo.attempts).length > 0 ? (
+          {hoveredSkillInfo.attempts &&
+          Object.keys(hoveredSkillInfo.attempts).length > 0 ? (
             <ul>
               {Object.entries(hoveredSkillInfo.attempts)
-                .sort(([levelA], [levelB]) => parseInt(levelA.split('-')[1]) - parseInt(levelB.split('-')[1])) // Sort by level number
+                .sort(
+                  ([levelA], [levelB]) =>
+                    parseInt(levelA.split("-")[1]) -
+                    parseInt(levelB.split("-")[1])
+                )
                 .map(([level, count]) => (
-                <li key={level}>
-                  {level.replace("-", " ")} : {count}
-                </li>
-              ))}
+                  <li key={level}>
+                    {level.replace("-", " ")} : {count}
+                  </li>
+                ))}
             </ul>
           ) : (
             <p>No attempt data available.</p>
