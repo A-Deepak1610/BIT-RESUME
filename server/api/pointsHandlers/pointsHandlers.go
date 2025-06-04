@@ -93,12 +93,10 @@ func HandlePs(c *gin.Context) { //if attempted itself
 	currdate := data.Currdate
 	source := "PS"
 	desc := skillname + " " + skilllevel
-
 	var newpoints float64
-
 	// Fetch current rank
 	rank, rankerr := activitygraph.FetchDataRank(rollno)
-	if rankerr != nil {
+	if rankerr != nil { 
 		c.JSON(500, gin.H{"error": rankerr.Error()})
 		return
 	}

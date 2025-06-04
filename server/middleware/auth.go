@@ -24,7 +24,6 @@ func AuthorizeRoles(allowedRoles ...string) gin.HandlerFunc {
 		// Check if the role is allowed
 		for _, allowed := range allowedRoles {
 			if role == allowed {
-				// Add user info to context for downstream handlers
 				c.Set("email", claims["email"])
 				c.Set("rollNo", claims["rollNo"])
 				c.Set("role", role)

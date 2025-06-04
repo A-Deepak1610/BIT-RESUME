@@ -120,7 +120,6 @@ const AchievementsGraph = () => {
   useEffect(() => {
     const allSemsFromData = new Set();
     const dataSources = [achivementsPointsData, achivementPointsStudentData];
-
     dataSources.forEach(dataSource => {
         if (Array.isArray(dataSource)) {
             dataSource.forEach(item => {
@@ -393,15 +392,7 @@ const AchievementsGraph = () => {
         {(filteredAveragePoints.length > 0 || filteredStudentPoints.length > 0) ? (
             <Plot
             data={[
-                {
-                x: filteredAveragePoints.map((p) => p.date),
-                y: filteredAveragePoints.map((p) => p.value),
-                type: "scatter",
-                mode: "lines",
-                name: "Average Points",
-                line: { color: primaryColor, width: 2.5 },
-                hovertemplate: `<b>Average</b><br>Date: %{x|%b %d, %Y}<br>Points: %{y}<extra></extra>`
-                },
+                
                 {
                 x: filteredStudentPoints.map((p) => p.date),
                 y: filteredStudentPoints.map((p) => p.value),
@@ -410,6 +401,15 @@ const AchievementsGraph = () => {
                 name: "Your Points",
                 line: { color: secondaryColor, width: 2.5 },
                 hovertemplate: `<b>You</b><br>Date: %{x|%b %d, %Y}<br>Points: %{y}<extra></extra>`
+                },
+                {
+                  x: filteredAveragePoints.map((p) => p.date),
+                  y: filteredAveragePoints.map((p) => p.value),
+                type: "scatter",
+                mode: "lines",
+                name: "Average Points",
+                line: { color: primaryColor, width: 2.5 },
+                hovertemplate: `<b>Average</b><br>Date: %{x|%b %d, %Y}<br>Points: %{y}<extra></extra>`
                 }
             ]}
             layout={{
