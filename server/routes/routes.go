@@ -39,7 +39,7 @@ func RegisterRoutes(r *gin.Engine){
 		studentOnly.GET("/mentor/details/:rollno", pointshandlers.FetchMentorSkillStats)
 		studentOnly.POST("/mentee/add", pointshandlers.HandleMentee)
 		studentOnly.POST("/projects",projects.RecieveProjectData)
-		studentOnly.POST("/patents",patents.ReceivePatentsData)
+		// studentOnly.POST("/patents",patents.ReceivePatentsData)
 		studentOnly.POST("/internships",internship.ReceiveInternshipData)
 		studentOnly.POST("/workshops",workshops.ReceiveWorkshopData)
 		studentOnly.GET("/fetch/header_details/:rollno",headerdetails.FetchDataRank)
@@ -55,8 +55,7 @@ func RegisterRoutes(r *gin.Engine){
 	r.POST("/api/certificates/online-course",certificates.ReceiveCertificateData)
 	r.POST("/api/certificates/events",certificates.ReceiveCertificateData)
 	r.POST("/api/certificates/participation",certificates.ReceiveCertificateData)
-
+	r.POST("/api/patents",patents.ReceivePatentsData)
 	// faculty page
-
 	r.POST("/api/manageactivities/createActivity",manageactivities.ReceiveActivityData)
 }
