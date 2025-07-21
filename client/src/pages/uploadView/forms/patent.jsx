@@ -587,7 +587,7 @@ const Patent = ({ onBack, initialData = {} }) => {
 
     try {
       const response = await axios.post('http://localhost:6001/api/patents', payload, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+        withCredentials: true,
       });
 
       if (DEBUG_MODE) console.log('Patent submission successful:', response.data);

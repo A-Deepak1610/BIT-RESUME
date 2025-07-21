@@ -968,7 +968,7 @@ const Project = ({ onBack, initialData = {} }) => {
 
     try {
       const response = await axios.post('http://10.10.184.142:6001/api/projects', payload, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+        withCredentials: true,
       });
       
       if (DEBUG_MODE) console.log('Project submission successful:', response.data);

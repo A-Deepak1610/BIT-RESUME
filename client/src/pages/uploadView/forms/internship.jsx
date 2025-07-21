@@ -650,8 +650,8 @@ const Internship = ({ onBack, initialData = {} }) => {
 
     try {
       // Replace with your actual API endpoint
-      const response = await axios.post('http://10.10.184.142:6001/api/internships', payload, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+      const response = await axios.post('http://localhost:6001/api/internships', payload, {
+        withCredentials: true,
       });
 
       if (DEBUG_MODE) console.log('Internship submission successful:', response.data);

@@ -695,7 +695,7 @@ if (DEBUG_MODE) {
 
 try {
     const response = await axios.post('http://localhost:6001/api/workshops', payload, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+      withCredentials: true,
     });
     
     if (DEBUG_MODE) console.log('Event submission successful:', response.data);

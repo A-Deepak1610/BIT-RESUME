@@ -502,7 +502,7 @@ const PaperPresentation = ({ onBack, initialData = {} }) => {
 
     try {
       const response = await axios.post('http://YOUR_API_ENDPOINT/api/paper-presentations', payload, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+        withCredentials: true,
       });
 
       if (DEBUG_MODE) console.log('Paper Presentation submission successful:', response.data);

@@ -39,23 +39,23 @@ func RegisterRoutes(r *gin.Engine){
 		studentOnly.GET("/mentor/details/:rollno", pointshandlers.FetchMentorSkillStats)
 		studentOnly.POST("/mentee/add", pointshandlers.HandleMentee)
 		studentOnly.POST("/projects",projects.RecieveProjectData)
-		// studentOnly.POST("/patents",patents.ReceivePatentsData)
+		studentOnly.POST("/patents",patents.ReceivePatentsData)
 		studentOnly.POST("/internships",internship.ReceiveInternshipData)
 		studentOnly.POST("/workshops",workshops.ReceiveWorkshopData)
 		studentOnly.GET("/fetch/header_details/:rollno",headerdetails.FetchDataRank)
 		studentOnly.GET("/mentor/institute_avg/fetchData", pointshandlers.FetchSkillWiseAvgMentees)
 		studentOnly.GET("sem_wise_totaldays",pointshandlers.HandleSemDays)
+		studentOnly.POST("/paperpresentation",paperpresentstion.ReceivePaperPresentationData)
+		studentOnly.POST("/certificates/online-course",certificates.ReceiveCertificateData)
+		studentOnly.POST("/certificates/events",certificates.ReceiveCertificateData)
+		studentOnly.POST("/certificates/participation",certificates.ReceiveCertificateData)
 	}
 	facultyOnly := r.Group("/api")
 	facultyOnly.Use(middleware.AuthorizeRoles("faculty"))
 	{
 		facultyOnly.GET("/api/manageactivities",manageactivities.GetActivityData)
 	}
-	r.POST("/api/paperpresentation",paperpresentstion.ReceivePaperPresentationData)
-	r.POST("/api/certificates/online-course",certificates.ReceiveCertificateData)
-	r.POST("/api/certificates/events",certificates.ReceiveCertificateData)
-	r.POST("/api/certificates/participation",certificates.ReceiveCertificateData)
-	r.POST("/api/patents",patents.ReceivePatentsData)
+
 	// faculty page
 	r.POST("/api/manageactivities/createActivity",manageactivities.ReceiveActivityData)
 }
