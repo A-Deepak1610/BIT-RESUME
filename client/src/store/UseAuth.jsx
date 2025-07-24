@@ -15,7 +15,7 @@ const useAuth = create((set) => ({
       } else {
         set({ user: null, loading: false });
       }
-    } catch (err) {
+    } catch (err){
       set({ user: null, loading: false });
     }
   },

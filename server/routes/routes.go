@@ -6,6 +6,7 @@ import (
 	activitygraph "bitresume/api/dashboard/activity_graph"
 	headerdetails "bitresume/api/dashboard/header_details"
 	manageactivities "bitresume/api/faculty/ActivityTracker/ManageActivities"
+	addevents "bitresume/api/faculty/AddEvents"
 	pointshandlers "bitresume/api/pointsHandlers"
 	certificates "bitresume/api/upload-view/Certificates"
 	"bitresume/api/upload-view/internship"
@@ -53,9 +54,9 @@ func RegisterRoutes(r *gin.Engine){
 	facultyOnly := r.Group("/api")
 	facultyOnly.Use(middleware.AuthorizeRoles("faculty"))
 	{
-		facultyOnly.GET("/api/manageactivities",manageactivities.GetActivityData)
+		facultyOnly.GET("/manageactivities",manageactivities.GetActivityData)
 	}
-
 	// faculty page
+	r.POST("/api/addevents/create",addevents.AddEvents)	
 	r.POST("/api/manageactivities/createActivity",manageactivities.ReceiveActivityData)
 }

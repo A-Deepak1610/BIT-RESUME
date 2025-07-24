@@ -14,7 +14,7 @@ import ManageHistoryOutlinedIcon from "@mui/icons-material/ManageHistoryOutlined
 import FormatListBulletedOutlinedIcon from "@mui/icons-material/FormatListBulletedOutlined";
 import TuneOutlinedIcon from "@mui/icons-material/TuneOutlined";
 import BarChartOutlinedIcon from "@mui/icons-material/BarChartOutlined";
-
+import EventNoteIcon from '@mui/icons-material/EventNote';
 export default function SideBar() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -210,7 +210,7 @@ export default function SideBar() {
                     }`}
                     onClick={() => {
                       handleItemClick("allEventsLog");
-                      navigate("/faculty/tracker/all-events-log");
+                      navigate("/faculty-EventLog");
                     }}
                   >
                     <FormatListBulletedOutlinedIcon
@@ -247,7 +247,19 @@ export default function SideBar() {
                   navigate("/faculty-studentperformance");
                 }}
               >
-                <BarChartOutlinedIcon fontSize="small" /> Students Performance
+                <BarChartOutlinedIcon fontSize="small" /> Student Metrics
+              </li>
+              <li className={`flex items-center gap-3 cursor-pointer p-2 mt-3 rounded-md transition-all duration-300 ease-in-out ${
+                  activeItem === "addactitvity"
+                    ? "text-white bg-primary w-55"
+                    : "hover:bg-gray-100"
+                }`}
+                onClick={() => {
+                  handleItemClick("addactitvity");
+                  navigate("/faculty-addactitvity");
+                }}>
+                  <EventNoteIcon fontSize="small" />
+                  Add Activity
               </li>
               <li
                 className={`flex items-center gap-3 cursor-pointer p-2 rounded-md transition-all duration-300 ease-in-out ${

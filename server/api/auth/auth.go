@@ -1,5 +1,4 @@
 package auth
-
 import (
 	"bitresume/api/login"
 	"bitresume/config"

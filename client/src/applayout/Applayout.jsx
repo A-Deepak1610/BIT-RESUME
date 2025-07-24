@@ -26,6 +26,8 @@ import ManageActivity from "../pages/faculty/activityTracker/manageActivity/mana
 import StudentResume from "../pages/faculty/resumeDraft/StudentResume"
 import Verification from "../pages/faculty/studentRequest/verifications"
 import Approvals from "../pages/faculty/studentRequest/approvals"
+import AddActivity from "../pages/faculty/add-activity/AddActivity";
+import MeetingSessios from "../pages/Achivements/ColEvents/MeetingSessios";
 
 export default function Applayout() {
   const { fetchUser, user, loading } = useAuth();
@@ -52,6 +54,7 @@ export default function Applayout() {
               <Route path="/Achivement/ActivityLogger/RegisteredEvents" element={<RegisteredEvents />} />
               <Route path="/Achivement/ActivityLogger/RequestedEvents" element={<RequestedEvents />} />
               <Route path="/Achivement/ColEvents/Surveys" element={<Surveys />} />
+              <Route path="/Achivement/ColEvents/Meetings" element={<MeetingSessios />} />
               {/* ... other student sub-routes for uploadview ... */}
               <Route path="/uploadview/certificate" element={<CertificateUpload />} />
               <Route path="/uploadview/patent" element={<Patent />} />
@@ -71,6 +74,7 @@ export default function Applayout() {
               <Route path="/faculty-manageActivity" element={<ManageActivity/>}/>
               <Route path="/faculty-verification" element={<Verification/>}/>
               <Route path="/faculty-approval" element={<Approvals/>}/>
+              <Route path="/faculty-addactitvity" element={<AddActivity/>}/>
             </Route>
             <Route path="/student-resume" element={<StudentResume />} />
           </Route>

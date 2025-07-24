@@ -22,7 +22,7 @@ import ManageHistoryOutlinedIcon from '@mui/icons-material/ManageHistoryOutlined
 import FormatListBulletedOutlinedIcon from '@mui/icons-material/FormatListBulletedOutlined';
 import TuneOutlinedIcon from '@mui/icons-material/TuneOutlined';
 import BarChartOutlinedIcon from '@mui/icons-material/BarChartOutlined';
-
+import EventNoteIcon from '@mui/icons-material/EventNote';
 
 export default function NavBar() {
   const activeItem = useMemo(() => {
@@ -265,6 +265,18 @@ export default function NavBar() {
                 >
                   <BarChartOutlinedIcon fontSize="small" /> Student Performance
                 </li>
+                <li className={`flex items-center gap-3 cursor-pointer p-2 mt-3 rounded-md transition-all duration-300 ease-in-out ${
+                  activeItem === "addactitvity"
+                    ? "text-white bg-primary w-55"
+                    : "hover:bg-gray-100"
+                }`}
+                onClick={() => {
+                  handleItemClick("addactitvity");
+                  navigate("/faculty-addactitvity");
+                }}>
+                  <EventNoteIcon fontSize="small" />
+                  Add Activity
+              </li>
                 <li
                   className={`flex items-center gap-3 cursor-pointer p-2 rounded-md transition-all duration-300 ease-in-out ${
                     activeItem === "resumeDrafts"

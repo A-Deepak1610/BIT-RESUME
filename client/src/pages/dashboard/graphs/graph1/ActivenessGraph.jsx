@@ -20,7 +20,6 @@ const ActivenessGraph = () => {
     handlePoints();handleSemDays();
   }, []);
   const sendData = async (payload) =>{
-
     try {
       const response = await fetch(`${API_URL}api/points_logs/ps/attempts`, {
         method: "POST",

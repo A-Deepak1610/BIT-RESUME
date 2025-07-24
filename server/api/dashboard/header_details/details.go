@@ -33,7 +33,6 @@ func FetchDataRank(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error fetching total points"})
 		return
 	}
-
 	// 3. Count of positive points
 	err = config.DB.QueryRow("SELECT COUNT(*) FROM points_logs WHERE rollno = ? AND points >= 0", rollno).
 		Scan(&res.PositivePointsCount)
@@ -42,7 +41,6 @@ func FetchDataRank(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error fetching positive points count"})
 		return
 	}
-
 	// 4. Count of penalties
 	err = config.DB.QueryRow("SELECT COUNT(*) FROM points_logs WHERE rollno = ? AND points < 0", rollno).
 		Scan(&res.PenaltyCount)
