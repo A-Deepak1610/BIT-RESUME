@@ -2,12 +2,10 @@ package addevents
 
 import (
 	"bitresume/config"
-	"bitresume/models"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
-	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -24,15 +22,16 @@ func AddEvents(c *gin.Context) {
 	description := c.PostForm("description")
 	rules := c.PostForm("rules")
 	constraints := c.PostForm("constraints")
-
-	// Convert numeric fields
-	minTeamSize, _ := strconv.Atoi(c.PostForm("min_team_size"))
-	maxTeamSize, _ := strconv.Atoi(c.PostForm("max_team_size"))
-	noOfRounds, _ := strconv.Atoi(c.PostForm("no_of_rounds"))
-
+	minTeamSize := c.PostForm("min_team_size")
+	maxTeamSize := c.PostForm("max_team_size")
+	noOfRounds := c.PostForm("no_of_rounds")
 	onlineRounds := c.PostForm("online_rounds")
 	offlineRounds := c.PostForm("offline_rounds")
-
+	finalPrice1 := c.PostForm("final_prize1")
+	finalPrice2 := c.PostForm("final_prize2")
+	finalPrice3 := c.PostForm("final_prize3")
+	log.Println("Received event data:", eventName, eventType, deadline, minTeamSize, maxTeamSize,
+		noOfRounds, onlineRounds, offlineRounds, location, applyLink)
 	// Handle optional file upload
 	var imageURL string
 	file, err := c.FormFile("image")
@@ -43,27 +42,22 @@ func AddEvents(c *gin.Context) {
 			return
 		}
 	}
-
-	// Parse JSON fields
-	var finalPrizes map[string]string
-	if err := json.Unmarshal([]byte(c.PostForm("final_prizes")), &finalPrizes); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid final_prizes JSON"})
+	var id int
+	err = config.DB.QueryRow(`SELECT COALESCE(MAX(id), 0) FROM events`).Scan(&id)
+	if err != nil {
+		log.Println("Error fetching max id:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch max id"})
 		return
 	}
 
-	var rounds []models.RoundData
-	if err := json.Unmarshal([]byte(c.PostForm("rounds_data")), &rounds); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid rounds_data JSON"})
-		return
-	}
-
+	eventCode := fmt.Sprintf("%02dBIT%d", time.Now().Year()%100, id+1)
 	// Insert into database
-	insertStmt, err := config.DB.Prepare(`
+	query, err := config.DB.Prepare(`
 		INSERT INTO events (
-			event_name, type, deadline, min_team_size, max_team_size,
+			event_name,event_code, type, deadline, min_team_size, max_team_size,
 			no_of_rounds, online_rounds, offline_rounds, location, apply_link,
-			domains, description, rules, constraints, image_url
-		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+			domains, description, rules, constraints,final_price1,final_price2,final_price3,image_url
+		) VALUES (?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?, ?,?)
 	`)
 	if err != nil {
 		log.Println("Error preparing insert:", err)
@@ -71,19 +65,16 @@ func AddEvents(c *gin.Context) {
 		return
 	}
 
-	_, err = insertStmt.Exec(
-		eventName, eventType, deadline, minTeamSize, maxTeamSize,
+	_, err = query.Exec(
+		eventName, eventCode, eventType, deadline, minTeamSize, maxTeamSize,
 		noOfRounds, onlineRounds, offlineRounds, location, applyLink,
-		domains, description, rules, constraints, imageURL,
+		domains, description, rules, constraints, finalPrice1, finalPrice2, finalPrice3, imageURL,
 	)
 	if err != nil {
 		log.Println("Error executing insert:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-
 	log.Println("Event inserted successfully")
-	fmt.Printf("Received Event: %+v\nFinal Prizes: %+v\nRounds: %+v\n", eventName, finalPrizes, rounds)
-
 	c.JSON(http.StatusOK, gin.H{"message": "Event added successfully"})
 }
