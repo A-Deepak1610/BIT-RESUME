@@ -17,6 +17,7 @@ func main() {
 	config.InitOAuth()
 	config.InitDB()
 	r := gin.Default()
+	r.Static("/uploads", "./uploads")
 	corsConfig := cors.Config{
 		AllowOrigins:     []string{"http://localhost:5173"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},

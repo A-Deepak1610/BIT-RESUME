@@ -2,6 +2,9 @@ package addevents
 
 import (
 	"bitresume/config"
+	"encoding/json"
+	// "bitresume/models"
+	facultymodel "bitresume/models/faculty"
 	"fmt"
 	"log"
 	"net/http"
@@ -30,9 +33,23 @@ func AddEvents(c *gin.Context) {
 	finalPrice1 := c.PostForm("final_prize1")
 	finalPrice2 := c.PostForm("final_prize2")
 	finalPrice3 := c.PostForm("final_prize3")
-	log.Println("Received event data:", eventName, eventType, deadline, minTeamSize, maxTeamSize,
-		noOfRounds, onlineRounds, offlineRounds, location, applyLink)
-	// Handle optional file upload
+	roundData := c.PostForm("roundsData")
+	
+	var rounds []facultymodel.Round
+	if err := json.Unmarshal([]byte(roundData), &rounds); err != nil {
+		c.JSON(400, err.Error())
+		return
+	}
+	
+	fmt.Print("===============================")
+	for _, r := range rounds {
+		fmt.Println("Round No:", r.RoundNumber)
+		fmt.Println("Start date:", r.StartDate)
+		fmt.Println("End date:", r.EndDate)
+		fmt.Println("Reward Points:", r.Rewardpoints.Year1, r.Rewardpoints.Year2)
+	}
+
+	
 	var imageURL string
 	file, err := c.FormFile("image")
 	if err == nil {
@@ -52,11 +69,23 @@ func AddEvents(c *gin.Context) {
 
 	eventCode := fmt.Sprintf("%02dBIT%d", time.Now().Year()%100, id+1)
 	// Insert into database
-	query, err := config.DB.Prepare(`
+	for _, r := range rounds {
+		_, err := config.DB.Exec(`
+			INSERT INTO event_rounds_dates (
+				event_code, round_number, start_date, end_date, year1_rp, year2_rp, year3_rp, year4_rp
+			) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+			eventCode, r.RoundNumber, r.StartDate, r.EndDate,
+			r.Rewardpoints.Year1, r.Rewardpoints.Year2, r.Rewardpoints.Year3, r.Rewardpoints.Year4,
+		)
+		if err != nil {
+			log.Println("Error inserting rounds:", err)
+		}
+	}
+	query, err := config.DB.Prepare(`		
 		INSERT INTO events (
 			event_name,event_code, type, deadline, min_team_size, max_team_size,
 			no_of_rounds, online_rounds, offline_rounds, location, apply_link,
-			domains, description, rules, constraints,final_price1,final_price2,final_price3,image_url
+			domains, description, rules, constraints,final_prize1,final_prize2,final_prize3,image_url
 		) VALUES (?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?, ?,?)
 	`)
 	if err != nil {
@@ -69,12 +98,78 @@ func AddEvents(c *gin.Context) {
 		eventName, eventCode, eventType, deadline, minTeamSize, maxTeamSize,
 		noOfRounds, onlineRounds, offlineRounds, location, applyLink,
 		domains, description, rules, constraints, finalPrice1, finalPrice2, finalPrice3, imageURL,
-	)
+	) 
 	if err != nil {
 		log.Println("Error executing insert:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
+	// query, err = config.DB.Prepare(`INSERT INTO event_rounds_dates(
+	// 	event_code,round_number,start_date,end_date,year1_rp,year2_rp,year3_rp,year4_rp
+	// )`)
+	// if err!= nil{
+	// 	log.Println("Error preparing insert:", err)
+	// 	c.JSON(http.StatusInternalServerError, gin.H{"error":err.Error()})
+	// 	return
+	// }
 	log.Println("Event inserted successfully")
 	c.JSON(http.StatusOK, gin.H{"message": "Event added successfully"})
+}
+func FetchEvents(c *gin.Context) {
+    query := `
+    SELECT e.id, e.event_name, e.event_code, e.type, e.deadline, e.min_team_size, e.max_team_size,
+           e.no_of_rounds, e.online_rounds, e.offline_rounds, e.location, e.apply_link,
+           e.domains, e.image_url, e.description, e.rules, e.constraints,
+           e.final_prize1, e.final_prize2, e.final_prize3,
+           r.round_number, r.start_date, r.end_date, r.year1_rp, r.year2_rp, r.year3_rp, r.year4_rp
+    FROM events AS e
+    LEFT JOIN event_rounds_dates AS r ON e.event_code = r.event_code
+    `
+    
+    rows, err := config.DB.Query(query)
+    if err != nil {
+        log.Println("Error fetching events:", err)
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch events"})
+        return
+    }
+    defer rows.Close()
+
+    // Use map to group events by EventCode
+    eventMap := make(map[string]*facultymodel.Event)
+
+    for rows.Next() {
+        var event facultymodel.Event
+        var round facultymodel.Rounds
+
+        err := rows.Scan(
+            &event.ID, &event.EventName, &event.EventCode, &event.Type, &event.Deadline,
+            &event.MinTeamSize, &event.MaxTeamSize, &event.NoOfRounds, &event.OnlineRounds,
+            &event.OfflineRounds, &event.Location, &event.ApplyLink, &event.Domains,
+            &event.ImageURL, &event.Description, &event.Rules, &event.Constraints,
+            &event.FinalPrize1, &event.FinalPrize2, &event.FinalPrize3,
+            &round.RoundNumber, &round.StartDate, &round.EndDate,
+            &round.Year1RP, &round.Year2RP, &round.Year3RP, &round.Year4RP,
+        )
+        if err != nil {
+            log.Println("Error scanning event:", err)
+            continue
+        }
+        if existingEvent, found := eventMap[event.EventCode]; found {
+            if round.RoundNumber != 0 {
+                existingEvent.Rounds = append(existingEvent.Rounds, round)
+            }
+        } else {
+            if round.RoundNumber != 0 {
+                event.Rounds = []facultymodel.Rounds{round}
+            }
+            eventMap[event.EventCode] = &event
+        }
+    }
+
+    events := make([]facultymodel.Event, 0, len(eventMap))
+    for _, e := range eventMap {
+        events = append(events, *e)
+    }
+    c.JSON(http.StatusOK, gin.H{"events": events})
 }

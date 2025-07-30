@@ -1,7 +1,5 @@
 package facultymodel
 
-import "database/sql"
-
 type ManageActivities struct {
 	Activity_title  string `json:"activity_title"`
 	Activity_type   string `json:"activity_type"`
@@ -15,38 +13,62 @@ type ManageActivities struct {
 	Target_dept     string `json:"target_dept"`
 }
 type Event struct {
-	ID            int64          `json:"id"`
-	EventName     string         `json:"event_name"`
-	Type          string         `json:"type"`
-	Deadline      string         `json:"deadline"`
-	MinTeamSize   int            `json:"min_team_size"`
-	MaxTeamSize   int            `json:"max_team_size"`
-	NoOfRounds    int            `json:"no_of_rounds"`
-	OnlineRounds  sql.NullInt32  `json:"online_rounds"`
-	OfflineRounds sql.NullInt32  `json:"offline_rounds"`
-	Location      sql.NullString `json:"location"`
-	ApplyLink     sql.NullString `json:"apply_link"`
-	Domains       sql.NullString `json:"domains"`
-	ImageURL      sql.NullString `json:"image_url"`
-	Description   sql.NullString `json:"description"`
-	Rules         sql.NullString `json:"rules"`
-	Constraints   sql.NullString `json:"constraintsql"`
-	FinalPrizes   sql.NullString `json:"final_prizes"` 
+    ID            int64          `json:"id"`
+    EventName     string         `json:"event_name"`
+    EventCode     string         `json:"event_code"`
+    Type          string         `json:"type"`
+    Deadline      string         `json:"deadline"`
+    MinTeamSize   int            `json:"min_team_size"`
+    MaxTeamSize   int            `json:"max_team_size"`
+    NoOfRounds    int            `json:"no_of_rounds"`
+    OnlineRounds  int  `json:"online_rounds"`
+    OfflineRounds int `json:"offline_rounds"`
+    Location       string `json:"location"`
+    ApplyLink      string `json:"apply_link"`
+    Domains        string `json:"domains"`
+    ImageURL       string `json:"image_url"`
+    Description    string `json:"description"`
+    Rules          string `json:"rules"`
+    Constraints    string `json:"constraints"`
+    FinalPrize1    string `json:"final_prize1"`
+    FinalPrize2    string `json:"final_prize2"`
+    FinalPrize3    string `json:"final_prize3"`
+
+    // Add rounds slice
+    Rounds []Rounds `json:"rounds"`
 }
 
-// Round represents a single round of an event.
+type Rounds struct {
+    RoundNumber int    `json:"round_number"`
+    StartDate   string `json:"start_date"`
+    EndDate     string `json:"end_date"`
+    Year1RP     string `json:"year1_rp"`
+    Year2RP     string `json:"year2_rp"`
+    Year3RP     string `json:"year3_rp"`
+    Year4RP     string `json:"year4_rp"`
+}
+
+
 type Round struct {
-	ID           int64  `json:"id"`
-	EventID      int64  `json:"event_id"`
-	RoundNumber  int    `json:"round_number"`
+	RoundNumber  int    `json:"round_no" `
 	StartDate    string `json:"start_date"`
 	EndDate      string `json:"end_date"`
-	RewardPoints string `json:"reward_points"` // JSON is sent as a string
+	Rewardpoints Rewardpoints `json:"reward_points"`
 }
 
-// RoundData is used to unmarshal the JSON array from the form.
-type RoundData struct {
-	StartDate    string                 `json:"start_date"`
-	EndDate      string                 `json:"end_date"`
-	RewardPoints map[string]interface{} `json:"reward_points"`
+type Rewardpoints struct{
+	Year1        string	`json:"year1"`
+	Year2        string	`json:"year2"`
+	Year3        string	`json:"year3"`
+	Year4        string	`json:"year4"`
+}
+type EventRoundDates struct {
+	EventCode   string `json:"event_code"`
+	RoundNumber int    `json:"round_number"`
+	StartDate   string `json:"start_date"`
+	EndDate     string `json:"end_date"`
+	Year1RP     string `json:"year1_rp"`
+	Year2RP     string `json:"year2_rp"`
+	Year3RP     string `json:"year3_rp"`
+	Year4RP     string `json:"year4_rp"`
 }

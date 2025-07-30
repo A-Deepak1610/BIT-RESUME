@@ -16,5 +16,6 @@ export default function RoleRedirect() {
   if (!user) return <Login />;
   if (user.role === "student") return <Navigate to="/dashboard" replace />;
   if (user.role === "faculty") return <Navigate to="/faculty-dashboard" replace />;
+  if (user.role === "Admin") return <Navigate to="/admin-addactivity" replace />;
   return <Navigate to="/unauthorized" replace />; // Or back to login?
 }

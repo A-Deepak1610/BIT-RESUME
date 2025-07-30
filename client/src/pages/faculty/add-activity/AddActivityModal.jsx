@@ -331,7 +331,6 @@ export default function AddActivityModal({
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-
   const handleContinue = () => {
     if (validateStep()) {
       setStep((prev) => prev + 1);
@@ -340,6 +339,7 @@ export default function AddActivityModal({
 
   const prevStep = () => setStep((prev) => prev - 1);
 
+
   const handleSubmit = async () => {
     setIsSubmitting(true);
     const submissionData = new FormData();
@@ -347,12 +347,18 @@ export default function AddActivityModal({
       const value = formData[key];
       if (key === "image" && value instanceof File) {
         submissionData.append("image", value);
-      } else if (key === "roundsData" || key === "final_prizes") {
-        submissionData.append(key, JSON.stringify(value));
-      } else if (key !== "imagePreview") {
+      } else if (key === "roundsData" ) {
+            const roundsWithNumbers = value.map((round, index) => ({
+                ...round,
+                round_no: index + 1 
+            }));
+            submissionData.append(key, JSON.stringify(roundsWithNumbers));
+    }
+    else if (key !== "imagePreview") {
         submissionData.append(key, value);
       }
     });
+    console.log(submissionData.get("roundsData"));
     const API_URL = "http://localhost:6001/api/addevents/create";
     try {
       const response = await fetch(API_URL, {
@@ -361,7 +367,7 @@ export default function AddActivityModal({
         credentials: "include",
       });
       onActivityCreated();
-      handleModalClose();
+      // handleModalClose();
     } catch (error) {
       const errorMessage =
         error.response?.data?.message ||

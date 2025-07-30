@@ -27,9 +27,9 @@ export default function AddActivity() {
         }
     };
 
-    useEffect(() => {
-        fetchActivities();
-    }, []); // The dependency array is empty, so it only runs on mount. Add API_URL if it can change.
+    // useEffect(() => {
+    //     fetchActivities();
+    // }, []); // The dependency array is empty, so it only runs on mount. Add API_URL if it can change.
 
     const filteredActivities = useMemo(() => {
         if (!activities) return [];

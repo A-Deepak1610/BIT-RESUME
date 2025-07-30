@@ -18,16 +18,14 @@ import PageNotFound from "../pages/404/PageNotFound";
 import ActivityMaster from "../pages/Achivements/ActivityMaster/ActivityMaster";
 import RegisteredEvents from "../pages/Achivements/ActivityLogger/RegisteredEvents";
 import RequestedEvents from "../pages/Achivements/ActivityLogger/RequestedEvents";
-import Surveys from "../pages/Achivements/ColEvents/Surveys";
 import ResumeDraft from "../pages/faculty/resumeDraft/resumeDraft";
-import FacultyDashboard from "../pages/faculty/facultyDashboard";
 import StudentPerformance from "../pages/faculty/performance/facultyStudentPerformance" ;
 import ManageActivity from "../pages/faculty/activityTracker/manageActivity/manageActivity";
 import StudentResume from "../pages/faculty/resumeDraft/StudentResume"
 import Verification from "../pages/faculty/studentRequest/verifications"
 import Approvals from "../pages/faculty/studentRequest/approvals"
 import AddActivity from "../pages/faculty/add-activity/AddActivity";
-import MeetingSessios from "../pages/Achivements/ColEvents/MeetingSessios";
+import FacultyDashboard from "../pages/faculty/Faculty-Dashboard/facultyDashboard";
 
 export default function Applayout() {
   const { fetchUser, user, loading } = useAuth();
@@ -51,11 +49,8 @@ export default function Applayout() {
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/uploadview" element={<UploadView />} />
               <Route path="/Achivement/ActivityMaster" element={<ActivityMaster />} />
-              <Route path="/Achivement/ActivityLogger/RegisteredEvents" element={<RegisteredEvents />} />
+              <Route path="/Achivement/ActivityLogger" element={<RegisteredEvents />} />
               <Route path="/Achivement/ActivityLogger/RequestedEvents" element={<RequestedEvents />} />
-              <Route path="/Achivement/ColEvents/Surveys" element={<Surveys />} />
-              <Route path="/Achivement/ColEvents/Meetings" element={<MeetingSessios />} />
-              {/* ... other student sub-routes for uploadview ... */}
               <Route path="/uploadview/certificate" element={<CertificateUpload />} />
               <Route path="/uploadview/patent" element={<Patent />} />
               <Route path="/uploadview/project" element={<Project />} />
@@ -74,9 +69,13 @@ export default function Applayout() {
               <Route path="/faculty-manageActivity" element={<ManageActivity/>}/>
               <Route path="/faculty-verification" element={<Verification/>}/>
               <Route path="/faculty-approval" element={<Approvals/>}/>
-              <Route path="/faculty-addactitvity" element={<AddActivity/>}/>
             </Route>
             <Route path="/student-resume" element={<StudentResume />} />
+          </Route>
+          <Route element={<ProtectedRoute allowedRoles={["Admin"]}/>}>
+          <Route element={<DashboardLayout/>}>
+            <Route path="/admin-addactivity" element={<AddActivity/>}/>
+          </Route>
           </Route>
 
           <Route path="*" element={<PageNotFound />} />

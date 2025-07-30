@@ -15,7 +15,6 @@ import (
 	"bitresume/api/upload-view/projects"
 	"bitresume/api/upload-view/workshops"
 	"bitresume/middleware"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -50,6 +49,8 @@ func RegisterRoutes(r *gin.Engine){
 		studentOnly.POST("/certificates/online-course",certificates.ReceiveCertificateData)
 		studentOnly.POST("/certificates/events",certificates.ReceiveCertificateData)
 		studentOnly.POST("/certificates/participation",certificates.ReceiveCertificateData)
+		studentOnly.GET("/activitymaster/fetch",addevents.FetchEvents)
+
 	}
 	facultyOnly := r.Group("/api")
 	facultyOnly.Use(middleware.AuthorizeRoles("faculty"))

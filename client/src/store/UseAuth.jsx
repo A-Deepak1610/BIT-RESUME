@@ -15,10 +15,10 @@ const useAuth = create((set) => ({
       } else {
         set({ user: null, loading: false });
       }
-    } catch (err){
+    }  catch (err){
       set({ user: null, loading: false });
     }
-  },
+  }, 
   logout: async () => {
     try {
       await fetch("http://localhost:6001/api/auth/logout", {
