@@ -8,6 +8,7 @@ import (
 	manageactivities "bitresume/api/faculty/ActivityTracker/ManageActivities"
 	addevents "bitresume/api/faculty/AddEvents"
 	pointshandlers "bitresume/api/pointsHandlers"
+	registerevents "bitresume/api/registerEvents"
 	certificates "bitresume/api/upload-view/Certificates"
 	"bitresume/api/upload-view/internship"
 	"bitresume/api/upload-view/paperpresentstion"
@@ -15,6 +16,7 @@ import (
 	"bitresume/api/upload-view/projects"
 	"bitresume/api/upload-view/workshops"
 	"bitresume/middleware"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -50,6 +52,8 @@ func RegisterRoutes(r *gin.Engine){
 		studentOnly.POST("/certificates/events",certificates.ReceiveCertificateData)
 		studentOnly.POST("/certificates/participation",certificates.ReceiveCertificateData)
 		studentOnly.GET("/activitymaster/fetch",addevents.FetchEvents)
+		studentOnly.POST("/addregisterevents",registerevents.HandleRegisterEvents)
+		studentOnly.GET("/events/registered/:rollno",registerevents.GetRegisteredEvents)
 
 	}
 	facultyOnly := r.Group("/api")

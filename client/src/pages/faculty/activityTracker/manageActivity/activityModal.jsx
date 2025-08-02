@@ -1,329 +1,399 @@
 import React, { useState } from 'react';
 import { Modal, Box, IconButton } from '@mui/material';
-import { X, FileText, Calendar, MapPin, Users, Eye } from 'lucide-react';
+import { X, FileText, Calendar, MapPin, Users, Eye, Briefcase, AlertTriangle, UserCheck } from 'lucide-react';
 import axios from 'axios';
 
+// --- Constants ---
 const activityTypes = ["Survey", "Workshop", "Seminar", "Meeting", "Event", "Sessions"];
 const years = ["All Years", "1st Year", "2nd Year", "3rd Year", "4th Year"];
 const departments = ["Computer Science", "Electrical Engineering", "Mechanical Engineering", "Civil Engineering", "All Departments"];
+const publishingDepartments = [
+"Department of Student Affairs",
+"Training and Placement Cell",
+"Computer Science Department",
+"Electrical Engineering Department",
+"Mechanical Engineering Department",
+"Civil Engineering Department",
+"Alumni Association"
+];
 
 const style = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: '90%',
-    maxWidth: '700px',
-    bgcolor: 'background.paper',
-    boxShadow: 24,
-    borderRadius: '12px',
-    overflow: 'hidden',
+position: 'absolute',
+top: '50%',
+left: '50%',
+transform: 'translate(-50%, -50%)',
+width: '90%',
+maxWidth: '700px',
+bgcolor: 'background.paper',
+boxShadow: 24,
+borderRadius: '12px',
+overflow: 'hidden',
+};
+
+// --- Helper Component for Displaying Errors ---
+const ErrorDisplay = ({ message }) => {
+if (!message) return null;
+return (
+<p className="mt-1.5 flex items-center text-sm text-red-600">
+<AlertTriangle size={14} className="mr-1.5" />
+{message}
+</p>
+);
 };
 
 export default function CreateActivityModal({ open, handleClose }) {
-    const [activity_title, setActivityTitle] = useState('');
-    const [activity_type, setActivityType] = useState('');
-    const [description, setDescription] = useState('');
-    const [start_date, setStartDate] = useState('');
-    const [end_date, setEndDate] = useState('');
-    const [linkorlocation, setLinkOrLocation] = useState('');
-    const [year_type, setYearType] = useState('');
-    const [target_dept, setTargetDept] = useState('All Departments');
-    const [specific_rollno, setSpecificRollno] = useState('');
+const [activity_title, setActivityTitle] = useState('');
+const [activity_type, setActivityType] = useState('');
+const [publishingDepartment, setPublishingDepartment] = useState('');
+const [description, setDescription] = useState('');
+const [start_date, setStartDate] = useState('');
+const [end_date, setEndDate] = useState('');
+const [linkorlocation, setLinkOrLocation] = useState('');
+const [year_type, setYearType] = useState('');
+const [target_dept, setTargetDept] = useState('All Departments');
+const [specific_rollno, setSpecificRollno] = useState('');
+const [host, setHost] = useState('');
+const [session_with, setSessionWith] = useState('');
+const [errors, setErrors] = useState({});
 
-    const handleSubmit = async () => {
-        // Basic Validations
-        if (!activity_title.trim()) {
-            alert('Activity Title is required.');
-            return;
-        }
-        if (!activity_type) {
-            alert('Activity Type is required.');
-            return;
-        }
-        if (!description.trim()) {
-            alert('Description is required.');
-            return;
-        }
-        if (!start_date) {
-            alert('Start Date is required.');
-            return;
-        }
-        if (!end_date) {
-            alert('End Date is required.');
-            return;
-        }
-        if (new Date(end_date) < new Date(start_date)) {
-            alert('End Date cannot be before Start Date.');
-            return;
-        }
+const clearError = (fieldName) => {
+    if (errors[fieldName]) {
+        setErrors(prev => {
+            const newErrors = { ...prev };
+            delete newErrors[fieldName];
+            return newErrors;
+        });
+    }
+};
 
-        if (activity_type) {
-            if (!year_type) {
-                alert('Target Year is required when an Activity Type is selected.');
-                return;
-            }
-        }
+const validateForm = () => {
+    const newErrors = {};
+    if (!activity_title.trim()) newErrors.activity_title = 'Activity Title is required.';
+    if (!publishingDepartment) newErrors.publishingDepartment = 'Publishing Department is required.';
+    if (!activity_type) newErrors.activity_type = 'Activity Type is required.';
+    if ((activity_type === "Workshop" || activity_type === "Meeting") && !host.trim()) {
+        newErrors.host = 'Host is required for Workshops and Meetings.';
+    }
+    if (activity_type === "Sessions" && !session_with.trim()) {
+        newErrors.session_with = 'Session with is required for Sessions.';
+    }
+    if (!description.trim()) newErrors.description = 'Description is required.';
+    if (!start_date) newErrors.start_date = 'Start Date is required.';
+    if (!end_date) newErrors.end_date = 'End Date is required.';
+    if (start_date && end_date && new Date(end_date) < new Date(start_date)) {
+        newErrors.end_date = 'End Date cannot be before Start Date.';
+    }
+    if (activity_type && activity_type !== "Sessions" && !year_type) {
+        newErrors.year_type = 'Target Year is required.';
+    }
+    if (activity_type === "Sessions" && !specific_rollno.trim()) {
+        newErrors.specific_rollno = 'Student roll numbers are required for Sessions.';
+    }
 
-        const final_specific_rollno = (activity_type === "Sessions" && specific_rollno.trim()) ? specific_rollno.trim() : null;
-        const isForAllStudents = year_type === "All Years" && target_dept === "All Departments";
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+};
 
-        // Create FormData object
-        const formData = new FormData();
+const handleSubmit = async () => {
+    if (!validateForm()) {
+        return;
+    }
 
-        // Append fields to formData
-        // Note: FormData will convert null values to the string "null".
-        // If your backend expects absent fields for null, you'd need conditional appends.
-        formData.append('activity_title', activity_title.trim());
-        formData.append('activity_type', activity_type);
-        formData.append('description', description.trim());
-        formData.append('start_date', start_date);
-        formData.append('end_date', end_date);
+    const isForAllStudents = year_type === "All Years" && target_dept === "All Departments";
 
-        if (linkorlocation.trim()) {
-            formData.append('linkorlocation', linkorlocation.trim());
-        }
-        // If you must send null as a field if empty:
-        // formData.append('linkorlocation', linkorlocation.trim() || null); // This might send "null" string
+    const formData = new FormData();
+    formData.append('activity_title', activity_title.trim());
+    formData.append('activity_type', activity_type);
+    formData.append('publishingDepartment', publishingDepartment);
+    formData.append('description', description.trim());
+    formData.append('start_date', start_date);
+    formData.append('end_date', end_date);
 
+    if (linkorlocation.trim()) formData.append('linkorlocation', linkorlocation.trim());
+
+    if (activity_type === "Workshop" || activity_type === "Meeting") {
+        formData.append('host', host.trim());
+    }
+
+    if (activity_type === "Sessions") {
+        formData.append('session_with', session_with.trim());
+        formData.append('student_rollnos', specific_rollno.trim());
+    } else {
         formData.append('year_type', year_type);
         formData.append('target_dept', target_dept);
+        formData.append('all_students', isForAllStudents ? '1' : '0');
+    }
 
-        if (final_specific_rollno) {
-            formData.append('specific_rollno', final_specific_rollno);
-        }
-        // If you must send null as a field if empty:
-        // formData.append('specific_rollno', final_specific_rollno); // This might send "null" string
 
-        formData.append('all_students', isForAllStudents ? '1' : '0'); // FormData converts numbers to strings
+    // --- Console log for all data being sent to the backend ---
+    console.log("--- Sending Data to Backend ---");
+    for (let [key, value] of formData.entries()) {
+        console.log(`${key}:`, value);
+    }
+    console.log("-----------------------------");
 
-        // For debugging: Log FormData entries
-        // Note: Direct console.log(formData) won't show entries. You need to iterate.
-        console.log("FormData entries to be sent:");
-        for (let [key, value] of formData.entries()) {
-            console.log(`  ${key}:`, value);
-        }
 
-        const API_URL = 'http://localhost:6001/api/manageactivities/createActivity';
+    const API_URL = 'http://localhost:6001/api/manageactivities/createActivity';
 
-        try {
-            const response = await axios.post(API_URL, formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            });
-            console.log('Activity created successfully:', response.data);
+    try {
+        const response = await axios.post(API_URL, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        console.log('Activity created successfully:', response.data);
 
-            setActivityTitle('');
-            setActivityType('');
-            setDescription('');
-            setStartDate('');
-            setEndDate('');
-            setLinkOrLocation('');
-            setYearType('');
-            setTargetDept('All Departments');
-            setSpecificRollno('');
+        // Reset all states
+        setActivityTitle('');
+        setActivityType('');
+        setPublishingDepartment('');
+        setDescription('');
+        setStartDate('');
+        setEndDate('');
+        setLinkOrLocation('');
+        setYearType('');
+        setTargetDept('All Departments');
+        setSpecificRollno('');
+        setHost('');
+        setSessionWith('');
+        setErrors({});
+        handleClose();
+    } catch (error) {
+        const errorMessage = error.response
+            ? (error.response.data.message || JSON.stringify(error.response.data))
+            : error.message;
+        console.error('Error creating activity:', error.response ? error.response.data : error.message);
+        setErrors({ submit: `Failed to create activity: ${errorMessage}` });
+    }
+};
 
-            handleClose();
-        } catch (error) {
-            const errorMessage = error.response
-                ? (error.response.data.message || JSON.stringify(error.response.data))
-                : error.message;
-            console.error('Error creating activity:', error.response ? error.response.data : error.message);
-            console.error('Full error object:', error);
-            if (error.response) {
-                console.error('Error status:', error.response.status);
-                console.error('Error headers:', error.response.headers);
-            }
-            alert(`Error creating activity: ${errorMessage}`);
-        }
-    };
-
-    return (
-        <Modal
-            open={open}
-            onClose={handleClose}
-            aria-labelledby="create-activity-modal-title"
-            aria-describedby="create-activity-modal-description"
-        >
-            <Box sx={style}>
-                {/* Modal Header */}
-                <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200">
-                    <div className="flex items-center gap-3">
-                        <FileText className="text-indigo-600" size={28} />
-                        <h2 id="create-activity-modal-title" className="text-xl sm:text-2xl font-semibold text-gray-800">
-                            Create New Activity
-                        </h2>
-                    </div>
-                    <IconButton onClick={handleClose} size="small">
-                        <X className="text-gray-500 hover:text-gray-700" />
-                    </IconButton>
+return (
+    <Modal open={open} onClose={handleClose}>
+        <Box sx={style}>
+            <div className="flex items-center justify-between p-4 sm:p-6 border-b">
+                <div className="flex items-center gap-3">
+                    <FileText className="text-indigo-600" size={28} />
+                    <h2 className="text-xl sm:text-2xl font-semibold text-gray-800">Create New Activity</h2>
                 </div>
+                <IconButton onClick={handleClose} size="small">
+                    <X className="text-gray-500 hover:text-gray-700" />
+                </IconButton>
+            </div>
 
-                <div className="p-4 sm:p-6 max-h-[75vh] overflow-y-auto">
-                    <section className="mb-6 sm:mb-8">
-                        <h3 className="text-lg font-medium text-gray-700 mb-4">Basic Information</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                            <div>
-                                <label htmlFor="activity_title" className="block text-sm font-medium text-gray-600 mb-1">Activity Title *</label>
-                                <input
-                                    type="text"
-                                    id="activity_title"
-                                    value={activity_title}
-                                    onChange={(e) => setActivityTitle(e.target.value)}
-                                    placeholder="Enter activity title"
-                                    className="w-full p-2.5 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm"
-                                />
-                            </div>
-                            <div>
-                                <label htmlFor="activity_type" className="block text-sm font-medium text-gray-600 mb-1">Activity Type *</label>
-                                <select
-                                    id="activity_type"
-                                    value={activity_type}
-                                    onChange={(e) => {
-                                        setActivityType(e.target.value);
-                                        if (e.target.value !== "Sessions") {
-                                            setSpecificRollno('');
-                                        }
-                                    }}
-                                    className="w-full p-2.5 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm bg-white"
-                                >
-                                    <option value="" disabled>Select type</option>
-                                    {activityTypes.map(type => <option key={type} value={type}>{type}</option>)}
-                                </select>
-                            </div>
-                        </div>
-                        <div className="mt-4 sm:mt-6">
-                            <label htmlFor="description" className="block text-sm font-medium text-gray-600 mb-1">Description *</label>
-                            <textarea
-                                id="description"
-                                rows="4"
-                                value={description}
-                                onChange={(e) => setDescription(e.target.value)}
-                                placeholder="Describe the activity, its purpose, and what participants can expect..."
-                                className="w-full p-2.5 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm"
-                            />
-                        </div>
-                    </section>
-
-                    <section className="mb-6 sm:mb-8">
-                        <div className="flex items-center gap-2 mb-4">
-                            <Calendar className="text-indigo-600" size={22} />
-                            <h3 className="text-lg font-medium text-gray-700">Schedule & Location</h3>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                            <div>
-                                <label htmlFor="start_date" className="block text-sm font-medium text-gray-600 mb-1">Start Date *</label>
-                                <input
-                                    type="date"
-                                    id="start_date"
-                                    value={start_date}
-                                    onChange={(e) => setStartDate(e.target.value)}
-                                    className="w-full p-2.5 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm"
-                                />
-                            </div>
-                            <div>
-                                <label htmlFor="end_date" className="block text-sm font-medium text-gray-600 mb-1">End Date *</label>
-                                <input
-                                    type="date"
-                                    id="end_date"
-                                    value={end_date}
-                                    onChange={(e) => setEndDate(e.target.value)}
-                                    className="w-full p-2.5 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm"
-                                />
-                            </div>
-                        </div>
-                        <div className="mt-4 sm:mt-6">
-                            <label htmlFor="linkorlocation" className="block text-sm font-medium text-gray-600 mb-1">
-                                <MapPin size={16} className="inline mr-1.5 mb-0.5 text-gray-500" />
-                                Location or Link (Optional)
-                            </label>
+            <div className="p-4 sm:p-6 max-h-[75vh] overflow-y-auto">
+                {errors.submit && <ErrorDisplay message={errors.submit} />}
+                <section className="mb-6 sm:mb-8">
+                    <h3 className="text-lg font-medium text-gray-700 mb-4">Basic Information</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                        <div>
+                            <label htmlFor="activity_title" className="block text-sm font-medium text-gray-600 mb-1">Activity Title *</label>
                             <input
                                 type="text"
-                                id="linkorlocation"
-                                value={linkorlocation}
-                                onChange={(e) => setLinkOrLocation(e.target.value)}
-                                placeholder="e.g., Auditorium A, Conference Room, or Zoom link"
-                                className="w-full p-2.5 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                                id="activity_title"
+                                value={activity_title}
+                                onChange={(e) => { setActivityTitle(e.target.value); clearError('activity_title'); }}
+                                placeholder="Enter activity title"
+                                className={`w-full p-2.5 border rounded-md shadow-sm text-sm ${errors.activity_title ? 'border-red-500' : 'border-gray-300'}`}
                             />
+                            <ErrorDisplay message={errors.activity_title} />
                         </div>
-                    </section>
+                        <div>
+                            <label htmlFor="activity_type" className="block text-sm font-medium text-gray-600 mb-1">Activity Type *</label>
+                            <select
+                                id="activity_type"
+                                value={activity_type}
+                                onChange={(e) => {
+                                    setActivityType(e.target.value);
+                                    // Clear fields that depend on the type
+                                    setHost('');
+                                    setSessionWith('');
+                                    setSpecificRollno('');
+                                    setYearType('');
+                                    clearError('activity_type');
+                                    clearError('host');
+                                    clearError('session_with');
+                                    clearError('specific_rollno');
+                                }}
+                                className={`w-full p-2.5 border rounded-md shadow-sm text-sm bg-white ${errors.activity_type ? 'border-red-500' : 'border-gray-300'}`}
+                            >
+                                <option value="" disabled>Select type</option>
+                                {activityTypes.map(type => <option key={type} value={type}>{type}</option>)}
+                            </select>
+                            <ErrorDisplay message={errors.activity_type} />
+                        </div>
+                    </div>
 
-                    {activity_type && (
-                        <section className="mb-6 sm:mb-8">
-                            <div className="flex items-center gap-2 mb-2">
-                                <Users className="text-indigo-600" size={22} />
-                                <h3 className="text-lg font-medium text-gray-700">Visibility Rules *</h3>
-                            </div>
-                            <p className="text-xs text-gray-500 mb-4">Select who can view and respond to this activity. `year_type` is mandatory.</p>
+                    <div className="mt-4 sm:mt-6">
+                        <label htmlFor="publishing_department" className="block text-sm font-medium text-gray-600 mb-1">
+                            <Briefcase size={16} className="inline mr-1.5 mb-0.5" />
+                            Publishing Department *
+                        </label>
+                        <select
+                            id="publishing_department"
+                            value={publishingDepartment}
+                            onChange={(e) => { setPublishingDepartment(e.target.value); clearError('publishingDepartment'); }}
+                            className={`w-full p-2.5 border rounded-md shadow-sm text-sm bg-white ${errors.publishingDepartment ? 'border-red-500' : 'border-gray-300'}`}
+                        >
+                            <option value="" disabled>Select publishing department</option>
+                            {publishingDepartments.map(dept => <option key={dept} value={dept}>{dept}</option>)}
+                        </select>
+                        <ErrorDisplay message={errors.publishingDepartment} />
+                    </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label htmlFor="year_type" className="block text-sm font-medium text-gray-600 mb-1">Target Year (year_type) *</label>
-                                    <select
-                                        id="year_type"
-                                        value={year_type}
-                                        onChange={(e) => setYearType(e.target.value)}
-                                        className="w-full p-2.5 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm bg-white"
-                                    >
-                                        <option value="" disabled>Select year</option>
-                                        {years.map(year => <option key={year} value={year}>{year}</option>)}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label htmlFor="target_dept" className="block text-sm font-medium text-gray-600 mb-1">Target Department (target_dept) (Optional)</label>
-                                    <select
-                                        id="target_dept"
-                                        value={target_dept}
-                                        onChange={(e) => setTargetDept(e.target.value)}
-                                        className="w-full p-2.5 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm bg-white"
-                                    >
-                                        {departments.map(dept => <option key={dept} value={dept}>{dept}</option>)}
-                                    </select>
-                                </div>
-                            </div>
-
-                            {activity_type === "Sessions" && (
-                                <div className="mt-4 sm:mt-6">
-                                    <label htmlFor="specific_rollno" className="block text-sm font-medium text-gray-600 mb-1">
-                                        Specific Roll Numbers (specific_rollno) (Optional for Sessions)
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="specific_rollno"
-                                        value={specific_rollno}
-                                        onChange={(e) => setSpecificRollno(e.target.value)}
-                                        placeholder="Enter comma-separated roll numbers"
-                                        className="w-full p-2.5 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm"
-                                    />
-                                    <p className="text-xs text-gray-500 mt-1">
-                                        If provided for a Session, this list will further refine the audience.
-                                    </p>
-                                </div>
-                            )}
-                        </section>
+                    {(activity_type === "Workshop" || activity_type === "Meeting") && (
+                        <div className="mt-4 sm:mt-6">
+                            <label htmlFor="host" className="block text-sm font-medium text-gray-600 mb-1">Host *</label>
+                            <input
+                                type="text"
+                                id="host"
+                                value={host}
+                                onChange={(e) => { setHost(e.target.value); clearError('host'); }}
+                                placeholder="Enter the host's name or department"
+                                className={`w-full p-2.5 border rounded-md shadow-sm text-sm ${errors.host ? 'border-red-500' : 'border-gray-300'}`}
+                            />
+                            <ErrorDisplay message={errors.host} />
+                        </div>
                     )}
-                </div>
 
-                {/* Modal Footer */}
-                <div className="flex flex-col sm:flex-row items-center justify-end gap-3 p-4 sm:p-6 border-t border-gray-200 bg-slate-50">
-                    <button
-                        type="button"
-                        onClick={handleClose}
-                        className="w-full sm:w-auto px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                    >
-                        Cancel
-                    </button>
-                    <button
-                        type="button"
-                        onClick={handleSubmit}
-                        className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition duration-150 ease-in-out"
-                    >
-                        <Eye size={18} />
-                        <span>Publish Activity</span>
-                    </button>
-                </div>
-            </Box>
-        </Modal>
-    );
+                    {activity_type === "Sessions" && (
+                        <div className="mt-4 sm:mt-6">
+                            <label htmlFor="session_with" className="block text-sm font-medium text-gray-600 mb-1">With whom is the Session? *</label>
+                            <input
+                                type="text"
+                                id="session_with"
+                                value={session_with}
+                                onChange={(e) => { setSessionWith(e.target.value); clearError('session_with'); }}
+                                placeholder="e.g., Principal, HOD"
+                                className={`w-full p-2.5 border rounded-md shadow-sm text-sm ${errors.session_with ? 'border-red-500' : 'border-gray-300'}`}
+                            />
+                            <ErrorDisplay message={errors.session_with} />
+                        </div>
+                    )}
+
+
+                    <div className="mt-4 sm:mt-6">
+                        <label htmlFor="description" className="block text-sm font-medium text-gray-600 mb-1">Description *</label>
+                        <textarea
+                            id="description"
+                            rows="4"
+                            value={description}
+                            onChange={(e) => { setDescription(e.target.value); clearError('description'); }}
+                            placeholder="Describe the activity, its purpose, and what participants can expect..."
+                            className={`w-full p-2.5 border rounded-md shadow-sm text-sm ${errors.description ? 'border-red-500' : 'border-gray-300'}`}
+                        />
+                        <ErrorDisplay message={errors.description} />
+                    </div>
+                </section>
+
+                <section className="mb-6 sm:mb-8">
+                    <div className="flex items-center gap-2 mb-4">
+                        <Calendar className="text-indigo-600" size={22} />
+                        <h3 className="text-lg font-medium text-gray-700">Schedule & Location</h3>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                        <div>
+                            <label htmlFor="start_date" className="block text-sm font-medium text-gray-600 mb-1">Start Date *</label>
+                            <input
+                                type="date"
+                                id="start_date"
+                                value={start_date}
+                                onChange={(e) => { setStartDate(e.target.value); clearError('start_date'); }}
+                                className={`w-full p-2.5 border rounded-md shadow-sm text-sm ${errors.start_date ? 'border-red-500' : 'border-gray-300'}`}
+                            />
+                            <ErrorDisplay message={errors.start_date} />
+                        </div>
+                        <div>
+                            <label htmlFor="end_date" className="block text-sm font-medium text-gray-600 mb-1">End Date *</label>
+                            <input
+                                type="date"
+                                id="end_date"
+                                value={end_date}
+                                onChange={(e) => { setEndDate(e.target.value); clearError('end_date'); }}
+                                className={`w-full p-2.5 border rounded-md shadow-sm text-sm ${errors.end_date ? 'border-red-500' : 'border-gray-300'}`}
+                            />
+                            <ErrorDisplay message={errors.end_date} />
+                        </div>
+                    </div>
+                    <div className="mt-4 sm:mt-6">
+                        <label htmlFor="linkorlocation" className="block text-sm font-medium text-gray-600 mb-1">
+                            <MapPin size={16} className="inline mr-1.5 mb-0.5" />
+                            Location or Link (Optional)
+                        </label>
+                        <input
+                            type="text"
+                            id="linkorlocation"
+                            value={linkorlocation}
+                            onChange={(e) => setLinkOrLocation(e.target.value)}
+                            placeholder="e.g., Auditorium A, or Zoom link"
+                            className="w-full p-2.5 border border-gray-300 rounded-md shadow-sm text-sm"
+                        />
+                    </div>
+                </section>
+
+                {activity_type && (
+                    <section className="mb-6 sm:mb-8">
+                        <div className="flex items-center gap-2 mb-2">
+                            <UserCheck className="text-indigo-600" size={22} />
+                            <h3 className="text-lg font-medium text-gray-700">Audience *</h3>
+                        </div>
+                        {activity_type === "Sessions" ? (
+                             <div className="mt-4 sm:mt-6">
+                             <label htmlFor="specific_rollno" className="block text-sm font-medium text-gray-600 mb-1">Student Roll Numbers *</label>
+                             <input
+                                 type="text"
+                                 id="specific_rollno"
+                                 value={specific_rollno}
+                                 onChange={(e) => {setSpecificRollno(e.target.value); clearError('specific_rollno')}}
+                                 placeholder="Enter comma-separated roll numbers"
+                                 className={`w-full p-2.5 border rounded-md shadow-sm text-sm ${errors.specific_rollno ? 'border-red-500' : 'border-gray-300'}`}
+                             />
+                             <ErrorDisplay message={errors.specific_rollno} />
+                         </div>
+                        ) : (
+                            <>
+                                <p className="text-xs text-gray-500 mb-4">Select who can view and respond to this activity.</p>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label htmlFor="year_type" className="block text-sm font-medium text-gray-600 mb-1">Target Year *</label>
+                                        <select
+                                            id="year_type"
+                                            value={year_type}
+                                            onChange={(e) => { setYearType(e.target.value); clearError('year_type'); }}
+                                            className={`w-full p-2.5 border rounded-md shadow-sm text-sm bg-white ${errors.year_type ? 'border-red-500' : 'border-gray-300'}`}
+                                        >
+                                            <option value="" disabled>Select year</option>
+                                            {years.map(year => <option key={year} value={year}>{year}</option>)}
+                                        </select>
+                                        <ErrorDisplay message={errors.year_type} />
+                                    </div>
+                                    <div>
+                                        <label htmlFor="target_dept" className="block text-sm font-medium text-gray-600 mb-1">Target Department</label>
+                                        <select
+                                            id="target_dept"
+                                            value={target_dept}
+                                            onChange={(e) => setTargetDept(e.target.value)}
+                                            className="w-full p-2.5 border border-gray-300 rounded-md shadow-sm text-sm bg-white"
+                                        >
+                                            {departments.map(dept => <option key={dept} value={dept}>{dept}</option>)}
+                                        </select>
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                    </section>
+                )}
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center justify-end gap-3 p-4 sm:p-6 border-t bg-slate-50">
+                <button type="button" onClick={handleClose} className="w-full sm:w-auto px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border rounded-lg shadow-sm hover:bg-gray-50">
+                    Cancel
+                </button>
+                <button type="button" onClick={handleSubmit} className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-lg shadow-md">
+                    <Eye size={18} />
+                    <span>Publish Activity</span>
+                </button>
+            </div>
+        </Box>
+    </Modal>
+);
+
+
 }

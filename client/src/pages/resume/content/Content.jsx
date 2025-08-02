@@ -17,7 +17,6 @@ export default function Content() {
           <div className="p-2 md:p-2 bg-white shadow rounded-lg h-[32vh] w-full lg:w-[45%]">
             <ActivenessGraph />
           </div>
-
           {/* Card */}
           <div className="flex flex-row lg:flex-col w-full lg:w-[12%] justify-around h-auto lg:h-[32vh] mt-2 lg:my-0 lg:mx-2">
             <div className="h-20 shadow-md rounded-lg flex flex-col justify-center items-center bg-white w-1/3 lg:w-full mx-1 lg:mx-0 lg:mb-2 transition-transform hover:scale-105">
@@ -60,7 +59,7 @@ export default function Content() {
         {/* Middle Container */}
         <div className="mt-2 flex flex-col lg:flex-row items-center justify-center">
           {/* Graph 2 */}
-          <div className="p-2 md:p-2 bg-white w-full lg:w-[50%] shadow rounded-lg h-[32vh] flex flex-col">
+          <div className="p-2  md:p-2 pb bg-white w-full lg:w-[50%]  shadow rounded-lg h-[32vh] flex flex-col overflow-hidden">
             <PsSkillGraph />
           </div>
 

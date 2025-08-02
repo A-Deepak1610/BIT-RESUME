@@ -38,7 +38,7 @@ export default function ManageActivity() {
     }, [API_URL]);
 
     const filteredActivities = useMemo(() => {
-        if (!activities || activities.length === 0) return []; // Ensure activities is an array and not empty
+        if (!activities || activities.length === 0) return [];
         if (!searchTerm) {
             return activities;
         }

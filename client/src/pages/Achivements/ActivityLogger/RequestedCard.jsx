@@ -1,22 +1,18 @@
 // RequestCard.jsx
 import React from "react";
 import { MapPin, Trophy, Users, Tag, XCircle, CheckCircle2 } from "lucide-react";
-
 import defaultEventImage from "../../../assets/ActivityMaster/master.jpg"; // Ensure this path is correct
 
 const RequestCard = ({ data, onApprove, onReject }) => {
   if (!data) {
     return null; // Or some placeholder for missing data
   }
-
   const imgSrc = defaultEventImage;
   const requestedBy = data["Requested By"]; // Accessing field name with a space
-
   const handleApproveClick = (e) => {
     e.stopPropagation(); // Prevent card click if an onCardClick prop were added to the parent div
     if (onApprove) onApprove(data.id);
   };
-
   const handleRejectClick = (e) => {
     e.stopPropagation();
     if (onReject) onReject(data.id);

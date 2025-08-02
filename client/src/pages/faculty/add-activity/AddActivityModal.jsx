@@ -19,8 +19,6 @@ import {
   ChevronRight,
   Loader2,
 } from "lucide-react";
-import axios from "axios";
-
 const eventTypes = ["Online", "Offline", "Hybrid"];
 const years = ["year1", "year2", "year3", "year4"];
 const STEP_TITLES = [
@@ -135,7 +133,7 @@ const TextareaField = ({
   <div>
     <label
       htmlFor={id}
-      className="block text-sm font-medium text-gray-700 mb-1 flex items-center"
+      className="text-sm font-medium text-gray-700 mb-1 flex items-center"
     >
       {Icon && <Icon size={14} className="inline mr-1.5" />}
       {label} {required && <RequiredAst />}

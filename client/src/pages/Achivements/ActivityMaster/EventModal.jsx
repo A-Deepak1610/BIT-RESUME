@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import Modal from "@mui/material/Modal";
 import Box from "@mui/material/Box";
+import useAuth from "../../../store/UseAuth";
 
 const modalStyle = {
   position: "absolute",
@@ -28,10 +29,72 @@ const modalStyle = {
   width: "calc(100% - 32px)",
   maxWidth: "60rem",
 };
-const ApplyModal = ({ isOpen, onClose, eventName }) => {
-  const [teamMates, setTeamMates] = useState([""]); 
+const ApplyModal = ({ isOpen, onClose, eventName, eventCode }) => {
+  const [teamMates, setTeamMates] = useState([""]);
   const [domain, setDomain] = useState("");
   const [problemStatement, setProblemStatement] = useState("");
+  // const handleRequestedEvents = async () => {
+  //   try {
+  //     const response=await fetch(
+  //       `http://localhost:6001/api/addrequestedevents`,
+  //       {
+  //         method: "GET",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //         },
+  //         credentials: "include",
+  //       }
+  //     );
+  //     body: JSON.stringify({
+  //       eventCode: eventCode,
+  //       teamMates: teamMates,
+        
+  //   }
+  //   catch(error) {
+  //     console.error("Error fetching requested events:", error);
+  //     alert("Unable to connect to server. Try again later!");
+  //   }
+  // }
+  const {rollno}=useAuth();
+  const handleEventsApply = async () => {
+    try {
+      const response = await fetch(
+        `http://localhost:6001/api/addregisterevents`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json", 
+          },
+        
+          body: JSON.stringify({
+            eventCode: eventCode,
+            domain: domain,
+            problemStatement: problemStatement,
+            leaderRollNo: rollno,
+            teamMates: teamMates,
+          }),
+          credentials: "include",
+        }
+      );
+
+      if (!response.ok) {
+        const errMsg = await response.text();
+        console.error("Server Error:", errMsg);
+        alert("Failed to submit! Try again.");
+        return;
+      }
+      const data = await response.json();
+      console.log("Response Data:", data);
+      if (data.success) {
+        console.log(`✅ Registration Successful! Team Code: ${data.teamCode}`);
+      } else {
+        console.warn("Registration Failed:", data);
+      }
+    } catch (error) {
+      console.error("Error submitting application:", error);
+      alert("Unable to connect to server. Try again later!");
+    }
+  };
 
   const handleTeamMateChange = (index, value) => {
     const newTeamMates = [...teamMates];
@@ -52,22 +115,17 @@ const ApplyModal = ({ isOpen, onClose, eventName }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const finalTeamMates = teamMates.filter((mate) => mate.trim() !== "");
-    console.log("Submitting Application:", {
-      eventName,
-      teamMates: finalTeamMates,
-      domain,
-      problemStatement,
-    });
-
-    alert(
-      "Application submitted successfully! Check the browser console for the data."
-    );
-
-    setTeamMates([""]);
-    setDomain("");
-    setProblemStatement("");
-    onClose();
+    // const finalTeamMates = teamMates.filter((mate) => mate.trim() !== "");
+    // console.log("Submitting Application:", {
+    //   eventName,
+    //   teamMates: finalTeamMates,
+    //   domain,
+    //   problemStatement,
+    // });
+    // setTeamMates([""]);
+    // setDomain("");
+    // setProblemStatement("");
+    // onClose();
   };
 
   return (
@@ -183,6 +241,7 @@ const ApplyModal = ({ isOpen, onClose, eventName }) => {
                 Cancel
               </button>
               <button
+                onClick={handleEventsApply}
                 type="submit"
                 className="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
               >
@@ -452,6 +511,7 @@ const EventDetailModal = ({ isOpen, onClose, eventData }) => {
         isOpen={isApplyModalOpen}
         onClose={handleCloseApplyModal}
         eventName={event_name}
+        eventCode={event_code}
       />
     </>
   );

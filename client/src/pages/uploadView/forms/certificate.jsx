@@ -548,9 +548,6 @@ const CertificateUpload = ({ onBack, initialData = {} }) => {
                     newFormState.activity_type = isSameTypeAsInitial ? (initialData.activity_type || baseDefaults.activity_type) : baseDefaults.activity_type;
                     newFormState.duration = isSameTypeAsInitial ? (initialData.duration || baseDefaults.duration) : baseDefaults.duration;
                     newFormState.location = isSameTypeAsInitial ? (initialData.location || baseDefaults.location) : baseDefaults.location;
-                    break;
-                // REMOVED: case 'event-organizer'
-                // REMOVED: case 'custom'
             }
             if (DEBUG_MODE) console.log('[DEBUG] useEffect type change - new FormData:', JSON.parse(JSON.stringify(newFormState)));
             return {...baseDefaults, ...newFormState};
