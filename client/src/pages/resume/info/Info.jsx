@@ -17,23 +17,20 @@ import {
 
 export default function Info() {
   const navigate = useNavigate();
-  const expertiseAreas = [
-    "FULL STACK",
-    "MACHINE LEARNING",
-    // "CYBER SECURITY",
-    // "UI UX",
-    // "DATA SCIENCE",
-    // "BLOCKCHAIN",
-    // "DSA",
+  const SkillSet = [
+    "Python",
+    "React",
+    "Go",
+    "Pythrouch",
+    "JavaScript",
+    "Node.js",
+    "CSS3",
   ];
-  
   const [open, setOpen] = useState(false);
-  
   const toggleDrawer = (newOpen) => () => {
     setOpen(newOpen);
   };
 
-  // Sidebar content component - reused in both drawer and desktop view
   const SidebarContent = () => (
     <div className=" h-full font-sans font-semibold px-4 bg-white py-3 overflow-y-auto">
       {/* Header */}
@@ -47,10 +44,10 @@ export default function Info() {
 
       {/* Profile Section */}
       <div className="flex flex-col items-center mb-6">
-        <img 
-          src={logo} 
-          alt="profile" 
-          className="rounded-full w-20 h-20 object-cover" 
+        <img
+          src={logo}
+          alt="profile"
+          className="rounded-full w-20 h-20 object-cover"
         />
         <h2 className="text-xl font-semibold text-primary mt-2">Selva</h2>
         <p className="text-gray-800 text-xs text-center mt-1 px-2">
@@ -59,8 +56,9 @@ export default function Info() {
       </div>
 
       {/* Basic Info Section */}
-      <div className="flex mb-6">
-        <div className="w-2/5 space-y-2 text-gray-900 text-sm">
+      <div className="grid grid-cols-2 gap-x-4 mb-6">
+        {/* Labels */}
+        <div className="space-y-2 text-gray-900 text-sm">
           <div className="flex items-center text-[#dfb400]">
             <Trophy size={15} className="mr-2 flex-shrink-0" /> Group Rank
           </div>
@@ -74,21 +72,25 @@ export default function Info() {
             <Network size={15} className="mr-2 flex-shrink-0" /> Domain
           </div>
         </div>
-        <div className="w-2/5 ml-2 space-y-2 text-primary font-medium text-sm">
+        {/* Values */}
+        <div className="space-y-2 text-primary font-medium text-sm">
           <div>01</div>
           <div>7376242AD136</div>
           <div>2024 to 2028</div>
           <div>Full Stack</div>
         </div>
       </div>
+
       <div className="border-b border-gray-300 mb-6" />
+      
       {/* Additional Information */}
       <div className="mb-6">
         <h1 className="text-primary text-sm font-semibold mb-3">
           ADDITIONAL INFORMATION
         </h1>
-        <div className="flex">
-          <div className="w-2/5 space-y-2 text-gray-800 text-sm">
+        <div className="grid grid-cols-2 gap-x-4">
+          {/* Labels */}
+          <div className="space-y-2 text-gray-800 text-sm">
             <div className="flex items-center">
               <Phone size={15} className="mr-2 flex-shrink-0" /> Phone
             </div>
@@ -105,7 +107,8 @@ export default function Info() {
               <Link size={15} className="mr-2 flex-shrink-0" /> Personal
             </div>
           </div>
-          <div className="w-3/5 space-y-2 text-primary font-medium text-sm overflow-hidden">
+          {/* Values */}
+          <div className="space-y-2 text-primary font-medium text-sm overflow-hidden">
             <div className="truncate">+91 6380899737</div>
             <div className="truncate">email@gmail.com</div>
             <div className="truncate">github.com/selva</div>
@@ -117,23 +120,19 @@ export default function Info() {
 
       <div className="border-b border-gray-300 mb-6" />
 
-      {/* Area of expertise */}
+      {/* Areas of Expertise */}
       <div>
         <h1 className="text-primary text-sm font-semibold mb-3">
           AREAS OF EXPERTISE
         </h1>
-        <div className="ml-2 relative max-h-[30vh] overflow-y-auto pr-2">
-          <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-gray-300"></div>
-          {expertiseAreas.map((area, index) => (
-            <div
+        <div className="flex flex-wrap gap-2">
+          {SkillSet.map((skill, index) => (
+            <span
               key={index}
-              className="flex items-center mb-3 relative pl-4"
+              className="bg-gray-200 text-gray-800 text-xs font-medium px-3 py-1.5 rounded-full hover:bg-gray-300 transition-colors cursor-default"
             >
-              <div className="absolute left-0 top-[0.6rem] w-3 h-0.5 bg-gray-300"></div>
-              <div className="text-black text-sm font-medium">
-                {area}
-              </div>
-            </div>
+              {skill}
+            </span>
           ))}
         </div>
       </div>
@@ -157,7 +156,7 @@ export default function Info() {
       >
         <SidebarContent />
       </Drawer>
-      
+
       <div className="flex flex-col lg:flex-row">
         {/* Mobile Header */}
         <div className="flex lg:hidden">
@@ -177,12 +176,12 @@ export default function Info() {
             />
           </div>
         </div>
-        
+
         {/* Desktop Sidebar */}
         <div className="w-[280px] hidden lg:block shadow-md h-screen">
           <SidebarContent />
         </div>
-        
+
         {/* Main Content Area - Add your content here */}
         <div className="flex-1  bg-gray-50">
           {/* Your main content goes here */}

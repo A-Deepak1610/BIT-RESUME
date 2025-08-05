@@ -3,7 +3,6 @@ package manageactivities
 import (
 	"bitresume/config"
 	facultymodel "bitresume/models/faculty"
-	// "bitresume/utils"
 	"fmt"
 	"net/http"
 
@@ -11,127 +10,73 @@ import (
 )
 
 func ReceiveActivityData(c *gin.Context) {
-	activity_title := c.PostForm("activity_title")
+	// FIX: Use c.PostForm to read data from the request body
 	activity_type := c.PostForm("activity_type")
-	description := c.PostForm("description")
-	start_date := c.PostForm("start_date")
-	end_date := c.PostForm("end_date")
-	linkorlocation := c.PostForm("linkorlocation")
-	year_type := c.PostForm("year_type")
-	target_dept := c.PostForm("target_dept")
-	specific_rollno := c.PostForm("specific_rollno")
-	all_students := c.PostForm("all_students")
-	var boolvalue int
-	if all_students == "1" {
-		boolvalue = 1
-	}
-	if all_students == "0" {
-		boolvalue = 0
-	}
+	activity_title := c.PostForm("activity_title")
 
-	// cookie, err := c.Cookie("BITRESUME")
-	// if err != nil {
-	// 	c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Authentication token is missing"})
-	// 	return
-	// }
+	// This check is now redundant if each type has its own handler,
+	// but we keep the logic as is.
 
-	// claims, err := utils.ParseJWT(cookie)
-	// if err != nil {
-	// 	c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid authentication token"})
-	// 	return
-	// }
-
-	// // Extract roll number from claims
-	// rollno, ok := claims["rollNo"].(string)
-	// if !ok {
-	// 	c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Roll number not found in token"})
-	// 	return
-	// }
+	fmt.Println("============================")
+	fmt.Println("Activity_type", activity_type)
 
 	query := `
-		insert into activity_list
-		(
-			faculty_name,
-			faculty_id,
-			activity_title,
-			activity_type,
-			description,
-			start_date,
-			end_date,
-			linkorlocation,
-			all_students,
-			specific_rollno,
-			year_type,
-			target_dept,
-			created_at
-		) values (?,?,?,?,?,?,?,?,?,?,?,?,current_date)
-	`
-
-	_, err := config.DB.Exec(query, "Veerendra", "7376242AD336", activity_title, activity_type, description, start_date, end_date, linkorlocation, boolvalue, specific_rollno, year_type, target_dept)
-
+		INSERT INTO activity_list (activity_type, activity_title, created_at)
+		VALUES (?, ?, NOW())`
+	res, err := config.DB.Exec(query, activity_type, activity_title)
 	if err != nil {
-		fmt.Print(err.Error())
-		c.JSON(500, "could not insert to db")
+		fmt.Println("Error inserting into activity_list:", err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Could not insert into the activity_list database"})
 		return
 	}
 
-	c.JSON(200, "Successful")
+	lastid, err := res.LastInsertId()
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+	activity_id := int(lastid)
+
+	// This condition will now work correctly
+	if activity_type == "Survey" {
+		ReceiveSurveyData(c, activity_id)
+		return // Ensure we stop here after handling the survey
+	}else if activity_type == "Workshop"{
+		ReceiveWorkshopData(c, activity_id)
+		return
+	}else if activity_type == "Meeting"{
+		ReceiveMeetingData(c,activity_id)
+		return
+	}
+
+	// If no type matched, send a response.
+	c.JSON(http.StatusOK, gin.H{"message": "Activity list updated, no specific details handled."})
 }
 
-func GetActivityData(c *gin.Context) {
-	// Retrieve JWT token from cookie
-	// cookie, err := c.Cookie("BITRESUME")
-	// if err != nil {
-	// 	c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Authentication token is missing"})
-	// 	return
-	// }
+func GetActivityData(c *gin.Context){
+	  // Create an empty slice to hold all activities
+    allActivities := make([]facultymodel.Activity, 0)
 
-	// // Parse JWT token to get claims
-	// claims, err := utils.ParseJWT(cookie)
-	// if err != nil {
-	// 	c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid authentication token"})
-	// 	return
-	// }
+    // Fetch workshops
+    workshops, err := GetWrokshopData()
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"message": "Could not fetch workshop details"})
+        return
+    }
+    if workshops != nil {
+        allActivities = append(allActivities, workshops...)
+    }
 
-	// // Extract roll number from claims
-	// rollno, ok := claims["rollNo"].(string)
-	// if !ok {
-	// 	c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Roll number not found in token"})
-	// 	return
-	// }
+    // Fetch surveys (assuming you have a GetSurveyData function)
+    surveys, err := GetSurveyData() 
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"message": "Could not fetch survey details"})
+        return
+    }
+    if surveys != nil {
+        allActivities = append(allActivities, surveys...)
+    }
 
-	// Query to fetch activity data from the database
-	rows, err := config.DB.Query(`
-	SELECT 
-		activity_title, activity_type, description, start_date, end_date, 
-		linkorlocation, all_students, specific_rollno, year_type, target_dept 
-	FROM activity_list 
-	WHERE faculty_id = ? AND end_date >= CURDATE()`, "7376242AD336")
 
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch activity data from database"})
-		return
-	}
-	defer rows.Close()
-
-	var records []facultymodel.ManageActivities
-	for rows.Next() {
-		var r facultymodel.ManageActivities
-		err := rows.Scan(
-			&r.Activity_title, &r.Activity_type, &r.Description,
-			&r.Start_date, &r.End_date, &r.Linkorlocation,
-			&r.All_students, &r.Specific_rollno, &r.Year_type, &r.Target_dept,
-		)
-		if err != nil {
-			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to read activity data"})
-			return
-		}
-		records = append(records, r)
-	}
-
-	if err := rows.Err(); err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Error while processing data from database"})
-		return
-	}
-	c.JSON(http.StatusOK, records)
-}
+    c.JSON(http.StatusOK, allActivities)
+}   

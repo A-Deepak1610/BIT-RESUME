@@ -72,3 +72,14 @@ type EventRoundDates struct {
 	Year3RP     string `json:"year3_rp"`
 	Year4RP     string `json:"year4_rp"`
 }
+type Activity struct {
+	ActivityTitle    string `json:"activity_title"`
+	ActivityType     string `json:"activity_type"`
+	Description      string `json:"description"`
+	StartDate        string `json:"start_date"`
+	EndDate          string `json:"end_date"`
+	LinkOrLocation   string `json:"link_or_location"`
+	TargetYear       string `json:"TargetYear,omitempty"`
+	AllStudents      int    `json:"all_students,omitempty"`
+	Host             string `json:"host,omitempty"`
+}

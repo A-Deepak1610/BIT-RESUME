@@ -1,25 +1,21 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-// Data for the graph
 const data = [
-  { name: 'Request Verified', students: 20 },
-  { name: 'Pending Verification', students: 10 },
-  { name: 'Request Approved', students: 25 },
-  { name: 'Pending Approval', students: 15 },
+  { name: 'Verified', students: 20 },
+  { name: 'Pending Verify', students: 10 },
+  { name: 'Approved', students: 25 },
+  { name: 'Pending Approve', students: 15 },
 ];
 
 export default function ProgressGraph() {
   return (
-    // Make the main container fill its parent's height and use flexbox
     <div className="bg-white p-4 rounded-lg shadow-md w-full h-full flex flex-col">
-      {/* Titles Section */}
       <div>
-        <h2 className="text-xl font-bold text-gray-800">Student Progress</h2>
-        <p className="text-sm text-gray-500 mb-4">Monthly Report</p>
+        <h2 className="text-lg sm:text-xl font-bold text-gray-800">Student Progress</h2>
+        <p className="text-xs sm:text-sm text-gray-500 mb-4">Monthly Report</p>
       </div>
 
-      {/* Chart container: will now grow to fill the remaining space */}
       <div className="w-full flex-1 min-h-0">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
@@ -34,7 +30,7 @@ export default function ProgressGraph() {
             <CartesianGrid strokeDasharray="3 3" vertical={false} />
             <XAxis
               dataKey="name"
-              tick={{ fontSize: 12, fill: '#6B7280' }}
+              tick={{ fontSize: 10, fill: '#6B7280' }}
               axisLine={false}
               tickLine={false}
             />

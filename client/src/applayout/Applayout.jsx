@@ -75,7 +75,9 @@ export default function Applayout() {
           <Route element={<ProtectedRoute allowedRoles={["Admin"]}/>}>
           <Route element={<DashboardLayout/>}>
             <Route path="/admin-addactivity" element={<AddActivity/>}/>
+            <Route path="/admin-studentsPerformance" element={<StudentPerformance/>}/>
           </Route>
+          <Route path="/admin-resume" element={<Resume/>}/>
           </Route>
 
           <Route path="*" element={<PageNotFound />} />

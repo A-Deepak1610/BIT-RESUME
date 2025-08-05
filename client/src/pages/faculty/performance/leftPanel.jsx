@@ -1,7 +1,8 @@
-// StudentPerformance.js (or leftPanel.js)
-import React, { useState } from "react";
-import { Search, UserX } from "lucide-react";
 
+import React, { useState } from "react";
+import { Search, UserX, X } from "lucide-react";
+
+// This helper function should only be defined once.
 const getRankBadgeColor = (rank) => {
     switch (rank?.toLowerCase()) {
         case "top performer":
@@ -13,13 +14,12 @@ const getRankBadgeColor = (rank) => {
     }
 };
 
-// Corrected props destructuring: all props are from a single object
+// The component should only be defined and exported once.
 export default function StudentPerformance({
     datas = [],
-    name,     
-    setName, 
-    roll,     
-    setRoll   
+    selectedStudentName,
+    onStudentSelect,
+    onClose
 }) {
     const [searchTerm, setSearchTerm] = useState("");
 
@@ -28,17 +28,25 @@ export default function StudentPerformance({
     );
 
     const handleClickOnLeft = (student) => {
-        // Assuming 'student' object has 'name' and 'rollNo' properties
-        // Make sure 'rollNo' matches the property name in your JSON data
-        setName(student.name);
-        setRoll(student.rollNo); // If your JSON has 'roll_no' or 'studentId', use that instead
+        if (onStudentSelect) {
+            onStudentSelect(student);
+        }
     };
 
     return (
         <div className="p-4 bg-gray-100 h-full overflow-y-auto">
-            <h1 className="font-bold text-xl sm:text-2xl text-gray-800 mb-5">
-                Student Performance
-            </h1>
+            <div className="flex justify-between items-center mb-5">
+                <h1 className="font-bold text-xl sm:text-2xl text-gray-800">
+                    Student Performance
+                </h1>
+                <button
+                    onClick={onClose}
+                    className="lg:hidden p-2 text-gray-600 hover:text-gray-900 rounded-full hover:bg-gray-200"
+                    aria-label="Close panel"
+                >
+                    <X size={24} />
+                </button>
+            </div>
 
             <div className="bg-white rounded-xl shadow-md p-4 mb-5">
                 <div className="relative w-full">
@@ -61,9 +69,9 @@ export default function StudentPerformance({
                 <div className="space-y-4">
                     {filteredStudents.map((item, index) => (
                         <div
-                            key={item.id || item.name + index} // Prefer item.id if available
-                            className={`bg-white border border-gray-200 rounded-xl p-4 shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out cursor-pointer 
-                                        ${name === item.name ? 'ring-2 ring-indigo-500 border-indigo-500' : ''} `} // Example: Highlight selected student
+                            key={item.id || item.name + index}
+                            className={`bg-white border border-gray-200 rounded-xl p-4 shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out cursor-pointer
+                                        ${selectedStudentName === item.name ? 'ring-2 ring-indigo-500 border-indigo-500' : ''} `}
                             onClick={() => handleClickOnLeft(item)}
                         >
                             <div className="flex flex-col sm:flex-row justify-between sm:items-start mb-3">
@@ -79,7 +87,7 @@ export default function StudentPerformance({
                                 </span>
                             </div>
 
-                            <div className="flex flex-row gap-5">
+                            <div className="flex flex-col sm:flex-row gap-5">
                                 <div className="bg-indigo-50 p-3 rounded-lg shadow-inner w-full">
                                     <p className="text-xs text-indigo-500 font-medium mb-0.5">
                                         Cumulative Points
@@ -119,3 +127,5 @@ export default function StudentPerformance({
         </div>
     );
 }
+
+// DO NOT ADD ANOTHER COPY OF THE CODE HERE. THE FILE SHOULD END.

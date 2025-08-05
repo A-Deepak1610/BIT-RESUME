@@ -9,6 +9,7 @@ import (
 	addevents "bitresume/api/faculty/AddEvents"
 	pointshandlers "bitresume/api/pointsHandlers"
 	registerevents "bitresume/api/registerEvents"
+	"bitresume/api/resume"
 	certificates "bitresume/api/upload-view/Certificates"
 	"bitresume/api/upload-view/internship"
 	"bitresume/api/upload-view/paperpresentstion"
@@ -64,4 +65,9 @@ func RegisterRoutes(r *gin.Engine){
 	// faculty page
 	r.POST("/api/addevents/create",addevents.AddEvents)	
 	r.POST("/api/manageactivities/createActivity",manageactivities.ReceiveActivityData)
+
+	
+	r.GET("/api/manageactivities/receiveActivities",manageactivities.GetActivityData)
+	r.GET("/api/resume/getprojects/:rollno", resume.GetProjectsData)
+	r.GET("/api/resume/getcertificates/:rollno", resume.GetCertificatesData)
 }

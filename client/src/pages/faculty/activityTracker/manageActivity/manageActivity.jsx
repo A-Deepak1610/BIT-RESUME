@@ -10,7 +10,7 @@ export default function ManageActivity() {
     const [activities, setActivities] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const API_URL = `http://localhost:6001/api/manageactivities`;
+    const API_URL = `http://localhost:6001/api/manageactivities/receiveActivities`;
     useEffect(() => {
         const fetchActivities = async () => {
             console.log("fetchActivities called");
@@ -38,7 +38,7 @@ export default function ManageActivity() {
     }, [API_URL]);
 
     const filteredActivities = useMemo(() => {
-        if (!activities || activities.length === 0) return [];
+        if (!activities || activities.length === 0) return []; // Ensure activities is an array and not empty
         if (!searchTerm) {
             return activities;
         }

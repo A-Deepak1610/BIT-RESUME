@@ -1,24 +1,32 @@
+
 import React, { useState, useEffect, useMemo } from "react";
-import SurveyCard from "./surveyCard"; 
+import SurveyCard from "./surveyCard";
 import MasterCard from "./masterCard";
-import MeetingOrSessionCard from "./meetingorsessioncard"; 
+import MeetingOrSessionCard from "./meetingorsessioncard";
 import EventDetailModal from "./EventModal";
-import initialSurveyData from "../../../dummydatas/Survey.json";
 import { Search, ChevronDown } from "lucide-react";
+import useAuth from "../../../store/UseAuth";
+
 
 const ActivityMaster = () => {
   const [activeTab, setActiveTab] = useState("activities");
   const [selectedStatus, setSelectedStatus] = useState("All Statuses");
   const [selectedType, setSelectedType] = useState("All Types");
-  
+ 
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedEventData, setSelectedEventData] = useState(null);
-  const [activityMasterData, setActivityMasterData] = useState([]); 
+  const [activityMasterData, setActivityMasterData] = useState([]);
+  const [surveys, setSurveys] = useState([]); // State for fetched survey data
+  const meetings = []; // Assuming meetings are also fetched or handled similarly
+  const {rollno} = useAuth();
+
 
   useEffect(() => {
     handleData();
-  }, []); 
+    fetchSurveyData(); // Fetch survey data on component mount
+  }, []);
+
 
   const handleData = async () => {
     try {
@@ -33,14 +41,47 @@ const ActivityMaster = () => {
         throw new Error('Network response was not ok');
       }
       const data = await response.json();
-      console.log(data);
       setActivityMasterData(data.events || []);
     } catch (error) {
       console.error('There has been a problem with your fetch operation:', error);
     }
   };
-  const surveys = initialSurveyData;
-  const meetings = initialSurveyData;
+
+  const fetchSurveyData = async () => { // Using a default rollno for the example
+    try {
+      const response = await fetch(`http://localhost:6001/api/activitymaster/getsurveydata/${rollno}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        throw new Error('Network response was not ok for survey data');
+      }
+      const data = await response.json();
+     
+      const processedSurveys = data.map(survey => {
+        const today = new Date();
+        const startDate = new Date(survey['start-date']);
+        const endDate = new Date(survey['end-date']);
+       
+        let status = "Pending";
+        if (today > endDate) {
+          status = "Missed"; // Or "Completed" based on submission, which we can't determine here
+        }
+
+
+        return { ...survey, Status: status };
+      });
+
+
+      setSurveys(processedSurveys);
+    } catch (error) {
+      console.error('There has been a problem with your fetch operation for survey data:', error);
+    }
+  };
+
 
   const filteredActivities = useMemo(() => {
       if (!activityMasterData) return [];
@@ -49,16 +90,18 @@ const ActivityMaster = () => {
       );
   }, [searchTerm, activityMasterData]);
 
+
   const filteredSurveys = useMemo(() => {
     return surveys.filter(survey => {
-      const statusMatch = selectedStatus === "All Statuses" || survey.Status.toLowerCase() === selectedStatus.toLowerCase();
-      const typeMatch = selectedType === "All Types" || survey.serveyType === selectedType;
-      const termMatch = !searchTerm || Object.values(survey).join(' ').toLowerCase().includes(searchTerm.toLowerCase());
+      const statusMatch = selectedStatus === "All Statuses" || survey.Status === selectedStatus;
+      const typeMatch = selectedType === "All Types" || survey['activity-type'] === selectedType;
+      const termMatch = !searchTerm || survey['activity-title'].toLowerCase().includes(searchTerm.toLowerCase());
       return statusMatch && typeMatch && termMatch;
     });
   }, [searchTerm, surveys, selectedStatus, selectedType]);
-  
+ 
   const filteredMeetings = useMemo(() => {
+    // This would also be updated to use fetched meeting data
     return meetings.filter(meeting => {
       const statusMatch = selectedStatus === "All Statuses" || meeting.Status.toLowerCase() === selectedStatus.toLowerCase();
       const typeMatch = selectedType === "All Types" || meeting.serveyType === selectedType;
@@ -68,17 +111,17 @@ const ActivityMaster = () => {
   }, [searchTerm, meetings, selectedStatus, selectedType]);
 
 
-
   const handleCardClick = (eventData) => {
     setSelectedEventData(eventData);
     setIsModalOpen(true);
   };
 
+
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedEventData(null);
   };
-  
+ 
   const handleTabClick = (tab) => {
     setActiveTab(tab);
     setSearchTerm("");
@@ -86,7 +129,7 @@ const ActivityMaster = () => {
     setSelectedType("All Types");
   }
 
-  
+
   const TabButton = ({ label, value }) => (
     <button
       onClick={() => handleTabClick(value)}
@@ -100,6 +143,7 @@ const ActivityMaster = () => {
       {label}
     </button>
   );
+
 
   const FilterDropdown = ({ value, onChange, options, label }) => (
     <div className="relative">
@@ -120,7 +164,7 @@ const ActivityMaster = () => {
       </div>
     </div>
   );
-  
+ 
   const renderContent = () => {
     switch(activeTab) {
       case 'surveys':
@@ -128,7 +172,7 @@ const ActivityMaster = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredSurveys.length > 0 ? (
               filteredSurveys.map((survey, index) => (
-                <SurveyCard key={survey.id || index} survey={survey} />
+                <SurveyCard key={index} survey={survey} />
               ))
             ) : <p className="col-span-full text-center text-gray-500 py-10">No surveys match.</p> }
           </div>
@@ -149,10 +193,11 @@ const ActivityMaster = () => {
         return null;
     }
   }
-  
+ 
   const statusOptions = ["All Statuses", "Pending", "Completed", "Missed"];
-  const uniqueSurveyTypes = ["All Types", "Feedback", "Quiz", "General"];
+  const uniqueSurveyTypes = ["All Types", "Survey", "Feedback", "Quiz", "General"];
   const uniqueMeetingTypes = ["All Types", "One-on-One", "Team Sync", "Workshop"];
+
 
   return (
     <div className="bg-gray-100 min-h-screen py-6 md:py-8">
@@ -164,6 +209,7 @@ const ActivityMaster = () => {
             <TabButton label="Meetings/Sessions" value="meetings" />
           </nav>
         </div>
+
 
         <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0 md:space-x-4">
           <div className="relative flex-grow w-full md:max-w-lg">
@@ -185,10 +231,12 @@ const ActivityMaster = () => {
             </div>
           )}
         </div>
-        
+       
         {renderContent()}
 
+
       </div>
+
 
       {selectedEventData && (
         <EventDetailModal
@@ -200,5 +248,6 @@ const ActivityMaster = () => {
     </div>
   );
 };
+
 
 export default ActivityMaster;
