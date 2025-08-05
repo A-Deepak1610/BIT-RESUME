@@ -28,7 +28,6 @@ func HandleRegisterEvents(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data"})
 		return
 	}
-
 	currentCount, err := getRegisteredCount(req.EventCode)
 	if err != nil {
 		fmt.Println("Error fetching registered count:", err) 
