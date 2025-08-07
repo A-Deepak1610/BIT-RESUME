@@ -1,68 +1,6 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Search, FileText, ChevronDown, Paperclip, Pencil, X, Check } from 'lucide-react';
-import initialSubmissionsData from "../../../dummydatas/approval.json"
 
-// const initialSubmissionsData = [
-//   {
-//     "id": 1,
-//     "studentName": "Miguel Rodriguez",
-//     "submissionDate": "2025-05-01", // Standardized date format for easier sorting/parsing
-//     "status": "Awaiting",
-//     "eventTitle": "Urban Water Management Conference",
-//     "eventType": "Seminar",
-//     "reason": "To present a research paper on sustainable urban water management solutions.",
-//     "remarks": "Paper already cited by three researchers; opportunity to represent the institution.",
-//     "eventDate": "2025-04-25", // Standardized date format
-//     "attachments": ["research_paper.pdf", "journal_acceptance.pdf"],
-//     "isExpanded": false,
-//     "approvalType": "OD"
-//   },
-//   {
-//     "id": 2,
-//     "studentName": "Zoe Williams",
-//     "submissionDate": "2025-05-08",
-//     "status": "Awaiting",
-//     "eventTitle": "International Conference on Quantum Computing",
-//     "eventType": "Conference",
-//     "reason": "To present research on qubit stability and attend networking sessions.",
-//     "remarks": "Received positive peer review and valuable feedback from leading experts.",
-//     "eventDate": "2025-05-05",
-//     "attachments": ["conference_submission.pdf", "presentation_slides.pptx", "research_poster.png"],
-//     "isExpanded": false,
-//     "approvalType": "OD"
-//   },
-//   {
-//     "id": 3,
-//     "studentName": "Aisha Khan",
-//     "submissionDate": "2025-04-15",
-//     "status": "Verified",
-//     "eventTitle": "AI in Healthcare Diagnostics Workshop",
-//     "eventType": "Workshop",
-//     "reason": "To present AI model research and attend expert sessions on diagnostic AI tools.",
-//     "remarks": "Research accepted in JMIR; model achieved 95% accuracy in trials.",
-//     "eventDate": "2025-03-30",
-//     "attachments": ["thesis_final_chapter.pdf", "publication_acceptance_letter.pdf"],
-//     "isExpanded": false,
-//     "approvalType": "OD"
-//   },
-//   {
-//     "id": 4,
-//     "studentName": "David Lee",
-//     "submissionDate": "2025-03-20",
-//     "status": "Rejected",
-//     "eventTitle": "Energy Storage Tech Symposium",
-//     "eventType": "Symposium",
-//     "reason": "To present comparative research on battery technologies.",
-//     "remarks": "Research scope too broad; further refinement needed before future participation.",
-//     "eventDate": "2025-02-28",
-//     "attachments": ["research_proposal_v2.pdf", "lab_notebook_summary.docx"],
-//     "isExpanded": false,
-//     "approvalType": "OD"
-//   }
-// ];
-
-
-// --- Icon Components (using Lucide-React) ---
 const SearchIcon = () => <Search className="w-5 h-5" strokeWidth={1.5} />;
 const DocumentGenericIcon = () => <FileText className="w-6 h-6 text-indigo-500" strokeWidth={1.5} />;
 const ChevronUpDownIcon = ({ expanded }) => (
@@ -76,6 +14,30 @@ const EditIcon = () => <Pencil className="w-4 h-4" strokeWidth={1.5} />;
 const RejectIcon = () => <X className="w-4 h-4 mr-1.5" strokeWidth={2.5} />;
 const VerifyIcon = () => <Check className="w-4 h-4 mr-1.5" strokeWidth={2.5} />;
 
+// Data transformation function
+const transformBackendDataToFrontend = (backendData) => {
+  return backendData
+    .filter(item => item.rollno && item.applicant_name) // Filter out null entries
+    .map((item, index) => ({
+      id: `${item.rollno}-${item.domain || 'nodomain'}-${index}`, // Unique ID
+      studentName: item.applicant_name,
+      submissionDate: item.submitted_date,
+      status: item.verified === 'pending' ? 'Awaiting' : 
+             item.verified === 'approved' ? 'Verified' : 
+             item.verified === 'rejected' ? 'Rejected' : 'Awaiting',
+      eventTitle: item.event_name,
+      eventType: item.event_type,
+      reason: item.problem_statement || `Applied for ${item.domain || 'general'} domain`,
+      remarks: `Student ${item.applicant_name} (${item.rollno}) applied for ${item.event_name} in ${item.domain || 'general'} domain`,
+      eventDate: item.event_start_date,
+      isExpanded: false,
+      approvalType: "Event",
+      domain: item.domain,
+      problemStatement: item.problem_statement,
+      rollno: item.rollno,
+      verified: item.verified
+    }));
+};
 
 const SearchBarAndSort = ({ searchTerm, onSearchChange, sortBy, onSortChange }) => {
   return (
@@ -86,7 +48,7 @@ const SearchBarAndSort = ({ searchTerm, onSearchChange, sortBy, onSortChange }) 
         </span>
         <input
           type="text"
-          placeholder="Search by student name or event title..." // Updated placeholder
+          placeholder="Search by student name or event title..."
           className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm shadow-sm"
           value={searchTerm}
           onChange={onSearchChange}
@@ -102,7 +64,7 @@ const SearchBarAndSort = ({ searchTerm, onSearchChange, sortBy, onSortChange }) 
           <option value="SubmissionDate">Submission Date</option>
           <option value="Name">Name</option>
           <option value="Status">Status</option>
-          <option value="ApprovalType">Approval Type</option> {/* Updated */}
+          <option value="ApprovalType">Approval Type</option>
         </select>
       </div>
     </div>
@@ -169,27 +131,30 @@ const SubmissionCard = ({ submission, onToggleExpand, onAction }) => {
 
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
-    // Assuming dateString is in "YYYY-MM-DD" or "Month D, YYYY" format
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) { // Check if date is valid
-        // Try parsing "Month D, YYYY" if initial parsing failed (e.g. "May 1, 2025")
+    
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        // Try parsing "Month D, YYYY" format
         const parts = dateString.match(/(\w+) (\d+), (\d+)/);
         if (parts) {
-            const monthNames = ["January", "February", "March", "April", "May", "June",
-                                "July", "August", "September", "October", "November", "December"];
-            const monthIndex = monthNames.findIndex(m => m.startsWith(parts[1]));
-            if (monthIndex !== -1) {
-                const newDate = new Date(Date.UTC(parseInt(parts[3]), monthIndex, parseInt(parts[2])));
-                 if (!isNaN(newDate.getTime())) {
-                    return newDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
-                 }
+          const monthNames = ["January", "February", "March", "April", "May", "June",
+                              "July", "August", "September", "October", "November", "December"];
+          const monthIndex = monthNames.findIndex(m => m.startsWith(parts[1]));
+          if (monthIndex !== -1) {
+            const newDate = new Date(Date.UTC(parseInt(parts[3]), monthIndex, parseInt(parts[2])));
+            if (!isNaN(newDate.getTime())) {
+              return newDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
             }
+          }
         }
-        return dateString; // Return original if parsing fails
+        return dateString;
+      }
+      return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
+    } catch (error) {
+      return dateString;
     }
-    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
   };
-
 
   return (
     <div className="bg-white shadow-lg rounded-lg mb-5 overflow-hidden">
@@ -202,10 +167,15 @@ const SubmissionCard = ({ submission, onToggleExpand, onAction }) => {
             <DocumentGenericIcon />
           </div>
           <div className="min-w-0">
-            <h3 className="text-md font-semibold text-gray-800 truncate">{submission.eventTitle || "N/A"}</h3> {/* Updated */}
+            <h3 className="text-md font-semibold text-gray-800 truncate">{submission.eventTitle || "N/A"}</h3>
             <div className="flex items-center mt-0.5">
                 <p className="text-xs text-gray-500">{submission.studentName}</p>
-                {submission.approvalType && ( // Updated
+                {submission.domain && (
+                    <span className="ml-2 px-1.5 py-0.5 text-xs font-medium bg-purple-100 text-purple-700 rounded-full border border-purple-300">
+                        {submission.domain}
+                    </span>
+                )}
+                {submission.approvalType && (
                     <span className="ml-2 px-1.5 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 rounded-full border border-blue-300">
                         {submission.approvalType}
                     </span>
@@ -227,31 +197,22 @@ const SubmissionCard = ({ submission, onToggleExpand, onAction }) => {
       {submission.isExpanded && (
         <div className="p-5">
           {[ 
-            { label: "Approval Type", value: submission.approvalType || 'N/A' },
-            { label: "Event Title", value: submission.eventTitle || 'N/A' },
-            { label: "Event Type", value: submission.eventType || 'N/A' }, // Added
+            { label: "Student Name", value: submission.studentName },
+            { label: "Roll Number", value: submission.rollno },
+            { label: "Event Title", value: submission.eventTitle },
+            { label: "Event Type", value: submission.eventType },
+            { label: "Domain", value: submission.domain },
             { label: "Event Date", value: formatDate(submission.eventDate) },
-            { label: "Reason", value: submission.reason || 'N/A' }, // Updated
-            { label: "Remarks", value: submission.remarks || 'N/A' }, // Updated
+            { label: "Problem Statement", value: submission.problemStatement },
             { label: "Submission Date", value: formatDate(submission.submissionDate) },
+            { label: "Current Status", value: submission.verified },
           ].map(detail => (
-            detail.value && detail.value !== 'N/A' && 
+            detail.value && detail.value !== 'N/A' && detail.value !== null &&
             <div key={detail.label} className="mb-4">
               <h4 className="text-sm font-semibold text-gray-700 mb-1">{detail.label}</h4>
               <p className="text-sm text-gray-600 whitespace-pre-wrap">{detail.value}</p>
             </div>
           ))}
-          
-          {submission.attachments && submission.attachments.length > 0 && (
-            <div className="mb-6">
-              <h4 className="text-sm font-semibold text-gray-700 mb-2">Attachments</h4>
-              <div className="flex flex-wrap">
-                {submission.attachments.map((file, index) => (
-                  <AttachmentPill key={index} fileName={file} />
-                ))}
-              </div>
-            </div>
-          )}
           
           <div className="mb-5">
             <label htmlFor={`feedback-${submission.id}`} className="block text-sm font-semibold text-gray-700 mb-1">
@@ -272,14 +233,14 @@ const SubmissionCard = ({ submission, onToggleExpand, onAction }) => {
           
           <div className="flex justify-end space-x-3">
             <button 
-                onClick={() => onAction(submission.id, "reject")}
+                onClick={() => onAction(submission.id, submission.rollno, "reject")}
                 className="px-4 py-2 border border-red-500 text-red-600 text-sm font-medium rounded-md hover:bg-red-50 transition-colors duration-150 flex items-center shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-red-400"
             >
                 <RejectIcon />
                 Reject
             </button>
             <button 
-                onClick={() => onAction(submission.id, "verify")}
+                onClick={() => onAction(submission.id, submission.rollno, "verify")}
                 className="px-4 py-2 bg-green-500 text-white text-sm font-medium rounded-md hover:bg-green-600 transition-colors duration-150 flex items-center shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-green-400"
             >
                 <VerifyIcon />
@@ -292,16 +253,51 @@ const SubmissionCard = ({ submission, onToggleExpand, onAction }) => {
   );
 };
 
-
 export default function Approvals() {
   const [activeTab, setActiveTab] = useState("Awaiting");
-  const [submissions, setSubmissions] = useState(
-    initialSubmissionsData.map(sub => ({...sub, submissionDate: new Date(sub.submissionDate).toISOString(), eventDate: new Date(sub.eventDate).toISOString()}))
-  );
+  const [submissions, setSubmissions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("SubmissionDate"); 
 
   const KNOWN_STATUSES = ["Awaiting", "Verified", "Rejected"];
+
+  const handleEvents = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await fetch("http://localhost:6001/api/manageactivities/approvels", {
+        method: "GET",
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      
+      const data = await response.json();
+      // console.log("Approvals events data:", data);
+      
+      // Transform backend data to frontend format
+      const transformedData = transformBackendDataToFrontend(data);
+      setSubmissions(transformedData);
+      
+    } catch (error) {
+      console.error("Error fetching events:", error);
+      setError("Failed to load approvals data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    handleEvents();
+  }, []);
 
   const handleToggleExpand = (id) => {
     setSubmissions(prevSubmissions => 
@@ -311,14 +307,35 @@ export default function Approvals() {
     );
   };
 
-  const handleAction = (id, actionType) => {
-    console.log(`Approval for ${id} action: ${actionType}`);
-    setSubmissions(prev => prev.map(s => {
+  const handleAction = async (id, rollno, actionType) => {
+    console.log(`Approval for ${id} (rollno: ${rollno}) action: ${actionType}`);
+    
+    // Find the submission to get necessary data for API call
+    const submission = submissions.find(s => s.id === id);
+    if (!submission) return;
+
+    try {
+      // Here you would make the API call to approve/reject
+      // For now, just update the local state
+      setSubmissions(prev => prev.map(s => {
         if (s.id === id) {
-            return { ...s, status: actionType === 'verify' ? 'Verified' : 'Rejected', isExpanded: false };
+          return { 
+            ...s, 
+            status: actionType === 'verify' ? 'Verified' : 'Rejected',
+            verified: actionType === 'verify' ? 'approved' : 'rejected',
+            isExpanded: false 
+          };
         }
         return s;
-    }));
+      }));
+      
+      // You can add the actual API call here:
+      // await updateApprovalStatus(rollno, actionType);
+      
+    } catch (error) {
+      console.error("Error updating approval status:", error);
+      // Handle error (show toast notification, etc.)
+    }
   };
 
   const handleSearchChange = (event) => {
@@ -331,45 +348,49 @@ export default function Approvals() {
 
   const tabData = useMemo(() => {
     const counts = {
-        All: initialSubmissionsData.length, // Use original data for counts to remain static
+        All: submissions.length,
         Awaiting: 0,
         Verified: 0,
         Rejected: 0,
     };
-    const approvalTypeCounts = {};
+    const domainCounts = {};
 
-    initialSubmissionsData.forEach(sub => { // Use original data for counts
+    submissions.forEach(sub => {
         if (KNOWN_STATUSES.includes(sub.status)) {
             counts[sub.status]++;
         }
-        if (sub.approvalType) { // Updated
-            approvalTypeCounts[sub.approvalType] = (approvalTypeCounts[sub.approvalType] || 0) + 1;
+        if (sub.domain) {
+            // Handle multiple domains separated by commas
+            const domains = sub.domain.split(',').map(d => d.trim());
+            domains.forEach(domain => {
+                domainCounts[domain] = (domainCounts[domain] || 0) + 1;
+            });
         }
     });
     
-    const approvalTypeTabs = Object.entries(approvalTypeCounts) // Updated
+    const domainTabs = Object.entries(domainCounts)
         .sort(([a], [b]) => a.localeCompare(b))
-        .map(([typeName, typeCount]) => ({
-            name: typeName,
-            count: typeCount,
+        .map(([domainName, domainCount]) => ({
+            name: domainName,
+            count: domainCount,
         }));
 
     return {
         statusCounts: counts,
-        approvalTypeTabs: approvalTypeTabs, // Updated
+        domainTabs: domainTabs,
     };
-  }, []); // Removed initialSubmissionsData from dependency array if it's static
+  }, [submissions]);
 
   const TABS_CONFIG = [
     { name: "All", count: tabData.statusCounts.All },
     { name: "Awaiting", count: tabData.statusCounts.Awaiting },
     { name: "Verified", count: tabData.statusCounts.Verified },
     { name: "Rejected", count: tabData.statusCounts.Rejected },
-    ...tabData.approvalTypeTabs, // Updated
+    // ...tabData.domainTabs,
   ];
 
   const processedSubmissions = useMemo(() => {
-    return submissions // Use the stateful submissions for dynamic list
+    return submissions
     .filter(submission => {
       let tabMatch = false;
       if (activeTab === "All") {
@@ -377,7 +398,7 @@ export default function Approvals() {
       } else if (KNOWN_STATUSES.includes(activeTab)) {
         tabMatch = submission.status === activeTab;
       } else { 
-        tabMatch = submission.approvalType === activeTab; // Updated
+        tabMatch = submission.domain && submission.domain.includes(activeTab);
       }
 
       if (!tabMatch) return false;
@@ -385,8 +406,10 @@ export default function Approvals() {
       if (searchTerm) {
         const term = searchTerm.toLowerCase();
         return (
-          (submission.eventTitle || "").toLowerCase().includes(term) || // Updated
-          (submission.studentName || "").toLowerCase().includes(term)
+          (submission.eventTitle || "").toLowerCase().includes(term) ||
+          (submission.studentName || "").toLowerCase().includes(term) ||
+          (submission.rollno || "").toLowerCase().includes(term) ||
+          (submission.domain || "").toLowerCase().includes(term)
         );
       }
       return true;
@@ -397,7 +420,7 @@ export default function Approvals() {
           return (a.studentName || "").localeCompare(b.studentName || "");
         case "Status":
           return (a.status || "").localeCompare(b.status || "");
-        case "ApprovalType": // Updated
+        case "ApprovalType":
           return (a.approvalType || "").localeCompare(b.approvalType || "");
         case "SubmissionDate": 
         default:
@@ -406,6 +429,37 @@ export default function Approvals() {
     });
   }, [submissions, activeTab, searchTerm, sortBy]);
 
+  if (loading) {
+    return (
+      <div className="p-4 sm:p-6 md:p-8 bg-gray-50 min-h-screen w-full">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500 mx-auto"></div>
+            <p className="text-gray-500 mt-4">Loading approvals...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-4 sm:p-6 md:p-8 bg-gray-50 min-h-screen w-full">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center py-12 text-red-500 bg-white rounded-lg shadow-md">
+            <h3 className="text-lg font-medium">Error Loading Data</h3>
+            <p className="text-sm mt-2">{error}</p>
+            <button 
+              onClick={handleEvents}
+              className="mt-4 px-4 py-2 bg-indigo-500 text-white rounded-md hover:bg-indigo-600"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 sm:p-6 md:p-8 bg-gray-50 min-h-screen w-full">
@@ -433,7 +487,7 @@ export default function Approvals() {
             ))
         ) : (
             <div className="text-center py-12 text-gray-500 bg-white rounded-lg shadow-md">
-                <h3 className="text-lg font-medium">No submissions found</h3> {/* Updated text */}
+                <h3 className="text-lg font-medium">No submissions found</h3>
                 <p className="text-sm">
                   {searchTerm 
                     ? `No submissions match your search for "${searchTerm}" under the "${activeTab}" filter.`

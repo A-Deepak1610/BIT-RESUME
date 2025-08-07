@@ -17,7 +17,7 @@ import LoadingBar from "../components/loading/Loading";
 import PageNotFound from "../pages/404/PageNotFound";
 import ActivityMaster from "../pages/Achivements/ActivityMaster/ActivityMaster";
 import RegisteredEvents from "../pages/Achivements/ActivityLogger/RegisteredEvents";
-import RequestedEvents from "../pages/Achivements/ActivityLogger/RequestedEvents";
+// import RequestedEvents from "../pages/Achivements/ActivityLogger/RequestedEvents";
 import ResumeDraft from "../pages/faculty/resumeDraft/resumeDraft";
 import StudentPerformance from "../pages/faculty/performance/facultyStudentPerformance" ;
 import ManageActivity from "../pages/faculty/activityTracker/manageActivity/manageActivity";
@@ -50,7 +50,7 @@ export default function Applayout() {
               <Route path="/uploadview" element={<UploadView />} />
               <Route path="/Achivement/ActivityMaster" element={<ActivityMaster />} />
               <Route path="/Achivement/ActivityLogger" element={<RegisteredEvents />} />
-              <Route path="/Achivement/ActivityLogger/RequestedEvents" element={<RequestedEvents />} />
+              {/* <Route path="/Achivement/ActivityLogger/RequestedEvents" element={<RequestedEvents />} /> */}
               <Route path="/uploadview/certificate" element={<CertificateUpload />} />
               <Route path="/uploadview/patent" element={<Patent />} />
               <Route path="/uploadview/project" element={<Project />} />

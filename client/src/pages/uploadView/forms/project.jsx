@@ -30,7 +30,7 @@ const validateStep1 = (formData) => {
   const errors = {};
   if (!formData.projectTitle?.trim()) errors.projectTitle = 'Project title is required.';
   if (!formData.projectAbstract?.trim()) errors.projectAbstract = 'Abstract/Summary is required.';
-  else if (formData.projectAbstract.trim().split(/\s+/).length < 100 || formData.projectAbstract.trim().split(/\s+/).length > 500) {
+  else if (formData.projectAbstract.trim().split(/\s+/).length < 10 || formData.projectAbstract.trim().split(/\s+/).length > 100) {
     errors.projectAbstract = 'Abstract must be between 100 and 200 words.';
   }
   return errors;

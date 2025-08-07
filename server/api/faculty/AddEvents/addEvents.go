@@ -12,7 +12,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 )
-
 // AddEvents handles the submission of new event data via multipart/form-data
 func AddEvents(c *gin.Context) {
 	// Parse basic form fields

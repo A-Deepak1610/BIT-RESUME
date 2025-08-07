@@ -8,15 +8,75 @@ import useAuth from "../../../store/UseAuth";
 const RegisteredEvents = () => {
   const [activeTab, setActiveTab] = useState("registered");
   const [searchTerm, setSearchTerm] = useState("");
-  const [registeredEvents, setRegisteredEvents] = useState([]); // Initialize with an empty array
-  const [requestedEvents, setRequestedEvents] = useState([]); // Initialize with an empty array
+  const [registeredEvents, setRegisteredEvents] = useState([]);
+  const [requestedEvents, setRequestedEvents] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedEventData, setSelectedEventData] = useState(null);
-  // const { rollno } = useAuth();
-  const rollno='7376242Ad136';
+  const { rollno } = useAuth();
+  // const rollno = '7376242AD136';
+
+  const handleRequestedEvents = async () => {
+    console.log("Fetching requested events for rollno:", rollno);
+    try {
+      const response = await fetch(`http://localhost:6001/api/events/requested_events/${rollno}`,{
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      const data = await response.json();
+      console.log("Requested events data:", data);
+
+      // Map the backend data to frontend format
+      const mappedRequestedEvents = data.requested_events.map(event => {
+        // Parse teammates string into array
+        const teammatesArray = event.teammates ? event.teammates.split(',') : [];
+        
+        // Format date from YYYY-MM-DD to DD.MM.YYYY
+        const formatDate = (dateString) => {
+          if (!dateString) return '';
+          const date = new Date(dateString);
+          return date.toLocaleDateString('en-GB', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+          }).replace(/\//g, '.');
+        };
+
+        return {
+          id: event.event_code,
+          eventDate: formatDate(event.start_date),
+          eventType: event.type,
+          eventName: event.event_name,
+          location: event.location,
+          prizeAmount: `₹${parseInt(event.final_prize1).toLocaleString('en-IN')}`,
+          eventCode: event.event_code,
+          teamMembers: teammatesArray,
+          applyButtonText: "Apply On Duty",
+          "Requested By": event.leader_rollno,
+          imageUrl: event.image_url,
+          status: "pending",
+          teamCode: event.team_code,
+          numberOfTeammates: event.number_of_teammates
+        };
+      });
+
+      setRequestedEvents(mappedRequestedEvents);
+
+    } catch (error) {
+      console.error("Error fetching requested events:", error);
+    }
+  };
 
   useEffect(() => {
-    // Fetch initial data when the component mounts
+    handleRequestedEvents();
+  }, []);
+
+  useEffect(() => {
     handleRegisterEvents();
   }, [rollno]);
 
@@ -69,7 +129,7 @@ const RegisteredEvents = () => {
     console.log("Fetching registered events for rollno:", rollno);
     try {
       const response = await fetch(
-        `http://localhost:6001/api/events/registered/${rollno}`,
+        `http://localhost:6001/api/events/registered_events/${rollno}`,
         {
           method: "GET",
           headers: {
@@ -84,25 +144,47 @@ const RegisteredEvents = () => {
       const result = await response.json();
       console.log("Fetched registered events", result);
 
-      // Map the backend data to the structure your components expect
-      const mappedEvents = result.data.map(event => {
-        // Determine completion status based on event.state and event.verified
-        const isFacultyStageComplete = event.state === 'onduty' || event.verified;
-        const isOnDutyStageComplete = event.verified;
-        const isEventComplete = event.verified;
+      // Map the backend data to the structure your LoggerCard expects
+      const mappedEvents = result.map(event => {
+        // Parse teammates string into array
+        const teammatesArray = event.teammates ? event.teammates.split(',') : [];
+        
+        // Format date from YYYY-MM-DD to DD.MM.YYYY
+        const formatDate = (dateString) => {
+          if (!dateString) return '';
+          const date = new Date(dateString);
+          return date.toLocaleDateString('en-GB', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+          }).replace(/\//g, '.');
+        };
 
         return {
-          ...event,
-          id: event.eventCode, // Assuming eventCode is a unique identifier
-          prizeAmount: event.finalPrize1,
-          eventDate: event.startDate,
+          // Map backend snake_case to frontend camelCase
+          id: event.event_code,
+          eventCode: event.event_code,
+          eventName: event.event_name,
+          imageUrl: event.image_url,
+          type: event.type,
           eventType: event.type,
-          applyButtonText: "View Details", // You can customize this
-          progressStatus: [
-              { stageName: 'Faculty', isCompleted: isFacultyStageComplete },
-              { stageName: 'On Duty', isCompleted: isOnDutyStageComplete },
-              { stageName: 'Completed', isCompleted: isEventComplete },
-          ]
+          location: event.location,
+          finalPrize1: event.final_prize1,
+          prizeAmount: `₹${parseInt(event.final_prize1).toLocaleString('en-IN')}`,
+          startDate: formatDate(event.start_date),
+          eventDate: formatDate(event.start_date),
+          teamCode: event.team_code,
+          leaderRollno: event.leader_rollno,
+          numberOfTeammates: event.number_of_teammates,
+          teamMembers: teammatesArray,
+          teammates: event.teammates,
+          
+          // Add default status fields if not present in backend
+          state: event.state || 'pending',
+          verified: event.verified || false,
+          
+          // Keep any additional fields from backend
+          ...event
         };
       });
 
@@ -168,7 +250,7 @@ const RegisteredEvents = () => {
               <div
                 key={event.id || event.eventCode}
                 className="cursor-pointer"
-                onClick={() => handleCardClick(event)}
+                // onClick={() => handleCardClick(event)}
               >
                 <RequestCard
                   data={event}
@@ -211,13 +293,13 @@ const RegisteredEvents = () => {
         </div>
         {renderContent()}
       </div>
-      {/* {selectedEventData && (
+      {selectedEventData && (
         <EventDetailModal
           isOpen={isModalOpen}
           onClose={closeModal}
           eventData={selectedEventData}
         />
-      )} */}
+      )}
     </div>
   );
 };
