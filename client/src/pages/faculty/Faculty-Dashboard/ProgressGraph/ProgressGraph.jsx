@@ -10,21 +10,21 @@ const data = [
 
 export default function ProgressGraph() {
   return (
-    <div className="bg-white p-4 rounded-lg shadow-md w-full h-full flex flex-col">
-      <div>
-        <h2 className="text-lg sm:text-xl font-bold text-gray-800">Student Progress</h2>
-        <p className="text-xs sm:text-sm text-gray-500 mb-4">Monthly Report</p>
+    <div className="bg-white p-4 rounded-lg shadow-md w-full h-full flex flex-col overflow-hidden">
+      <div className="flex-shrink-0 mb-3">
+        <h2 className="text-lg font-bold text-gray-800">Student Progress</h2>
+        <p className="text-xs text-gray-500">Monthly Report</p>
       </div>
 
-      <div className="w-full flex-1 min-h-0">
+      <div className="flex-grow min-h-0">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
             data={data}
             margin={{
-              top: 5,
+              top: 10,
               right: 20,
-              left: -10,
-              bottom: 5,
+              left: 10,
+              bottom: 10,
             }}
           >
             <CartesianGrid strokeDasharray="3 3" vertical={false} />
@@ -33,9 +33,10 @@ export default function ProgressGraph() {
               tick={{ fontSize: 10, fill: '#6B7280' }}
               axisLine={false}
               tickLine={false}
+              interval={0}
             />
             <YAxis
-              tick={{ fontSize: 12, fill: '#6B7280' }}
+              tick={{ fontSize: 10, fill: '#6B7280' }}
               axisLine={false}
               tickLine={false}
               domain={[0, 30]}
@@ -43,15 +44,18 @@ export default function ProgressGraph() {
             <Tooltip
               cursor={{ fill: 'transparent' }}
               contentStyle={{
-                backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                border: '1px solid #ccc',
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                border: '1px solid #e5e7eb',
                 borderRadius: '0.5rem',
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                fontSize: '12px'
               }}
             />
             <Bar
               dataKey="students"
-              fill="#0000FF"
-              barSize={50}
+              fill="#3B82F6"
+              radius={[3, 3, 0, 0]}
+              maxBarSize={50}
             />
           </BarChart>
         </ResponsiveContainer>
