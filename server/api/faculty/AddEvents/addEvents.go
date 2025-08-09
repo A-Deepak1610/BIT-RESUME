@@ -3,6 +3,8 @@ package addevents
 import (
 	"bitresume/config"
 	"encoding/json"
+	"strconv"
+
 	// "bitresume/models"
 	facultymodel "bitresume/models/faculty"
 	"fmt"
@@ -12,6 +14,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 )
+
 // AddEvents handles the submission of new event data via multipart/form-data
 func AddEvents(c *gin.Context) {
 	// Parse basic form fields
@@ -112,66 +115,82 @@ func AddEvents(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Event added successfully"})
 }
 func FetchEvents(c *gin.Context) {
-    query := `
-    SELECT e.id, e.event_name, e.event_code, e.type, e.deadline, e.min_team_size, e.max_team_size,
-           e.no_of_rounds, e.online_rounds, e.offline_rounds, e.location, e.apply_link,
-           e.domains, e.image_url, e.description AS event_description, e.rules, e.constraints,
-           e.final_prize1, e.final_prize2, e.final_prize3,
-           r.round_number, r.description AS round_description, r.start_date, r.end_date, r.year1_rp, r.year2_rp, r.year3_rp, r.year4_rp
-    FROM events AS e
-    LEFT JOIN event_rounds_dates AS r ON e.event_code = r.event_code 
-    `
-    
-    rows, err := config.DB.Query(query)
-    if err != nil {
-        log.Println("Error fetching events:", err)
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch events"})
-        return
-    }
-    defer rows.Close()
+	limitStr := c.Query("limit")
+	offsetStr := c.Query("offset")
 
-    // Use map to group events by EventCode
-    eventMap := make(map[string]*facultymodel.Event)
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil || limit <= 0 {
+		limit = 20
+	}
 
-    for rows.Next() {
-        var event facultymodel.Event
-        var round facultymodel.Rounds
+	offset, err := strconv.Atoi(offsetStr)
+	if err != nil || offset < 0 {
+		offset = 0
+	}
 
-        err := rows.Scan(
-            &event.ID, &event.EventName, &event.EventCode, &event.Type, &event.Deadline,
-            &event.MinTeamSize, &event.MaxTeamSize, &event.NoOfRounds, &event.OnlineRounds,
-            &event.OfflineRounds, &event.Location, &event.ApplyLink, &event.Domains,
-            &event.ImageURL, &event.Description, &event.Rules, &event.Constraints,
-            &event.FinalPrize1, &event.FinalPrize2, &event.FinalPrize3,
-            &round.RoundNumber, &round.Description, &round.StartDate, &round.EndDate,
-            &round.Year1RP, &round.Year2RP, &round.Year3RP, &round.Year4RP,
-        )
-        if err != nil {
-            log.Println("Error scanning event:", err)
-            continue
-        }
-        if existingEvent, found := eventMap[event.EventCode]; found {
-            if round.RoundNumber != 0 {
-                existingEvent.Rounds = append(existingEvent.Rounds, round)
-            }
-        } else {
-            if round.RoundNumber != 0 {
-                event.Rounds = []facultymodel.Rounds{round}
-            }
-            eventMap[event.EventCode] = &event
-        }
-    }
+	query := `
+		SELECT e.id, e.event_name, e.event_code, e.type, e.deadline, e.min_team_size, e.max_team_size,
+			e.no_of_rounds, e.online_rounds, e.offline_rounds, e.location, e.apply_link,
+			e.domains, e.image_url, e.description AS event_description, e.rules, e.constraints,
+			e.final_prize1, e.final_prize2, e.final_prize3,
+			r.round_number, r.description AS round_description, r.start_date, r.end_date, 
+			r.year1_rp, r.year2_rp, r.year3_rp, r.year4_rp
+		FROM events AS e
+		LEFT JOIN event_rounds_dates AS r 
+			ON e.event_code = r.event_code
+		LIMIT ? OFFSET ?;
+`
 
-    events := make([]facultymodel.Event, 0, len(eventMap))
-    for _, e := range eventMap {
-        events = append(events, *e)
-    }
-    c.JSON(http.StatusOK, gin.H{"events": events})
+	rows, err := config.DB.Query(query, limit, offset)
+	if err != nil {
+		log.Println("Error executing query:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+		return
+	}
+	defer rows.Close()
+
+	// Use map to group events by EventCode
+	eventMap := make(map[string]*facultymodel.Event)
+
+	for rows.Next() {
+		var event facultymodel.Event
+		var round facultymodel.Rounds
+
+		err := rows.Scan(
+			&event.ID, &event.EventName, &event.EventCode, &event.Type, &event.Deadline,
+			&event.MinTeamSize, &event.MaxTeamSize, &event.NoOfRounds, &event.OnlineRounds,
+			&event.OfflineRounds, &event.Location, &event.ApplyLink, &event.Domains,
+			&event.ImageURL, &event.Description, &event.Rules, &event.Constraints,
+			&event.FinalPrize1, &event.FinalPrize2, &event.FinalPrize3,
+			&round.RoundNumber, &round.Description, &round.StartDate, &round.EndDate,
+			&round.Year1RP, &round.Year2RP, &round.Year3RP, &round.Year4RP,
+		)
+		if err != nil {
+			log.Println("Error scanning event:", err)
+			continue
+		}
+		if existingEvent, found := eventMap[event.EventCode]; found {
+			if round.RoundNumber != 0 {
+				existingEvent.Rounds = append(existingEvent.Rounds, round)
+			}
+		} else {
+			if round.RoundNumber != 0 {
+				event.Rounds = []facultymodel.Rounds{round}
+			}
+			eventMap[event.EventCode] = &event
+		}
+	}
+
+	events := make([]facultymodel.Event, 0, len(eventMap))
+	for _, e := range eventMap {
+		events = append(events, *e)
+	}
+	c.JSON(http.StatusOK, gin.H{"events": events})
 }
 func CheckApplied(c *gin.Context) {
-    rollno := c.Query("rollno")
-    eventCode := c.Query("event_code")
-    query := `
+	rollno := c.Query("rollno")
+	eventCode := c.Query("event_code")
+	query := `
         SELECT COUNT(*)
         FROM (
             SELECT rollno, event_code
@@ -182,15 +201,15 @@ func CheckApplied(c *gin.Context) {
         ) AS combined
         WHERE rollno = ? AND event_code = ?;
     `
-    var count int
-    err := config.DB.QueryRow(query, rollno, eventCode).Scan(&count)
-    if err != nil {
-        log.Println("Error checking applied status:", err)
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check applied status"})
-        return
-    }
+	var count int
+	err := config.DB.QueryRow(query, rollno, eventCode).Scan(&count)
+	if err != nil {
+		log.Println("Error checking applied status:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check applied status"})
+		return
+	}
 
-    c.JSON(http.StatusOK, gin.H{
-        "applied": count > 0,
-    })
+	c.JSON(http.StatusOK, gin.H{
+		"applied": count > 0,
+	})
 }
