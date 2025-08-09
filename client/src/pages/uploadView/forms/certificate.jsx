@@ -5,19 +5,11 @@ import {
   ChevronLeft, X, Check, Upload, Info, Loader2, Settings2 as StepIcon1, Award as StepIcon2 // Renamed for clarity in STEP_CONFIG
 } from 'lucide-react';
 
-// Other specific detail components (HackathonDetails, etc.)
 import OnlineCourseDetails from './cerificateTypes/OnlineCourseDetails';
 import HackathonDetails from './cerificateTypes/HackathonDetails';
 import ParticipationDetails from './cerificateTypes/ParticipationDetails'; // Ensure this path is correct
-// import EventOrganizerDetails from './cerificateTypes/EventOrganizerDetails'; // REMOVED
-// import CustomDetails from './cerificateTypes/CustomDetails'; // REMOVED
-
+import { useLocation } from 'react-router-dom';
 const DEBUG_MODE = true; // Set to true for console logs
-
-// --- Helper Components (InputField, SelectField, FileUploadField, RequiredAst, SectionHeader) ---
-// These are assumed to be defined elsewhere or you can paste their definitions here.
-// For brevity, I'm including their basic structure as stubs if not already provided.
-
 const MAX_FILE_SIZE_MB = 5;
 const SUPPORTED_FORMATS_LABEL = `Supported formats: PDF, PNG, JPG (max ${MAX_FILE_SIZE_MB}MB)`;
 const ACCEPT_STRING = ".pdf,.png,.jpg,.jpeg,image/png,image/jpeg,application/pdf";
@@ -305,7 +297,6 @@ const CombinedDetailsStep = ({
     formData, handleChange, errors, handleFileSelect, setFormError,
     InputField, SelectField, FileUploadField, RequiredAst, SectionHeader, FileText
   };
-
   return (
     <div className="space-y-4">
       {(() => {
@@ -435,7 +426,9 @@ const CertificateUpload = ({ onBack, initialData = {} }) => {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
-
+  const location = useLocation();
+    console.log(location);
+    console.log(location.state.certificationType);
   const getInitialFormData = (data = {}) => {
     const defaults = {
       rollno: '',
@@ -463,6 +456,10 @@ const CertificateUpload = ({ onBack, initialData = {} }) => {
     };
 
     let initial = { ...defaults, ...data };
+    const location = useLocation();
+    console.log(location);
+    // data.certificateType=location.state.certificationType;
+    // console.log(location.state.certificationType);
 
     // Map initialData from backend keys to frontend keys
     if (data.certificateType === 'online-course') {

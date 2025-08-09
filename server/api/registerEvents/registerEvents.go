@@ -3,10 +3,12 @@ package registerevents
 import (
 	"bitresume/config"
 	"bitresume/models"
+	"database/sql"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"strings"
+
+	"github.com/gin-gonic/gin"
 )
 
 type RegisterEventRequest struct {
@@ -19,10 +21,15 @@ type RegisterEventRequest struct {
 
 func getRegisteredCount(eventCode string) (string, error) {
 	var team_code string
-	query := "SELECT CONCAT('TEAM_', '25BIT1', '_', IFNULL(COUNT(DISTINCT team_code), 0) + 1)  FROM register_events WHERE event_code = ?"
-	err := config.DB.QueryRow(query, eventCode).Scan(&team_code)
+	query := `
+		SELECT CONCAT(?, '_', IFNULL(COUNT(DISTINCT team_code), 0) + 1) 
+		FROM register_events 
+		WHERE event_code = ?
+	`
+	err := config.DB.QueryRow(query, eventCode, eventCode).Scan(&team_code)
 	return team_code, err
 }
+
 func HandleRegisterEvents(c *gin.Context) {
 	var req RegisterEventRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -156,7 +163,7 @@ ORDER BY
 	for rows.Next() {
 		var event models.RequestedEvent
 		var userStatus, userVerified string
-		
+
 		err := rows.Scan(
 			&event.EventCode,
 			&event.EventName,
@@ -169,8 +176,8 @@ ORDER BY
 			&event.LeaderRollNo,
 			&event.NumberOfTeammates,
 			&event.Teammates,
-			&userStatus,      // Added missing field
-			&userVerified,    // Added missing field
+			&userStatus,   // Added missing field
+			&userVerified, // Added missing field
 		)
 		if err != nil {
 			fmt.Printf("Row scan error: %v\n", err)
@@ -190,9 +197,7 @@ func GetRegisteredEvents(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "rollno is required"})
 		return
 	}
-
 	var events []models.RegisteredEventResponse
-
 	query := `
 	SELECT 
     e.event_code,
@@ -201,15 +206,28 @@ func GetRegisteredEvents(c *gin.Context) {
     e.type,
     e.location,
     e.final_prize1,
+
+    -- Start date from first round
     IFNULL(erd.start_date, '') AS start_date,
+
+    -- End date from last round
+    IFNULL(erd_end.end_date, '') AS end_date,
+
     user_re.team_code,
     user_re.leader_rollno,
+
+    -- Teammate info
     IFNULL(team_stats.number_of_teammates, 0) AS number_of_teammates,
     IFNULL(team_stats.teammates, '') AS teammates,
+
+    -- User registration info
     user_re.status AS user_status,
-    user_re.verified AS user_verified
+    user_re.verified AS user_verified,
+    user_re.faculty_remarks
+
 FROM 
     events e
+
 JOIN 
     register_events user_re ON e.event_code = user_re.event_code 
 LEFT JOIN (
@@ -220,6 +238,17 @@ LEFT JOIN (
     GROUP BY event_code
 ) erd ON erd.event_code = e.event_code
 LEFT JOIN (
+    SELECT erd1.event_code, erd1.end_date
+    FROM event_rounds_dates erd1
+    JOIN (
+        SELECT event_code, MAX(round_number) AS max_round
+        FROM event_rounds_dates
+        GROUP BY event_code
+    ) erd2 ON erd1.event_code = erd2.event_code AND erd1.round_number = erd2.max_round
+) erd_end ON erd_end.event_code = e.event_code
+
+-- Join for team info
+LEFT JOIN (
     SELECT 
         team_code,
         event_code,
@@ -228,12 +257,15 @@ LEFT JOIN (
     FROM register_events
     GROUP BY team_code, event_code
 ) team_stats ON team_stats.team_code = user_re.team_code 
-    AND team_stats.event_code = e.event_code
+            AND team_stats.event_code = e.event_code
+
 WHERE 
     user_re.rollno = ?
     AND user_re.status = 'accepted'
+
 ORDER BY 
-    e.event_code`
+    e.event_code;
+`
 
 	rows, err := config.DB.Query(query, rollno)
 	if err != nil {
@@ -245,8 +277,9 @@ ORDER BY
 
 	for rows.Next() {
 		var event models.RegisteredEventResponse
-		var userStatus, userVerified string
-		
+		// var userStatus, userVerified string
+		var facultyRemarks sql.NullString // <-- Change this
+
 		err := rows.Scan(
 			&event.EventCode,
 			&event.EventName,
@@ -255,41 +288,46 @@ ORDER BY
 			&event.Location,
 			&event.FinalPrize1,
 			&event.StartDate,
+			&event.EndDate,
 			&event.TeamCode,
 			&event.LeaderRollNo,
 			&event.NumberOfMembers,
 			&event.Teammates,
-			&userStatus,      // Added missing field
-			&userVerified,    // Added missing field
+			&event.UserStatus,
+			&event.UserVerified,
+			&facultyRemarks,
 		)
 		if err != nil {
 			fmt.Printf("Row scan error: %v\n", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to scan registered event"})
 			return
 		}
+
+		// Convert sql.NullString to string
+		if facultyRemarks.Valid {
+			event.FacultyRemarks = facultyRemarks.String
+		} else {
+			event.FacultyRemarks = "" // or leave it empty if NULL
+		}
+
 		events = append(events, event)
 	}
 
 	c.JSON(http.StatusOK, events)
 }
 func HandleRequestEventsApproveReject(c *gin.Context) {
-	rollno := c.Param("rollno")
-	if rollno == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "rollno is required"})
-		return
-	}
-	
 	var req struct {
-		EventCode  string `json:"event_code"`
-		TeamCode   string `json:"team_code"`
-		Action     string `json:"action"` // "approve" or "reject"
+		Rollno    string `json:"rollno"` // This should match the rollno in the URL
+		EventCode string `json:"event_code"`
+		TeamCode  string `json:"team_code"`
+		Action    string `json:"action"` // "approve" or "reject"
 	}
-	
+
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data"})
 		return
 	}
-	
+
 	// Determine new status based on action
 	var newStatus string
 	if req.Action == "approve" {
@@ -300,19 +338,19 @@ func HandleRequestEventsApproveReject(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid action. Use 'approve' or 'reject'"})
 		return
 	}
-	
+
 	updateQuery := `
 	UPDATE register_events 
 	SET status = ?
 	WHERE rollno = ? AND event_code = ? AND team_code = ?`
-	
-	result, err := config.DB.Exec(updateQuery, newStatus, rollno, req.EventCode, req.TeamCode)
+
+	result, err := config.DB.Exec(updateQuery, newStatus, req.Rollno, req.EventCode, req.TeamCode)
 	if err != nil {
 		fmt.Printf("Database update error: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update registration status"})
 		return
 	}
-	
+
 	// Check if any rows were affected
 	rowsAffected, _ := result.RowsAffected()
 	if rowsAffected == 0 {
@@ -322,6 +360,6 @@ func HandleRequestEventsApproveReject(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Registration status updated successfully",
-		"status": newStatus,
+		"status":  newStatus,
 	})
 }

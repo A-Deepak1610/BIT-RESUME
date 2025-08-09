@@ -40,6 +40,7 @@ type Event struct {
 
 type Rounds struct {
     RoundNumber int    `json:"round_number"`
+	Description string `json:"description"`
     StartDate   string `json:"start_date"`
     EndDate     string `json:"end_date"`
     Year1RP     string `json:"year1_rp"`
@@ -51,6 +52,7 @@ type Rounds struct {
 
 type Round struct {
 	RoundNumber  int    `json:"round_no" `
+	Description  string  `json:"description"`
 	StartDate    string `json:"start_date"`
 	EndDate      string `json:"end_date"`
 	Rewardpoints Rewardpoints `json:"reward_points"`
@@ -82,4 +84,8 @@ type Activity struct {
 	TargetYear       string `json:"TargetYear,omitempty"`
 	AllStudents      int    `json:"all_students,omitempty"`
 	Host             string `json:"host,omitempty"`
+}
+type RegisteredStudent struct {
+	RollNo      string `json:"rollno"`
+	EventCode   string `json:"event_code"`
 }

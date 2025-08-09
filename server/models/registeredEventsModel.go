@@ -36,11 +36,13 @@ type RegisteredEventResponse struct {
 	Type            string `json:"type"`
 	Location        string `json:"location"`
 	FinalPrize1     string `json:"final_prize1"`
-	StartDate       string `json:"start_date"`
+	StartDate       string `json:"start_date"` 
+	EndDate       string `json:"end_date"` 
 	TeamCode        string `json:"team_code"`
 	LeaderRollNo    string `json:"leader_rollno"`
 	NumberOfMembers int    `json:"number_of_teammates"`
 	Teammates       string `json:"teammates"`
-	UserStatus      string `json:"user_status"`      // Added
-	UserVerified    string `json:"user_verified"`    // Added
+	UserStatus      string `json:"user_status"`      
+	UserVerified    string `json:"user_verified"`    
+	FacultyRemarks  string `json:"faculty_remarks,omitempty"` 
 }

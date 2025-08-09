@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   MapPin,
   Trophy,
@@ -8,6 +9,7 @@ import {
   XCircle,
   Clock,
   Tag,
+  Award,
 } from "lucide-react";
 import {
   Dialog,
@@ -19,6 +21,8 @@ import {
   Box,
   Chip,
 } from "@mui/material";
+import CertificateUpload from "../../uploadView/forms/certificate";
+import AutoFill from "../../../store/Autofill";
 
 // This component renders a single stage in the progress tracker
 const ProgressStage = ({ stage, status }) => {
@@ -36,14 +40,14 @@ const ProgressStage = ({ stage, status }) => {
   };
 
   return (
-    <div className="flex flex-col items-center text-center w-1/3 px-1">
+    <div className="flex flex-col items-center text-center w-1/4 px-1">
       <div className="relative">{getIcon()}</div>
       <span className="text-xs text-gray-500 mt-1 leading-tight">{stage}</span>
     </div>
   );
 };
 
-// Minimal Team Details Modal Component
+// Enhanced Team Details Modal Component with Faculty Remarks
 const TeamDetailsModal = ({ open, onClose, data }) => {
   if (!data) return null;
 
@@ -64,6 +68,19 @@ const TeamDetailsModal = ({ open, onClose, data }) => {
     if (state === "faculty") return "warning";
     return "default";
   };
+  const navigate=useNavigate();
+  const certificationType='hackathon';
+  console.log(data)
+  const handleUpdateDetails=()=>{
+    navigate("/uploadview/certificate",{
+      state:{
+        data,
+        certificationType:certificationType,
+      }
+    });
+  }
+  // Check if event is completed
+  const isEventCompleted = data.isCompleted || false;
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
@@ -88,6 +105,33 @@ const TeamDetailsModal = ({ open, onClose, data }) => {
               color={getStatusColor(data.state, data.verified)}
               size="small"
             />
+            {isEventCompleted && (
+              <Chip
+                label="Event Completed"
+                color="info"
+                size="small"
+                sx={{ ml: 1 }}
+              />
+            )}
+          </Box>
+
+          {/* Event Dates */}
+          <Box>
+            <Typography variant="subtitle2" gutterBottom>
+              Event Duration
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              <strong>Start:</strong> {data.eventDate || data.startDate}
+            </Typography>
+            {data.end_date && (
+              <Typography variant="body2" color="text.secondary">
+                <strong>End:</strong> {new Date(data.end_date).toLocaleDateString('en-GB', {
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: 'numeric'
+                }).replace(/\//g, '.')}
+              </Typography>
+            )}
           </Box>
 
           {/* Team Members */}
@@ -105,22 +149,45 @@ const TeamDetailsModal = ({ open, onClose, data }) => {
             )}
           </Box>
 
-          {/* Faculty Comments */}
-          {data.facultyComments && (
+          {/* Faculty Remarks */}
+          {data.faculty_remarks && (
             <Box>
               <Typography variant="subtitle2" gutterBottom>
-                Faculty Comments
+                Faculty Remarks
               </Typography>
               <Typography
                 variant="body2"
                 sx={{
                   p: 1.5,
-                  bgcolor: "grey.100",
+                  bgcolor: "green.50",
                   borderRadius: 1,
                   fontStyle: "italic",
+                  border: "1px solid",
+                  borderColor: "green.200",
                 }}
               >
-                "{data.facultyComments}"
+                "{data.faculty_remarks}"
+              </Typography>
+            </Box>
+          )}
+
+          {/* Event Status Prompt for Completed Events */}
+          {isEventCompleted && (
+            <Box>
+              <Typography variant="subtitle2" gutterBottom color="primary">
+                Event Status Update
+              </Typography>
+              <Typography
+                variant="body2"
+                sx={{
+                  p: 1.5,
+                  bgcolor: "blue.50",
+                  borderRadius: 1,
+                  border: "1px solid",
+                  borderColor: "blue.200",
+                }}
+              >
+                This event has been completed. Please update your participation status and share your experience.
               </Typography>
             </Box>
           )}
@@ -131,6 +198,11 @@ const TeamDetailsModal = ({ open, onClose, data }) => {
         <Button onClick={onClose} variant="outlined">
           Close
         </Button>
+        {isEventCompleted && (
+          <Button onClick={handleUpdateDetails} variant="contained" color="primary">
+            Update Status
+          </Button>
+        )}
       </DialogActions>
     </Dialog>
   );
@@ -139,23 +211,33 @@ const TeamDetailsModal = ({ open, onClose, data }) => {
 const LoggerCard = ({ data, onCardClick }) => {
   const [modalOpen, setModalOpen] = useState(false);
 
+
+  
   if (!data) {
     return null;
   }
 
-  // Simplified progress logic based on state and verified
+  // Enhanced progress logic with completed status
   let facultyStatus = "pending";
   let onDutyStatus = "pending";
+  let completedStatus = "pending";
+
+  // Check if event is completed
+  const isEventCompleted = data.isCompleted || false;
 
   if (data.verified === "rejected") {
     facultyStatus = "rejected";
     onDutyStatus = "rejected";
+    completedStatus = "rejected";
   } else if (data.verified === "accepted") {
     facultyStatus = "completed";
     onDutyStatus = "completed";
+    // Only mark as completed if event end date has passed
+    completedStatus = isEventCompleted ? "completed" : "pending";
   } else if (data.state === "faculty") {
     facultyStatus = "pending";
     onDutyStatus = "pending";
+    completedStatus = "pending";
   }
 
   const handleButtonClick = (e) => {
@@ -171,16 +253,21 @@ const LoggerCard = ({ data, onCardClick }) => {
     }
   };
 
+  // Enhanced progress stages with completed status
   const progressStages = [
     { name: "Faculty", status: facultyStatus },
     { name: "On Duty", status: onDutyStatus },
+    { name: "Completed", status: completedStatus }
   ];
+
+  // Dynamic button text based on completion status
+  const buttonText = isEventCompleted ? "Update Details" : "View Details";
 
   return (
     <>
       <div
-        className="bg-white shadow-xl rounded-xl overflow-hidden flex flex-col w-full max-w-md h-[453px] cursor-pointer"
-        onClick={handleCardClick}
+        className="bg-white shadow-xl rounded-xl overflow-hidden flex flex-col w-full max-w-md h-[453px] "
+        // onClick={handleCardClick}
       >
         {/* Image Section */}
         <div className="relative h-[165px] flex-shrink-0">
@@ -190,6 +277,14 @@ const LoggerCard = ({ data, onCardClick }) => {
               alt={data.eventName || "Event"}
               className="w-full h-full object-cover"
             />
+          )}
+          {/* Event Status Badge */}
+          {isEventCompleted && (
+            <div className="absolute top-2 right-2">
+              <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">
+                Completed
+              </span>
+            </div>
           )}
         </div>
 
@@ -252,15 +347,18 @@ const LoggerCard = ({ data, onCardClick }) => {
             </div>
           </div>
 
-          {/* View Details Button */}
+          {/* Dynamic Button */}
           <button
-            className="w-full bg-[#0200e1] hover:bg-[#0100b3] outline-none text-white font-semibold py-2 px-4 rounded-lg text-sm transition duration-150 ease-in-out mb-3"
+            className={`w-full cursor-pointer font-semibold py-2 px-4 rounded-lg text-sm transition duration-150 ease-in-out mb-3 ${
+              isEventCompleted 
+                ? "bg-green-600 hover:bg-green-700 text-white"
+                : "bg-[#0200e1] hover:bg-[#0100b3] text-white"
+            }`}
             onClick={handleButtonClick}
           >
-            View Details
+            {buttonText}
           </button>
-
-          {/* Progress Tracker */}
+          {/* Enhanced Progress Tracker */}
           <div className="flex-shrink-0">
             <div className="flex items-start justify-between">
               {progressStages.map((stage, index) => (
@@ -284,7 +382,7 @@ const LoggerCard = ({ data, onCardClick }) => {
         </div>
       </div>
 
-      {/* Minimal Team Details Modal */}
+      {/* Enhanced Team Details Modal */}
       <TeamDetailsModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}

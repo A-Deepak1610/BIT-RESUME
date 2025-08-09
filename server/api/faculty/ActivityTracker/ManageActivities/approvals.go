@@ -16,6 +16,7 @@ func HandleActivityApprovals(c *gin.Context) {
 	query := `
 	SELECT DISTINCT
 		e.event_name,
+		e.event_code,
 		e.type AS event_type,
 		(
 			SELECT start_date 
@@ -62,6 +63,7 @@ func HandleActivityApprovals(c *gin.Context) {
 
 		err := rows.Scan(
 			&approval.EventName,
+			&approval.EventCode,
 			&approval.EventType,
 			&eventStartDateStr,     // Scan as string
 			&domain,
@@ -128,4 +130,63 @@ func HandleActivityApprovals(c *gin.Context) {
 	}
 	fmt.Printf("Successfully processed %d approval records\n", len(approvals))
 	c.JSON(http.StatusOK, approvals)
+}
+func HandleApproveReject(c *gin.Context) {
+	// Corrected - Added a comma after verified = ?
+	const query = `
+		UPDATE register_events
+		SET verified = ?, faculty_remarks = ?
+		WHERE rollno = ? AND event_code = ?
+	`
+
+	// Struct to parse the request body
+	var request struct {
+		Rollno         string `json:"rollno"`
+		EventCode      string `json:"event_code"`
+		Verified       string `json:"verified"`        // "accepted" or "rejected"
+		FacultyRemarks string `json:"faculty_remarks"` // remarks to store
+	}
+
+	// Bind JSON body to struct
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data"})
+		return
+	}
+
+	// Validate 'verified' value
+	if request.Verified != "accepted" && request.Verified != "rejected" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid verified status. Use 'accepted' or 'rejected'"})
+		return
+	}
+
+	// Execute update query (This part was already correct)
+	result, err := config.DB.Exec(query, request.Verified, request.FacultyRemarks, request.Rollno, request.EventCode)
+	if err != nil {
+		// This is where the error was being triggered
+		fmt.Printf("Database update error: %v\n", err) 
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update registration status"})
+		return
+	}
+
+	// Check if any rows were affected
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		fmt.Printf("RowsAffected error: %v\n", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not verify if update occurred"})
+		return
+	}
+
+	if rowsAffected == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"message": "No matching registration found to update"})
+		return
+	}
+
+	// Success response
+	c.JSON(http.StatusOK, gin.H{
+		"message":          "Registration status updated successfully",
+		"rollno":           request.Rollno,
+		"event":            request.EventCode,
+		"status":           request.Verified,
+		"faculty_remarks":  request.FacultyRemarks,
+	})
 }

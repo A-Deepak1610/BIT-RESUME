@@ -13,7 +13,9 @@ const RegisteredEvents = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedEventData, setSelectedEventData] = useState(null);
   const { rollno } = useAuth();
-  // const rollno = '7376242AD136';
+
+  // Current date for status calculations
+  const currentDate = new Date('2025-08-07T18:58:20Z');
 
   const handleRequestedEvents = async () => {
     console.log("Fetching requested events for rollno:", rollno);
@@ -160,6 +162,10 @@ const RegisteredEvents = () => {
           }).replace(/\//g, '.');
         };
 
+        // Check if event is completed based on end_date
+        const isEventCompleted = event.end_date ? 
+          currentDate > new Date(event.end_date) : false;
+
         return {
           // Map backend snake_case to frontend camelCase
           id: event.event_code,
@@ -179,9 +185,19 @@ const RegisteredEvents = () => {
           teamMembers: teammatesArray,
           teammates: event.teammates,
           
-          // Add default status fields if not present in backend
+          // Add status fields with proper mapping
           state: event.state || 'pending',
-          verified: event.verified || false,
+          verified: event.user_verified || event.verified || 'pending',
+          user_verified: event.user_verified,
+          user_status: event.user_status,
+          faculty_remarks: event.faculty_remarks,
+          
+          // Add completion status
+          isCompleted: isEventCompleted,
+          
+          // Keep raw dates for calculations
+          start_date: event.start_date,
+          end_date: event.end_date,
           
           // Keep any additional fields from backend
           ...event
@@ -250,7 +266,6 @@ const RegisteredEvents = () => {
               <div
                 key={event.id || event.eventCode}
                 className="cursor-pointer"
-                // onClick={() => handleCardClick(event)}
               >
                 <RequestCard
                   data={event}

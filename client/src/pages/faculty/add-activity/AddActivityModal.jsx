@@ -227,12 +227,25 @@ export default function AddActivityModal({
         const newRounds = [...currentData.roundsData];
         while (newRounds.length < count) {
           newRounds.push({
+            description: "", // added field
             start_date: "",
             end_date: "",
             reward_points: { year1: "", year2: "", year3: "", year4: "" },
           });
         }
-        return { ...currentData, roundsData: newRounds.slice(0, count) };
+        // Ensure existing rounds have description key
+        const normalized = newRounds.slice(0, count).map((r) => ({
+          description: r.description ?? "",
+          start_date: r.start_date ?? "",
+          end_date: r.end_date ?? "",
+          reward_points: r.reward_points ?? {
+            year1: "",
+            year2: "",
+            year3: "",
+            year4: "",
+          },
+        }));
+        return { ...currentData, roundsData: normalized };
       });
     } else {
       setFormData((currentData) => ({ ...currentData, roundsData: [] }));
@@ -365,7 +378,7 @@ export default function AddActivityModal({
         credentials: "include",
       });
       onActivityCreated();
-      // handleModalClose();
+      handleModalClose();
     } catch (error) {
       const errorMessage =
         error.response?.data?.message ||
@@ -589,7 +602,29 @@ export default function AddActivityModal({
                     >
                       <h4 className="font-semibold text-gray-800 mb-3">
                         Round {index + 1}
+                        {round.description
+                          ? ` — ${round.description}`
+                          : ""}
                       </h4>
+
+                      <div className="grid grid-cols-1 gap-4 mb-4">
+                        <InputField
+                          id={`round_${index}_description`}
+                          name={`roundsData.${index}.description`}
+                          type="text"
+                          label="Round Name / Description"
+                          value={round.description || ""}
+                          onChange={(e) =>
+                            handleNestedChange(e.target.name, e.target.value)
+                          }
+                          placeholder={
+                            index === 0
+                              ? "e.g., Registration & Idea Submission"
+                              : "e.g., Finals - Pitching (Offline)"
+                          }
+                        />
+                      </div>
+
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                         <InputField
                           id={`round_${index}_start_date`}
@@ -779,8 +814,12 @@ export default function AddActivityModal({
                         key={i}
                         className="bg-gray-50 p-3 rounded border mb-2"
                       >
+                        <p className="mb-1">
+                          <strong>Round {i + 1}:</strong>{" "}
+                          {r.description ? r.description : "—"}
+                        </p>
                         <p>
-                          <strong>Round {i + 1} Date:</strong>{" "}
+                          <strong>Date:</strong>{" "}
                           {r.start_date || "TBD"} to {r.end_date || "TBD"}
                         </p>
                         <div className="mt-2 text-xs grid grid-cols-2 gap-x-4">

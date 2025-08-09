@@ -1,8 +1,6 @@
-// ./cerificateTypes/HackathonDetails.js
 import React from 'react';
 import { FileText, Award } from 'lucide-react';
 
-// const LEVELS = ['College', 'State', 'National', 'International'];
 const WIN_RESULTS = ['Winner', 'Runner-up', 'Top 5', 'Top 10', 'Participation Only', 'Other'];
 
 const HackathonDetails = (props) => {
@@ -13,7 +11,7 @@ const HackathonDetails = (props) => {
     InputField,
     SelectField,
     FileUploadField,
-    RequiredAst, // RequiredAst is passed via commonProps and used by InputField internally
+    RequiredAst,
     SectionHeader,
     handleFileSelect,
     setFormError,
@@ -129,7 +127,7 @@ const HackathonDetails = (props) => {
           </div>
       )}
     </div>
-  );
+  );  
 };
 
 export default HackathonDetails;

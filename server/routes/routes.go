@@ -57,13 +57,15 @@ func RegisterRoutes(r *gin.Engine){
 		studentOnly.GET("/events/registered/:rollno",registerevents.GetRegisteredEvents)
 		studentOnly.GET("/events/requested_events/:rollno",registerevents.GetRequestedEvents)
 		studentOnly.GET("/events/registered_events/:rollno",registerevents.GetRegisteredEvents)
-		studentOnly.PUT("/events/registered_events/approve_reject/:rollno",registerevents.HandleRequestEventsApproveReject)	
+		studentOnly.PUT("/events/registered_events/approve_reject",registerevents.HandleRequestEventsApproveReject)	
+		studentOnly.GET("/checkapplied", addevents.CheckApplied)
 	}
 	facultyOnly := r.Group("/api")
 	facultyOnly.Use(middleware.AuthorizeRoles("faculty"))
 	{
 		facultyOnly.GET("/manageactivities",manageactivities.GetActivityData)
 		facultyOnly.GET("/manageactivities/approvels",manageactivities.HandleActivityApprovals)
+		facultyOnly.PUT("/manageactivities/approvels_reject",manageactivities.HandleApproveReject)
 
 	}
 	// faculty page

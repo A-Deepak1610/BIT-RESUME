@@ -4,7 +4,7 @@ import { MapPin, Trophy, Users } from "lucide-react";
 
 const BACKEND_URL = "http://localhost:6001";
 const MasterCard = ({ data, onCardClick }) => {
-  console.log("MasterCard data:", data);
+  // console.log("MasterCard data:", data);
   if (!data || data.length === 0) {
     return (
       <p className="col-span-full text-center text-gray-500 py-10">
