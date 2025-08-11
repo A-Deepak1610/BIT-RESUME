@@ -10,7 +10,7 @@ func GetCertificates() ([]facultymodel.Varification, error) {
 	var certificates []facultymodel.Varification
 
 	query := `
-		SELECT 
+		SELECT
     COALESCE(c.title, '') AS title,
     COALESCE(c.platform, '') AS platform,
     COALESCE(c.issue_date, '') AS issue_date,
@@ -35,7 +35,7 @@ INNER JOIN certificates_type AS ct ON ct.id = c.certiificate_id
 
 UNION ALL
 
-SELECT 
+SELECT
     '' AS title,
     '' AS platform,
     '' AS issue_date,
@@ -60,7 +60,7 @@ INNER JOIN certificates_type AS ct ON ct.id = c.certificate_id
 
 UNION ALL
 
-SELECT 
+SELECT
     '' AS title,
     '' AS platform,
     COALESCE(cv.issue_date, '') AS issue_date,
@@ -69,7 +69,7 @@ SELECT
     COALESCE(cv.certificate_id, '') AS certificate_id,
     '' AS event_name,
     '' AS event_code,
-    '' AS participation_type,x
+    '' AS participation_type,
     COALESCE(cv.summary, '') AS summary,
     '' AS winning_status,
     COALESCE(cv.activity_type, '') AS activity_type,
