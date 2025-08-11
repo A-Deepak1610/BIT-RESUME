@@ -24,11 +24,11 @@ import ManageActivity from "../pages/faculty/activityTracker/manageActivity/mana
 import StudentResume from "../pages/faculty/resumeDraft/StudentResume"
 import Verification from "../pages/faculty/studentRequest/verifications"
 import Approvals from "../pages/faculty/studentRequest/approvals"
-import AddActivity from "../pages/Admin/add-activity/AddActivity";
 import FacultyDashboard from "../pages/faculty/Faculty-Dashboard/facultyDashboard";
 import DownloadResume from "../pages/resume/downloadResume";
 import AdminDashboard from "../pages/Admin/AdminDashboard/AdminDashboard";
 import Addusers from "../pages/Admin/AddUsers/Addusers";
+import AddActivity from "../pages/faculty/add-activity/AddActivity";
 
 export default function Applayout() {
   const { fetchUser, user, loading } = useAuth();

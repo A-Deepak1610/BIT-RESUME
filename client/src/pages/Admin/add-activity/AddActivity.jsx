@@ -4,86 +4,37 @@ import { Search, PlusCircle, AlertTriangle, Loader2 } from "lucide-react";
 import AddActivityModal from "./AddActivityModal";
 // import axios from 'axios';
 
-// Dummy data to be used instead of fetching from the backend
-const dummyActivities = [
-    {
-        id: 1,
-        event_code: "EVT001",
-        event_name: "Tech Conference 2025",
-        description: "An annual conference about the latest in technology and innovation.",
-        domains: "Technology, Innovation",
-        type: "Conference"
-    },
-    {
-        id: 2,
-        event_code: "EVT002",
-        event_name: "Art & Design Workshop",
-        description: "A hands-on workshop for creative minds to explore new design techniques.",
-        domains: "Art, Design",
-        type: "Workshop"
-    },
-    {
-        id: 3,
-        event_code: "EVT003",
-        event_name: "Community Marathon",
-        description: "A 5k run to support local charities and promote a healthy lifestyle.",
-        domains: "Health, Community",
-        type: "Sports"
-    },
-    {
-        id: 4,
-        event_code: "EVT004",
-        event_name: "Music Festival",
-        description: "A weekend-long festival featuring various artists from around the world.",
-        domains: "Music, Entertainment",
-        type: "Festival"
-    },
-    {
-        id: 5,
-        event_code: "EVT005",
-        event_name: "Startup Pitch Night",
-        description: "An evening for entrepreneurs to pitch their ideas to investors.",
-        domains: "Business, Startups",
-        type: "Networking"
-    }
-];
+// Dummy data to be used instead of fetching from the backendy
 
 export default function AddActivity() {
     const [searchTerm, setSearchTerm] = useState("");
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [activities, setActivities] = useState([]);
-    // const [loading, setLoading] = useState(true);
     const [loading, setLoading] = useState(false); // Set loading to false as we are using dummy data
     const [error, setError] = useState(null);
-    // const API_URL = `http://localhost:6001/api/addedactivities`;
+    const API_URL = `http://localhost:6001/api/addedactivities`;
 
-    // const fetchActivities = async () => {
-    //     setLoading(true);
-    //     setError(null);
-    //     try {
-    //         const response = await axios.get(API_URL, { withCredentials: true });
-    //         const fetchedData = Array.isArray(response.data) ? response.data : [];
-    //         setActivities(fetchedData);
-    //     } catch (err) {
-    //         console.error("Error fetching activities:", err);
-    //         setError(err.message || "Failed to fetch activities. Please try again.");
-    //         setActivities([]);
-    //     } finally {
-    //         setLoading(false);
-    //     }
-    // };
+    const fetchActivities = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const response = await axios.get(API_URL, { withCredentials: true });
+            const fetchedData = Array.isArray(response.data) ? response.data : [];
+            setActivities(fetchedData);
+        } catch (err) {
+            console.error("Error fetching activities:", err);
+            setError(err.message || "Failed to fetch activities. Please try again.");
+            setActivities([]);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     // useEffect to set dummy data on component mount
     useEffect(() => {
         setActivities(dummyActivities);
         setLoading(false);
     }, []);
-
-    const fetchActivities = () => {
-        // This function can be used to re-set the dummy data or for other purposes if needed
-        setActivities(dummyActivities);
-    };
-
     const filteredActivities = useMemo(() => {
         if (!activities) return [];
         if (!searchTerm) return activities;

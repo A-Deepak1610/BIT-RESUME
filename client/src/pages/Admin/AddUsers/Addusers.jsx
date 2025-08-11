@@ -250,14 +250,12 @@ export default function Addusers() {
             <div className="lg:w-2/3">
               {renderContent()}
             </div>
-
             <div className="lg:w-1/3">
               <SelectedDetail selectedUser={selectedUser} userType={activeTab} />
             </div>
           </div>
         </div>
       </div>
-      {/* Render the modal */}
       <AddUsersModal
         open={isModalOpen}
         onClose={() => setIsModalOpen(false)}

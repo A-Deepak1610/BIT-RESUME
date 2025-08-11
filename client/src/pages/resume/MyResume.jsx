@@ -9,8 +9,7 @@ import AreasOfExpertise from './AreasOfExpertise'
 import AccomplishmentsForResume from './AccomplishmentsForResume'
 import ActivenessGraphForResume from '../dashboard/graphs/graph1/ActivenessGraphForResume'
 import AchievementsGraphForResume from '../dashboard/graphs/grpah2/AchievementsGraphForResume'
-
-// A helper component to create consistent section styling
+// A helper component to create consistent section styling                                     
 const Section = ({ title, children, className }) => (
   <section className={className}>
     <h2 className="text-sm font-bold text-blue-800 uppercase tracking-wider border-b-2 border-gray-300 pb-1 mb-4">

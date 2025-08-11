@@ -12,7 +12,7 @@ import (
 
 func GetProjectsData(c *gin.Context) {
 	rollno := c.Param("rollno")
-	var projects []models.Projects
+	var projects []models.Projects;
 	var title, description, github string
 	var techstackRaw string
 	rows, err := config.DB.Query("select title_idea,objective,tech_stack,github_link from projects where rollno = ?", rollno)

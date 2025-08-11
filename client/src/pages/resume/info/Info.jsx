@@ -13,6 +13,7 @@ import {
   Linkedin,
   Github,
   Mail,
+  Download,
 } from "lucide-react";
 import { Button } from "@mui/material";
 
@@ -83,7 +84,7 @@ export default function Info() {
       </div>
 
       <div className="border-b border-gray-300 mb-6" />
-      
+
       {/* Additional Information */}
       <div className="mb-6">
         <h1 className="text-primary text-sm font-semibold mb-3">
@@ -138,9 +139,18 @@ export default function Info() {
         </div>
       </div>
       <div className="flex justify-center mt-5">
-        <Button variant="contained" color="primary" onClick={()=>navigate("/downloadResume")}>
-          Download Resume
-        </Button>
+        <button
+          onClick={() => navigate("/downloadResume")}
+          className="group cursor-pointer bg-primary hover:bg-primary/80 text-white font-semibold rounded-lg mt-2 px-4 py-2 shadow-md transition-all duration-300 ease-in-out transform hover:scale-105 flex items-center"
+        >
+          <span className="group-hover:mr-2 transition-all duration-300">
+            Download Resume
+          </span>
+          <Download
+            size={20}
+            className="opacity-0 group-hover:opacity-100 transform -translate-x-4 group-hover:translate-x-0 transition-all duration-300"
+          />
+        </button>
       </div>
     </div>
   );
@@ -187,8 +197,7 @@ export default function Info() {
           <SidebarContent />
         </div>
 
-        <div className="flex-1  bg-gray-50">
-        </div>
+        <div className="flex-1  bg-gray-50"></div>
       </div>
     </>
   );

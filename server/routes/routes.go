@@ -54,7 +54,6 @@ func RegisterRoutes(r *gin.Engine) {
 		studentOnly.POST("/certificates/online-course", certificates.ReceiveCertificateData)
 		studentOnly.POST("/certificates/events", certificates.ReceiveCertificateData)
 		studentOnly.POST("/certificates/participation", certificates.ReceiveCertificateData)
-		studentOnly.GET("/activitymaster/fetch", addevents.FetchEvents)
 		studentOnly.POST("/addregisterevents", registerevents.HandleRegisterEvents)
 		studentOnly.GET("/events/registered/:rollno", registerevents.GetRegisteredEvents)
 		studentOnly.GET("/events/requested_events/:rollno", registerevents.GetRequestedEvents)
@@ -63,6 +62,7 @@ func RegisterRoutes(r *gin.Engine) {
 		studentOnly.GET("/checkapplied", addevents.CheckApplied)
 		studentOnly.GET("/resume/getprojects/:rollno", resume.GetProjectsData)
 		studentOnly.GET("/resume/getcertificates/:rollno", resume.GetCertificatesData)
+		// studentOnly.GET("/activitymaster/fetch", addevents.FetchEvents)
 	}
 	facultyOnly := r.Group("/api")
 	facultyOnly.Use(middleware.AuthorizeRoles("faculty"))
@@ -84,6 +84,7 @@ func RegisterRoutes(r *gin.Engine) {
 		adminOnly.DELETE("/deleteevents/:id", addevents.DeleteEvent)
 		adminOnly.POST("/addevents/create", addevents.AddEvents)
 	}
+	r.GET("/api/activitymaster/fetch", addevents.FetchEvents)
 	// faculty page
 
 }
