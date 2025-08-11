@@ -10,7 +10,8 @@ import (
 
 
 
-func ReceiveDataOnlineCourse(c *gin.Context, rollno string) {
+func ReceiveDataOnlineCourse(c *gin.Context,id int) {
+	rollno := c.PostForm("rollno")
 	title := c.PostForm("title")
 	platform := c.PostForm("platform")
 	issue_date := c.PostForm("issue_date")
@@ -38,6 +39,7 @@ func ReceiveDataOnlineCourse(c *gin.Context, rollno string) {
 
 	query := `
 		INSERT INTO certificate_onlinecourses (
+			certiificate_id,
 			rollno,
 			title,
 			platform,
@@ -47,10 +49,10 @@ func ReceiveDataOnlineCourse(c *gin.Context, rollno string) {
 			certificate_pdf,
 			course_link,
 			created_at
-		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_DATE)
+		) VALUES (?,?, ?, ?, ?, ?, ?, ?, ?, CURRENT_DATE)
 	`
 
-	_, err = config.DB.Exec(query, rollno, title, platform, issue_date, start_date, end_date, savePathPdf, course_link)
+	_, err = config.DB.Exec(query,id, rollno, title, platform, issue_date, start_date, end_date, savePathPdf, course_link)
 	if err != nil {
 		c.JSON(500, gin.H{"error": "Failed to save online course certificate to the database"})
 		return

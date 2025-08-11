@@ -17,15 +17,18 @@ import LoadingBar from "../components/loading/Loading";
 import PageNotFound from "../pages/404/PageNotFound";
 import ActivityMaster from "../pages/Achivements/ActivityMaster/ActivityMaster";
 import RegisteredEvents from "../pages/Achivements/ActivityLogger/RegisteredEvents";
-// import RequestedEvents from "../pages/Achivements/ActivityLogger/RequestedEvents";
+import RequestedEvents from "../pages/Achivements/ActivityLogger/RequestedCard";
 import ResumeDraft from "../pages/faculty/resumeDraft/resumeDraft";
 import StudentPerformance from "../pages/faculty/performance/facultyStudentPerformance" ;
 import ManageActivity from "../pages/faculty/activityTracker/manageActivity/manageActivity";
 import StudentResume from "../pages/faculty/resumeDraft/StudentResume"
 import Verification from "../pages/faculty/studentRequest/verifications"
 import Approvals from "../pages/faculty/studentRequest/approvals"
-import AddActivity from "../pages/faculty/add-activity/AddActivity";
+import AddActivity from "../pages/Admin/add-activity/AddActivity";
 import FacultyDashboard from "../pages/faculty/Faculty-Dashboard/facultyDashboard";
+import DownloadResume from "../pages/resume/downloadResume";
+import AdminDashboard from "../pages/Admin/AdminDashboard/AdminDashboard";
+import Addusers from "../pages/Admin/AddUsers/Addusers";
 
 export default function Applayout() {
   const { fetchUser, user, loading } = useAuth();
@@ -50,7 +53,7 @@ export default function Applayout() {
               <Route path="/uploadview" element={<UploadView />} />
               <Route path="/Achivement/ActivityMaster" element={<ActivityMaster />} />
               <Route path="/Achivement/ActivityLogger" element={<RegisteredEvents />} />
-              {/* <Route path="/Achivement/ActivityLogger/RequestedEvents" element={<RequestedEvents />} /> */}
+              <Route path="/Achivement/ActivityLogger/RequestedEvents" element={<RequestedEvents />} />
               <Route path="/uploadview/certificate" element={<CertificateUpload />} />
               <Route path="/uploadview/patent" element={<Patent />} />
               <Route path="/uploadview/project" element={<Project />} />
@@ -59,6 +62,7 @@ export default function Applayout() {
               <Route path='/uploadview/internship' element={<Internship />} />
             </Route>
             <Route path="/resume" element={<Resume />} />
+            <Route path="/downloadResume" element={<DownloadResume />} />
           </Route>
 
           <Route element={<ProtectedRoute allowedRoles={["faculty"]} />}>
@@ -75,7 +79,9 @@ export default function Applayout() {
           <Route element={<ProtectedRoute allowedRoles={["Admin"]}/>}>
           <Route element={<DashboardLayout/>}>
             <Route path="/admin-addactivity" element={<AddActivity/>}/>
-            <Route path="/admin-studentsPerformance" element={<StudentPerformance/>}/>
+            <Route path="/admin-studentsPerformance" element={<StudentPerformance/>}/>\
+            <Route path="/admin-dashboard" element={<AdminDashboard/>}/>
+            <Route path="/admin-AddUsers" element={<Addusers/>}/>
           </Route>
           <Route path="/admin-resume" element={<Resume/>}/>
           </Route>

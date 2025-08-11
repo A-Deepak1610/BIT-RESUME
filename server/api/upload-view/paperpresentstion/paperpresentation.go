@@ -9,6 +9,7 @@ import (
 )
 
 func ReceivePaperPresentationData(c *gin.Context){
+	rollno := c.PostForm("rollno")
 	paper_title := c.PostForm("paper_title")
 	conference_title := c.PostForm("conference_title")
 	location := c.PostForm("location")
@@ -47,11 +48,12 @@ func ReceivePaperPresentationData(c *gin.Context){
 		c.JSON(500, "Could not save file")
 		return
 	}
-
+	uploadType := "paperpresentation"
 
 	query := `
 		insert into paperpresentation 
 		(
+			upload_type,
 			rollno,
 			paper_title,
 			conference_title,
@@ -63,10 +65,10 @@ func ReceivePaperPresentationData(c *gin.Context){
 			approval_status,
 			submitted_on
 		)
-		values (?,?,?,?,?,?,?,?,?,CURRENT_DATE)
+		values (?,?,?,?,?,?,?,?,?,?,CURRENT_DATE)
 	`
 
-	_,err =config.DB.Exec(query,"7376242AD336",paper_title,conference_title,location,date_of_presentation,savePathPdf,savePathCertificate,award,"Pending")
+	_,err =config.DB.Exec(query,uploadType,rollno,paper_title,conference_title,location,date_of_presentation,savePathPdf,savePathCertificate,award,"Pending")
 
 	if err != nil {
 		c.JSON(500, "could not upload to db")

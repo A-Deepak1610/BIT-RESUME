@@ -70,7 +70,7 @@ func HandlePointlogs(c *gin.Context) { //This is for all other than ps
 		c.JSON(500, execErr.Error())
 	}
 	// this every thing i need to do in cron jobs
-	// activitygraph.HandleActivityGraphPoints(rollno, sem, currdate)
+	activitygraph.HandleActivityGraphPoints(rollno, sem, currdate)
 	if points > 0 {
 		achievementgraph.HandlePointlogs2(rollno, newpoints, sem, currdate)
 	}
@@ -210,7 +210,6 @@ func HandlePsLevelStatus(c *gin.Context) { //If completed only
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
 	// 1. Check if record exists
 	var exists bool
 	query := `SELECT EXISTS (
@@ -222,7 +221,6 @@ func HandlePsLevelStatus(c *gin.Context) { //If completed only
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check record"})
 		return
 	}
-
 	if exists {
 		// 2. Update if exists
 		updateQuery := `
@@ -250,7 +248,7 @@ func HandlePsLevelStatus(c *gin.Context) { //If completed only
 		c.JSON(http.StatusOK, gin.H{"message": "New skill added"})
 	}
 }
-func HandleFetchPsAttempts(c *gin.Context) {
+func HandleFetchPsAttempts(c *gin.Context){
 	var records []models.Ps
 	// var r models.Ps
 	rollno := c.Param("rollno")

@@ -1,11 +1,13 @@
+
 package manageactivities
 
 import (
 	"bitresume/config"
-	// facultymodel "bitresume/models/faculty"
+	facultymodel "bitresume/models/faculty"
 	"fmt"
 	"net/http"
 	"strconv"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -90,4 +92,42 @@ func ReceiveMeetingData(c *gin.Context, activity_id int) {
 	}
 
 	c.JSON(http.StatusCreated, gin.H{"message": "Meeting activity created successfully."})
+}
+
+func GetMeetingData()([]facultymodel.Activity,error){
+	var meeting []facultymodel.Activity
+
+	rows, err := config.DB.Query(`SELECT 
+    	al.activity_title,
+    	al.activity_type,
+        s.host,
+    	s.description,
+    	s.start_time,
+    	s.end_time,
+        s.date_of_meeting,
+    	s.link_or_location,
+    	s.target_year,
+    	s.all_students
+	FROM 
+    	meeting_details AS s
+	INNER JOIN 
+    	activity_list AS al ON al.id = s.activity_id;`)
+
+	if err != nil {
+		fmt.Println("Error", err.Error())
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next(){
+		var m facultymodel.Activity
+		err = rows.Scan(&m.ActivityTitle,&m.ActivityType,&m.Host,&m.Description,&m.StartDate,&m.EndDate,&m.DateofMeeting,&m.LinkOrLocation,&m.TargetYear,&m.AllStudents)
+		if err != nil{
+			fmt.Println("Error: ", err.Error())
+			return nil, err
+		}
+		meeting = append(meeting, m)
+	}
+
+	return meeting, nil
 }

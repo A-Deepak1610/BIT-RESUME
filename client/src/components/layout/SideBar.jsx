@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo, useEffect } from "react";
+import React, { useState, useRef, useMemo } from "react";
 import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
 import StarBorderRoundedIcon from "@mui/icons-material/StarBorderRounded";
 import KeyboardArrowRightRoundedIcon from "@mui/icons-material/KeyboardArrowRightRounded";
@@ -10,8 +10,6 @@ import useAuth from "../../store/UseAuth";
 import GroupWorkOutlinedIcon from "@mui/icons-material/GroupWorkOutlined";
 import ApprovalOutlinedIcon from "@mui/icons-material/ApprovalOutlined";
 import VerifiedOutlinedIcon from "@mui/icons-material/VerifiedOutlined";
-import ManageHistoryOutlinedIcon from "@mui/icons-material/ManageHistoryOutlined";
-import FormatListBulletedOutlinedIcon from "@mui/icons-material/FormatListBulletedOutlined";
 import TuneOutlinedIcon from "@mui/icons-material/TuneOutlined";
 import BarChartOutlinedIcon from "@mui/icons-material/BarChartOutlined";
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
@@ -19,84 +17,35 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 export default function SideBar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, logout } = useAuth();
-
-  // Get current active item and determine which menus should be expanded
-  const { activeItem, shouldExpandStudentRequests, shouldExpandActivityTracker } = useMemo(() => {
-    const path = location.pathname;
-    let active = "";
-    let expandStudentRequests = false;
-    let expandActivityTracker = false;
-
-    // Dashboard routes
-    if (path === "/dashboard" || path === "/faculty-dashboard") {
-      active = "dashboard";
-    }
-    // Student routes
-    else if (path === "/uploadview") {
-      active = "upload";
-    }
-    else if (path === "/resume") {
-      active = "resume";
-    }
-    else if (path.includes("/Achivement/ActivityMaster")) {
-      active = "activityMaster";
-    }
-    else if (path.includes("/Achivement/ActivityLogger")) {
-      active = "activityLogger";
-    }
-    // Faculty routes - Student Requests submenu
-    else if (path === "/faculty-approval") {
-      active = "projectApprovals";
-      expandStudentRequests = true;
-    }
-    else if (path === "/faculty-verification") {
-      active = "certificateVerifications";
-      expandStudentRequests = true;
-    }
-    // Faculty routes - Activity Tracker submenu
-    else if (path === "/faculty/tracker/all-events-log") {
-      active = "allEventsLog";
-      expandActivityTracker = true;
-    }
-    // Faculty routes - Other
-    else if (path === "/faculty-manageActivity") {
-      active = "manageActivities";
-    }
-    else if (path === "/faculty-studentperformance") {
-      active = "studentPerformance";
-    }
-    else if (path === "/faculty-resumeDraft") {
-      active = "resumeDrafts";
-    }
-    // Admin routes
-    else if (path === "/admin-addactivity") {
-      active = "addactivity";
-    }
-
-    return {
-      activeItem: active,
-      shouldExpandStudentRequests: expandStudentRequests,
-      shouldExpandActivityTracker: expandActivityTracker
-    };
-  }, [location.pathname]);
-
-  // State for expanded menus
   const [expandedMenus, setExpandedMenus] = useState({
-    studentRequests: shouldExpandStudentRequests,
-    activityTracker: shouldExpandActivityTracker,
+    studentRequests: false,
+    activityTracker: false,
   });
-
-  // Update expanded menus when route changes
-  useEffect(() => {
-    setExpandedMenus({
-      studentRequests: shouldExpandStudentRequests,
-      activityTracker: shouldExpandActivityTracker,
-    });
-  }, [shouldExpandStudentRequests, shouldExpandActivityTracker]);
 
   const studentRequestsRef = useRef(null);
   const activityTrackerRef = useRef(null);
+
+  const { user, logout } = useAuth();
+  const activeItem = useMemo(() => {
+    const path = location.pathname;
+    if (path === "/dashboard" || path === "/faculty-dashboard" || path == "/admin-dashboard") return "dashboard";
+    if (path === "/uploadview") return "upload";
+    if (path === "/resume") return "resume";
+    if (path.includes("/Achivement/ActivityMaster")) return "activityMaster";
+    if (path.includes("/Achivement/ActivityLogger")) return "activityLogger";
+    if (path === "/faculty-approval") return "projectApprovals";
+    if (path === "/faculty-verification") return "certificateVerifications";
+    if (path.includes("/faculty-approval") || path.includes("/faculty-verification")) return "studentRequests";
+    if (path === "/faculty/tracker/all-events-log") return "allEventsLog";
+    if (path === "/faculty-manageActivity") return "manageActivities";
+    if (path.includes("/faculty/tracker") || path.includes("/faculty-manageActivity")) return "activityTracker";
+    if (path === "/faculty-studentperformance") return "studentPerformance";
+    if (path === "/faculty-resumeDraft") return "resumeDrafts";
+    if (path === "/admin-addactivity") return "addactivity";
+    if(path == "/admin-studentsPerformance") return "studentsPerformance";
+    if(path == "/admin-AddUsers") return "addusers";
+    return "";
+  }, [location.pathname]);
 
   const handleItemClick = (itemName) => {
     // This function is kept for potential future use or consistency
@@ -139,7 +88,7 @@ export default function SideBar() {
               <li>
                 <div
                   className={`relative flex items-center gap-1 cursor-pointer p-2 rounded-md text-[14px] transition-all duration-300 ease-in-out ${
-                    expandedMenus.studentRequests || activeItem === "projectApprovals" || activeItem === "certificateVerifications"
+                    expandedMenus.studentRequests
                       ? "text-[#0200e1] w-51"
                       : "hover:bg-gray-100"
                   }`}
@@ -148,7 +97,7 @@ export default function SideBar() {
                   <GroupWorkOutlinedIcon fontSize="small" />
                   <span
                     className={`transition-colors duration-300 ease-in-out ${
-                      activeItem === "projectApprovals" || activeItem === "certificateVerifications" ||
+                      activeItem === "studentRequests" ||
                       expandedMenus.studentRequests
                         ? "text-[#0200e1]"
                         : ""
@@ -165,7 +114,7 @@ export default function SideBar() {
                   </div>
                   <div
                     className={`absolute right-0 top-1/2 transform -translate-y-1/2 w-[3px] h-6 bg-primary rounded-full transition-all duration-300 ease-in-out ${
-                      expandedMenus.studentRequests || activeItem === "projectApprovals" || activeItem === "certificateVerifications"
+                      expandedMenus.studentRequests
                         ? "block opacity-100"
                         : "hidden opacity-0"
                     }`}
@@ -208,20 +157,21 @@ export default function SideBar() {
                 </ul>
               </li>
 
-              <li
-                className={`flex items-center gap-3 cursor-pointer p-2 mt-3 rounded-md transition-all duration-300 ease-in-out ${
+                  <li
+                    className={`flex items-center gap-3 cursor-pointer p-2 mt-3 rounded-md transition-all duration-300 ease-in-out ${
                   activeItem === "manageActivities"
                     ? "text-white bg-primary w-55"
                     : "hover:bg-gray-100"
                 }`}
-                onClick={() => {
-                  handleItemClick("manageActivities");
-                  navigate("/faculty-manageActivity");
-                }}
-              >
-                <TuneOutlinedIcon fontSize="small" className="mr-1" />{" "}
-                Manage Activities
-              </li>
+                    onClick={() => {
+                      handleItemClick("manageActivities");
+                      navigate("/faculty-manageActivity");
+                    }}
+                  >
+                    <TuneOutlinedIcon fontSize="small" className="mr-1" />{" "}
+                    Manage Activities
+                  </li>
+
 
               <li
                 className={`flex items-center gap-3 cursor-pointer p-2 mt-3 rounded-md transition-all duration-300 ease-in-out ${
@@ -269,6 +219,16 @@ export default function SideBar() {
             <ul className="space-y-4 text-[#2e2d2d] font-medium text-[16px]">
               <li
                 className={`flex items-center gap-3 cursor-pointer p-2 rounded-md transition-all duration-300 ease-in-out ${
+                  activeItem === "dashboard"
+                    ? "text-white bg-primary w-55"
+                    : "hover:bg-gray-100"
+                }`}
+                onClick={() => navigate("/admin-dashboard")}
+              >
+                <DashboardOutlinedIcon fontSize="small" /> Dashboard
+              </li>
+              <li
+                className={`flex items-center gap-3 cursor-pointer p-2 rounded-md transition-all duration-300 ease-in-out ${
                   activeItem === "addactivity"
                     ? "text-white bg-primary w-55"
                     : "hover:bg-gray-100"
@@ -277,9 +237,29 @@ export default function SideBar() {
               >
                 <AddCircleOutlineIcon fontSize="small" /> Add Activity
               </li>
+              <li
+                className={`flex items-center gap-3 cursor-pointer p-2 rounded-md transition-all duration-300 ease-in-out ${
+                  activeItem === "studentsPerformance"
+                    ? "text-white bg-primary w-55"
+                    : "hover:bg-gray-100"
+                }`}
+                onClick={() => navigate("/admin-studentsPerformance")}
+              >
+                <BarChartOutlinedIcon fontSize="small" /> Student Metrics
+              </li>
+              <li
+                className={`flex items-center gap-3 cursor-pointer p-2 rounded-md transition-all duration-300 ease-in-out ${
+                  activeItem === "addusers"
+                    ? "text-white bg-primary w-55"
+                    : "hover:bg-gray-100"
+                }`}
+                onClick={() => navigate("/admin-AddUsers")}
+              >
+                <AddCircleOutlineIcon fontSize="small" /> Add Users
+              </li>
             </ul>
           </div>
-          <div className="">
+          <div className="mt-auto">
             <div
               onClick={handleLogout}
               className="flex items-center gap-3 text-[#2e2d2d] font-semibold cursor-pointer transition-all duration-300 ease-in-out hover:bg-gray-100 p-2 rounded-md"
@@ -307,7 +287,7 @@ export default function SideBar() {
               </li>
               <li
                 className={`flex items-center gap-1 text-[14px] p-2 rounded-md transition-all duration-300 ease-in-out ${
-                  activeItem === "activityMaster" || activeItem === "activityLogger" ? "text-[#0200e1] w-55" : ""
+                  activeItem === "achievement" ? "text-[#0200e1] w-55" : ""
                 }`}
               >
                 <StarBorderRoundedIcon fontSize="small" /> Achievement

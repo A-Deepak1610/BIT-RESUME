@@ -75,15 +75,17 @@ type EventRoundDates struct {
 	Year4RP     string `json:"year4_rp"`
 }
 type Activity struct {
-	ActivityTitle    string `json:"activity_title"`
-	ActivityType     string `json:"activity_type"`
-	Description      string `json:"description"`
-	StartDate        string `json:"start_date"`
-	EndDate          string `json:"end_date"`
-	LinkOrLocation   string `json:"link_or_location"`
-	TargetYear       string `json:"TargetYear,omitempty"`
-	AllStudents      int    `json:"all_students,omitempty"`
-	Host             string `json:"host,omitempty"`
+	ActivityTitle  string `json:"activity_title"`
+	ActivityType   string `json:"activity_type"`
+	Description    string `json:"description"`
+	StartDate      string `json:"start_date"`
+	EndDate        string `json:"end_date"`
+	DateofMeeting  string `json:"date_of_meeting,omitempty"`
+	LinkOrLocation string `json:"link_or_location"`
+	TargetYear     string `json:"TargetYear,omitempty"`
+	AllStudents    int    `json:"all_students,omitempty"`
+	Host           string `json:"host,omitempty"`
+	SpecificRollno string `json:"specific_rollno,omitempty"`
 }
 type RegisteredStudent struct {
 	RollNo      string `json:"rollno"`

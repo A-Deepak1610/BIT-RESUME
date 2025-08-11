@@ -14,6 +14,7 @@ import {
   Github,
   Mail,
 } from "lucide-react";
+import { Button } from "@mui/material";
 
 export default function Info() {
   const navigate = useNavigate();
@@ -136,6 +137,11 @@ export default function Info() {
           ))}
         </div>
       </div>
+      <div className="flex justify-center mt-5">
+        <Button variant="contained" color="primary" onClick={()=>navigate("/downloadResume")}>
+          Download Resume
+        </Button>
+      </div>
     </div>
   );
 
@@ -177,14 +183,11 @@ export default function Info() {
           </div>
         </div>
 
-        {/* Desktop Sidebar */}
         <div className="w-[280px] hidden lg:block shadow-md h-screen">
           <SidebarContent />
         </div>
 
-        {/* Main Content Area - Add your content here */}
         <div className="flex-1  bg-gray-50">
-          {/* Your main content goes here */}
         </div>
       </div>
     </>

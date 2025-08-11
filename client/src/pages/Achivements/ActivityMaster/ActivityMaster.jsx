@@ -213,7 +213,7 @@ const ActivityMaster = () => {
               data={filteredActivities}
               onCardClick={handleCardClick}
             />
-            <div className="fixed bottom-4 right-4 flex gap-4">
+            {/* <div className="fixed bottom-4 right-4 flex gap-2">
               <button
                 onClick={handlePaginationminus}
                 className="bg-primary hover:bg-blue-800 cursor-pointer text-white font-semibold py-2 px-4 rounded-lg shadow-lg"
@@ -226,7 +226,7 @@ const ActivityMaster = () => {
               >
                 &gt;
               </button>
-            </div>
+            </div> */}
           </>
         );
       case "meetings":

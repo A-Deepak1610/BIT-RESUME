@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { Search, FileText, ChevronDown, Paperclip, Pencil, X, Check } from 'lucide-react';
+import useAuth from "../../../store/UseAuth";
 
 // --- (Icon components remain the same, no changes needed) ---
 const SearchIcon = () => <Search className="w-5 h-5" strokeWidth={1.5} />;
@@ -200,12 +201,12 @@ export default function Approvals() {
   const [sortBy, setSortBy] = useState("SubmissionDate"); 
 
   const KNOWN_STATUSES = ["Awaiting", "Verified", "Rejected"];
-
+  const {rollno} =useAuth();
   const handleEvents = async () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch("http://localhost:6001/api/manageactivities/approvels", {
+      const response = await fetch(`http://localhost:6001/api/manageactivities/approvels/${rollno}`, {
         method: "GET",
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include'

@@ -10,6 +10,7 @@ import (
 const maxPdfSize = 5 * 1024 * 1024 // 5 MB
 
 func ReceivePatentsData(c *gin.Context) {
+	rollno := c.PostForm("rollno")
 	title := c.PostForm("title")
 	application_number := c.PostForm("application_number")
 	date_of_filing := c.PostForm("date_of_filing")
@@ -57,15 +58,17 @@ func ReceivePatentsData(c *gin.Context) {
 		}
 	}
 
+	uploadType := "patents"
+
 
 	// Insert into database
 	query := `
 	INSERT INTO patents
-	(rollno, title, application_number, date_of_filing, patent_docs, supporting_files, link_to_patent_listing, summary, usecase_of_patent, faculty_remarks, patent_status, submission_date)
-	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_DATE)`
+	(upload_type,rollno, title, application_number, date_of_filing, patent_docs, supporting_files, link_to_patent_listing, summary, usecase_of_patent, faculty_remarks, patent_status, submission_date)
+	VALUES (?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_DATE)`
 
-	_, err = config.DB.Exec(query,
-		"7376242AD336",
+	_, err = config.DB.Exec(query,uploadType,
+		rollno,
 		title,
 		application_number,
 		date_of_filing,
@@ -85,4 +88,3 @@ func ReceivePatentsData(c *gin.Context) {
 
 	c.JSON(200, gin.H{"message": "Patent successfully uploaded"})
 }
-

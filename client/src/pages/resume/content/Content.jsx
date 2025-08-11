@@ -73,7 +73,6 @@ export default function Content() {
         {/* --- MODIFIED Footer --- */}
         <div className="flex justify-center w-full mt-2">
           <div className="flex flex-col lg:flex-row w-full max-w-[1800px]">
-            {/* Projects (40%) */}
             <div className="w-full lg:w-[50%] mb-2 lg:mb-0 lg:mr-2">
               <Projects />
             </div>

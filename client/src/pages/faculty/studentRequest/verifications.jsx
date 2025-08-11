@@ -1,358 +1,534 @@
-import React, { useState, useMemo } from "react"; // Added useMemo
-import { Search, FileText, ChevronDown, Paperclip, Pencil, X, Check } from 'lucide-react';
-// Make sure this path is correct for your project structure
-import initialSubmissionsData from '../../../dummydatas/verification.json'; 
+import React, { useState, useMemo, useEffect } from "react";
+import { Search, ChevronDown, Paperclip, X, Check, AlertTriangle, Trophy, Users, FileText as FileTextIcon, Star, Code, Building, GitBranch, Link2, Video, Award, FileText, Briefcase, Calendar, MapPin, UserCheck } from 'lucide-react';
+import axios from 'axios';
 
-// --- Icon Components (using Lucide-React) ---
-const SearchIcon = () => <Search className="w-5 h-5" strokeWidth={1.5} />;
-const DocumentGenericIcon = () => <FileText className="w-6 h-6 text-indigo-500" strokeWidth={1.5} />;
-const ChevronUpDownIcon = ({ expanded }) => (
-  <ChevronDown 
-    strokeWidth={2} 
-    className={`w-5 h-5 transition-transform duration-200 ${expanded ? 'transform rotate-180' : ''}`} 
-  />
-);
-const PaperclipIcon = () => <Paperclip className="w-4 h-4 mr-1.5 text-gray-500" strokeWidth={1.5} />;
-const EditIcon = () => <Pencil className="w-4 h-4" strokeWidth={1.5} />;
-const RejectIcon = () => <X className="w-4 h-4 mr-1.5" strokeWidth={2.5} />;
-const VerifyIcon = () => <Check className="w-4 h-4 mr-1.5" strokeWidth={2.5} />;
-
-
-const SearchBarAndSort = ({ searchTerm, onSearchChange, sortBy, onSortChange }) => {
-  return (
-    <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
-      <div className="relative w-full sm:flex-grow">
-        <span className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-gray-400">
-          <SearchIcon />
-        </span>
-        <input
-          type="text"
-          placeholder="Search by student name or submission title..."
-          className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm shadow-sm"
-          value={searchTerm}
-          onChange={onSearchChange}
-        />
-      </div>
-      <div className="flex items-center flex-shrink-0">
-        <span className="text-sm text-gray-600 mr-2">Sort by:</span>
-        <select 
-          className="border border-gray-300 rounded-md py-2.5 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-white shadow-sm"
-          value={sortBy}
-          onChange={onSortChange}
-        >
-          <option value="Date">Date</option>
-          <option value="Name">Name</option>
-          <option value="Status">Status</option>
-          <option value="Type">Type</option>
-        </select>
-      </div>
-    </div>
-  );
+const ICONS = {
+    Search: () => <Search className="w-5 h-5" strokeWidth={1.5} />,
+    DocumentGeneric: () => <FileText className="w-6 h-6 text-indigo-500" strokeWidth={1.5} />,
+    Chevron: ({ expanded }) => <ChevronDown strokeWidth={2} className={`w-5 h-5 transition-transform duration-200 ${expanded ? 'transform rotate-180' : ''}`} />,
+    Paperclip: () => <Paperclip className="w-4 h-4 mr-1.5 text-gray-500" strokeWidth={1.5} />,
+    Reject: () => <X className="w-4 h-4 mr-1.5" strokeWidth={2.5} />,
+    Verify: () => <Check className="w-4 h-4 mr-1.5" strokeWidth={2.5} />,
+    Trophy: () => <Trophy className="w-4 h-4 mr-1.5 text-yellow-600" strokeWidth={1.5} />,
+    Users: () => <Users className="w-4 h-4 mr-1.5 text-blue-600" strokeWidth={1.5} />,
+    Summary: () => <FileTextIcon className="w-4 h-4 mr-1.5 text-gray-600" strokeWidth={1.5} />,
+    Star: () => <Star className="w-4 h-4 mr-1.5 text-gray-600" strokeWidth={1.5} />,
+    Code: () => <Code className="w-4 h-4 mr-1.5 text-gray-600" strokeWidth={1.5} />,
+    Building: () => <Building className="w-4 h-4 mr-1.5 text-gray-600" strokeWidth={1.5} />,
+    GitBranch: () => <GitBranch className="w-4 h-4 mr-1.5" strokeWidth={1.5} />,
+    Link2: () => <Link2 className="w-4 h-4 mr-1.5" strokeWidth={1.5} />,
+    Video: () => <Video className="w-4 h-4 mr-1.5 text-red-600" strokeWidth={1.5} />,
+    Award: () => <Award className="w-4 h-4 mr-1.5 text-yellow-600" strokeWidth={1.5} />,
+    Briefcase: () => <Briefcase className="w-4 h-4 mr-1.5 text-blue-600" strokeWidth={1.5} />,
+    Calendar: () => <Calendar className="w-4 h-4 mr-1.5 text-gray-600" strokeWidth={1.5} />,
+    MapPin: () => <MapPin className="w-4 h-4 mr-1.5 text-gray-600" strokeWidth={1.5} />,
+    UserCheck: () => <UserCheck className="w-4 h-4 mr-1.5 text-gray-600" strokeWidth={1.5} />,
 };
 
-const FilterTabs = ({ activeTab, setActiveTab, tabsConfig }) => {
-  return (
-    <div className="mb-6 border-b border-gray-200">
-      <nav className="flex space-x-1 -mb-px overflow-x-auto pb-px"> {/* Added overflow-x-auto and pb-px for better scrolling on small screens */}
-        {tabsConfig.map((tab) => (
-          <button
-            key={tab.name}
-            onClick={() => setActiveTab(tab.name)}
-            className={`py-3 px-4 sm:px-5 font-medium text-sm leading-5 rounded-t-md focus:outline-none transition-colors duration-150 whitespace-nowrap
-                        ${
-                          activeTab === tab.name
-                            ? "border-b-2 border-indigo-600 text-indigo-600 bg-indigo-50"
-                            : "text-gray-500 hover:text-gray-700 hover:bg-gray-100 hover:border-gray-300"
-                        }`}
-          >
-            {tab.name}
-            {tab.count !== null && ( // Show count even if it's 0, but not for 'All' if it's set to null
-              <span
-                className={`ml-1.5 px-2 py-0.5 rounded-full text-xs font-semibold
-                                ${
-                                  activeTab === tab.name
-                                    ? "bg-indigo-600 text-white"
-                                    : "bg-gray-200 text-gray-700"
-                                }`}
-              >
-                {tab.count}
-              </span>
-            )}
-          </button>
-        ))}
-      </nav>
-    </div>
-  );
+// --- Utility Functions ---
+const getAttachmentUrl = (path) => {
+    const backendUrl = "http://localhost:6001";
+    if (!path) return '#';
+    const formattedPath = path.replace(/\\/g, '/');
+    return `${backendUrl}/${formattedPath}`;
 };
 
-const AttachmentPill = ({ fileName }) => {
+const getStatusClasses = (status) => {
+    switch (status?.toLowerCase()) {
+        case "awaiting": return "bg-yellow-100 text-yellow-800 border-yellow-300";
+        case "verified": return "bg-green-100 text-green-800 border-green-300";
+        case "rejected": return "bg-red-100 text-red-800 border-red-300";
+        default: return "bg-gray-100 text-gray-800 border-gray-300";
+    }
+};
+
+const formatDate = (dateString) => dateString ? new Date(dateString).toLocaleDateString() : 'N/A';
+
+// --- Reusable Sub-Components ---
+const DetailItem = ({ icon, label, value, isLink, isTag, isList }) => {
+    if (!value) return null;
     return (
-        <button className="inline-flex items-center bg-gray-100 text-gray-700 text-xs font-medium mr-2 mb-2 px-3 py-1.5 rounded-full hover:bg-gray-200 transition-colors duration-150 focus:outline-none focus:ring-1 focus:ring-indigo-400">
-            <PaperclipIcon />
-            {fileName}
-        </button>
+        <div>
+            <h4 className="text-sm font-semibold text-gray-700 mb-1 flex items-center">{icon} {label}</h4>
+            {isLink ? (
+                <a href={value} target="_blank" rel="noopener noreferrer" className="text-sm text-indigo-600 hover:underline break-all">{value}</a>
+            ) : isTag ? (
+                 <p className="text-sm text-gray-600 bg-gray-100 p-3 rounded-md whitespace-pre-wrap">{value}</p>
+            ) : isList ? (
+                <div className="flex flex-wrap gap-2">
+                    {value.split(',').map(item => <span key={item} className="text-xs font-medium bg-indigo-100 text-indigo-800 px-2 py-1 rounded-full">{item.trim()}</span>)}
+                </div>
+            ) : (
+                <p className="text-sm text-gray-600">{value}</p>
+            )}
+        </div>
     );
 };
 
-const SubmissionCard = ({ submission, onToggleExpand, onAction }) => {
-  const getStatusClasses = (status) => {
-    switch (status.toLowerCase()) {
-      case "awaiting":
-        return "bg-yellow-100 text-yellow-700 border-yellow-300";
-      case "verified":
-        return "bg-green-100 text-green-700 border-green-300";
-      case "rejected":
-        return "bg-red-100 text-red-700 border-red-300";
-      default:
-        return "bg-gray-100 text-gray-700 border-gray-300";
-    }
-  };
-
-  return (
-    <div className="bg-white shadow-lg rounded-lg mb-5 overflow-hidden">
-      <div 
-        className="flex items-center justify-between p-4 border-b border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors duration-150" 
-        onClick={() => onToggleExpand(submission.id)}
-      >
-        <div className="flex items-center min-w-0">
-          <div className="mr-3 flex-shrink-0">
-            <DocumentGenericIcon />
-          </div>
-          <div className="min-w-0">
-            <h3 className="text-md font-semibold text-gray-800 truncate">{submission.title}</h3>
-            <div className="flex items-center mt-0.5">
-                <p className="text-xs text-gray-500">{submission.studentName}</p>
-                {submission.type && (
-                    <span className="ml-2 px-1.5 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 rounded-full border border-blue-300">
-                        {submission.type}
-                    </span>
-                )}
-            </div>
-          </div>
+const SearchBarAndSort = ({ searchTerm, onSearchChange, sortBy, onSortChange }) => (
+    <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+        <div className="relative w-full sm:flex-grow">
+            <span className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-gray-400"><ICONS.Search /></span>
+            <input type="text" placeholder="Search by student name or title..." className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm" value={searchTerm} onChange={onSearchChange} />
         </div>
-        <div className="flex items-center space-x-3 ml-2 flex-shrink-0">
-          <p className="text-xs text-gray-500 hidden sm:block whitespace-nowrap">{submission.submissionDate}</p>
-          <span className={`px-2.5 py-1 text-xs font-semibold rounded-full border ${getStatusClasses(submission.status)} whitespace-nowrap`}>
-            {submission.status}
-          </span>
-          <button aria-label={submission.isExpanded ? "Collapse section" : "Expand section"} className="text-gray-500 hover:text-gray-700">
-            <ChevronUpDownIcon expanded={submission.isExpanded} />
-          </button>
+        <div className="flex items-center flex-shrink-0">
+            <span className="text-sm text-gray-600 mr-2">Sort by:</span>
+            <select className="border border-gray-300 rounded-md py-2.5 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-white shadow-sm" value={sortBy} onChange={onSortChange}>
+                <option value="Date">Date</option>
+                <option value="Name">Name</option>
+                <option value="Status">Status</option>
+                <option value="Type">Type</option>
+            </select>
         </div>
-      </div>
-
-      {submission.isExpanded && (
-        <div className="p-5">
-          {[
-            { label: "Type", value: submission.type || 'N/A' },
-            { label: "Description", value: submission.description },
-            { label: "Student Remarks", value: submission.studentRemarks },
-            { label: "Completion Date", value: submission.completionDate },
-          ].map(detail => (
-            <div key={detail.label} className="mb-4">
-              <h4 className="text-sm font-semibold text-gray-700 mb-1">{detail.label}</h4>
-              <p className="text-sm text-gray-600 whitespace-pre-wrap">{detail.value}</p>
-            </div>
-          ))}
-          
-          <div className="mb-6">
-            <h4 className="text-sm font-semibold text-gray-700 mb-2">Attachments</h4>
-            <div className="flex flex-wrap">
-              {submission.attachments.map((file, index) => (
-                <AttachmentPill key={index} fileName={file} />
-              ))}
-            </div>
-          </div>
-          
-          <div className="mb-5">
-            <label htmlFor={`feedback-${submission.id}`} className="block text-sm font-semibold text-gray-700 mb-1">
-              Feedback (Optional)
-            </label>
-            <div className="relative">
-                <textarea
-                id={`feedback-${submission.id}`}
-                rows="3"
-                className="w-full p-2.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent shadow-sm resize-none"
-                placeholder="Add optional feedback or notes about this submission..."
-                ></textarea>
-                <button className="absolute bottom-2 right-2 text-gray-400 hover:text-gray-600 p-1" title="Formatting options">
-                    <EditIcon />
-                </button>
-            </div>
-          </div>
-          
-          <div className="flex justify-end space-x-3">
-            <button 
-                onClick={() => onAction(submission.id, "reject")}
-                className="px-4 py-2 border border-red-500 text-red-600 text-sm font-medium rounded-md hover:bg-red-50 transition-colors duration-150 flex items-center shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-red-400"
-            >
-                <RejectIcon />
-                Reject
-            </button>
-            <button 
-                onClick={() => onAction(submission.id, "verify")}
-                className="px-4 py-2 bg-green-500 text-white text-sm font-medium rounded-md hover:bg-green-600 transition-colors duration-150 flex items-center shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-green-400"
-            >
-                <VerifyIcon />
-                Verify
-            </button>
-          </div>
-        </div>
-      )}
     </div>
-  );
+);
+
+const FilterTabs = ({ activeTab, setActiveTab, tabsConfig }) => (
+    <div className="mb-6 border-b border-gray-200">
+        <nav className="flex space-x-1 -mb-px overflow-x-auto pb-px">
+            {tabsConfig.map((tab) => (
+                <button key={tab.name} onClick={() => setActiveTab(tab.name)}
+                    className={`py-3 px-4 sm:px-5 font-medium text-sm rounded-t-md focus:outline-none transition-colors duration-150 whitespace-nowrap ${activeTab === tab.name ? "border-b-2 border-indigo-600 text-indigo-700 bg-indigo-50" : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"}`}>
+                    {tab.name}
+                    {tab.count !== null && <span className={`ml-1.5 px-2 py-0.5 rounded-full text-xs font-semibold ${activeTab === tab.name ? "bg-indigo-600 text-white" : "bg-gray-200 text-gray-700"}`}>{tab.count}</span>}
+                </button>
+            ))}
+        </nav>
+    </div>
+);
+
+const AttachmentPill = ({ fileUrl, fileName }) => {
+    if (!fileUrl || !fileName) return null;
+    return (
+        <a href={fileUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center bg-gray-100 text-gray-700 text-xs font-medium mr-2 mb-2 px-3 py-1.5 rounded-full hover:bg-gray-200 transition-colors duration-150 focus:outline-none focus:ring-1 focus:ring-indigo-400">
+            <ICONS.Paperclip /> {fileName}
+        </a>
+    );
+};
+
+const ActionButtons = ({ submission, onAction, children }) => (
+    <div className="flex flex-col sm:flex-row justify-end sm:space-x-3 sm:items-end mt-6">
+        <div className="flex-grow mb-3 sm:mb-0">
+            {children}
+        </div>
+        <div className="flex-grow-[2]">
+            <label htmlFor={`feedback-${submission.id}`} className="block text-sm font-semibold text-gray-700 mb-1">Feedback</label>
+            <textarea id={`feedback-${submission.id}`} rows="2" className="w-full p-2.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm" placeholder="Add optional feedback for the student..."></textarea>
+        </div>
+        <div className="flex items-end space-x-3 mt-3 sm:mt-0">
+            <button onClick={() => onAction(submission.id, "reject")} className="px-4 py-2 border border-red-500 text-red-600 text-sm font-medium rounded-md hover:bg-red-50 flex items-center shadow-sm h-fit"><ICONS.Reject /> Reject</button>
+            <button onClick={() => onAction(submission.id, "verify")} className="px-4 py-2 bg-green-500 text-white text-sm font-medium rounded-md hover:bg-green-600 flex items-center shadow-sm h-fit"><ICONS.Verify /> Verify</button>
+        </div>
+    </div>
+);
+
+
+// --- CARD COMPONENTS ---
+
+const CardBase = ({ submission, onToggleExpand, children }) => (
+    <div className="bg-white shadow-lg rounded-lg mb-5 overflow-hidden border border-gray-200 transition-all duration-300">
+        <div className="flex items-center justify-between p-4 border-b border-gray-200 cursor-pointer hover:bg-gray-50" onClick={() => onToggleExpand(submission.id)}>
+            <div className="flex items-center min-w-0">
+                <div className="mr-4 flex-shrink-0"><ICONS.DocumentGeneric /></div>
+                <div className="min-w-0">
+                    <h3 className="text-md font-semibold text-gray-800 truncate">{submission.title}</h3>
+                    <div className="flex items-center mt-0.5">
+                        <p className="text-xs text-gray-500">{submission.studentName}</p>
+                        <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 rounded-full border border-blue-300">{submission.typeDisplay}</span>
+                    </div>
+                </div>
+            </div>
+            <div className="flex items-center space-x-3 ml-2 flex-shrink-0">
+                <p className="text-xs text-gray-500 hidden sm:block">{formatDate(submission.submissionDate)}</p>
+                <span className={`px-2.5 py-1 text-xs font-semibold rounded-full border ${getStatusClasses(submission.status)}`}>{submission.status}</span>
+                <button aria-label={submission.isExpanded ? "Collapse" : "Expand"} className="text-gray-500 hover:text-gray-700"><ICONS.Chevron expanded={submission.isExpanded} /></button>
+            </div>
+        </div>
+        {submission.isExpanded && <div className="p-5 bg-gray-50/50">{children}</div>}
+    </div>
+);
+
+// --- Specific Cards for each Upload Type ---
+
+const CertificateCard = ({ submission, onAction }) => (
+    <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+            <DetailItem icon={<ICONS.Building />} label="Platform" value={submission.details.platform} />
+            <DetailItem icon={<ICONS.Calendar />} label="Issue Date" value={formatDate(submission.details.issue_date)} />
+            <div className="md:col-span-2"> <DetailItem icon={<ICONS.Link2 />} label="Course Link" value={submission.details.course_link} isLink /> </div>
+            {submission.details.activity_type && <DetailItem icon={<ICONS.Star />} label="Activity Type" value={submission.details.activity_type} />}
+            {submission.details.duration && <DetailItem icon={<ICONS.Calendar />} label="Duration" value={submission.details.duration} />}
+            {submission.details.location && <DetailItem icon={<ICONS.MapPin />} label="Location" value={submission.details.location} />}
+            {submission.details.participation_type && <DetailItem icon={<ICONS.Users />} label="Participation" value={submission.details.participation_type} />}
+            {submission.details.winning_status && <DetailItem icon={<ICONS.Trophy />} label="Result" value={submission.details.winning_status} />}
+        </div>
+        {submission.details.summary && <DetailItem icon={<ICONS.Summary />} label="Summary" value={submission.details.summary} isTag />}
+        <div>
+            <h4 className="text-sm font-semibold text-gray-700 mb-2">Certificate</h4>
+            <AttachmentPill fileName={submission.attachments[0]?.name} fileUrl={submission.attachments[0]?.url} />
+        </div>
+        <ActionButtons submission={submission} onAction={onAction} />
+    </div>
+);
+
+const ProjectCard = ({ submission, onAction }) => (
+    <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+            <DetailItem icon={<ICONS.Calendar />} label="Start Date" value={formatDate(submission.details.start_time)} />
+            <DetailItem icon={<ICONS.Calendar />} label="End Date" value={formatDate(submission.details.end_time)} />
+            <DetailItem icon={<ICONS.Users />} label="Team Members" value={submission.details.member_name} />
+            <DetailItem icon={<ICONS.Code />} label="Technologies Used" value={submission.details.tech_names} isList />
+            <DetailItem icon={<ICONS.GitBranch />} label="GitHub Link" value={submission.details.github_link} isLink />
+            {submission.details.awards_won && <DetailItem icon={<ICONS.Award />} label="Awards Won" value={submission.details.awards_won} />}
+        </div>
+        <DetailItem icon={<ICONS.Summary />} label="Problem Statement" value={submission.details.problem_statement} isTag />
+        <DetailItem icon={<ICONS.Summary />} label="Summary" value={submission.details.summary} isTag />
+        <div>
+            <h4 className="text-sm font-semibold text-gray-700 mb-2">Attachments</h4>
+            <AttachmentPill fileName={submission.attachments.find(a => a.type === 'report')?.name} fileUrl={submission.attachments.find(a => a.type === 'report')?.url} />
+            <AttachmentPill fileName={submission.attachments.find(a => a.type === 'demo')?.name} fileUrl={submission.attachments.find(a => a.type === 'demo')?.url} />
+        </div>
+        <ActionButtons submission={submission} onAction={onAction}>
+             <div>
+                <label htmlFor={`complexity-${submission.id}`} className="block text-sm font-semibold text-gray-700 mb-1">Complexity Rating</label>
+                <select id={`complexity-${submission.id}`} className="border border-gray-300 rounded-md py-2.5 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-white shadow-sm w-full sm:w-auto">
+                    <option value="">Select Tier</option>
+                    <option value="T1">T1</option>
+                    <option value="T2">T2</option>
+                    <option value="T3">T3</option>
+                </select>
+            </div>
+        </ActionButtons>
+    </div>
+);
+
+const WorkshopCard = ({ submission, onAction }) => (
+    <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+             <DetailItem icon={<ICONS.Building />} label="Organized By" value={submission.details.organised_by} />
+             <DetailItem icon={<ICONS.MapPin />} label="Location" value={submission.details.location} />
+             <DetailItem icon={<ICONS.Calendar />} label="Start Date" value={formatDate(submission.details.start_date)} />
+             <DetailItem icon={<ICONS.Calendar />} label="End Date" value={formatDate(submission.details.end_date)} />
+             <DetailItem icon={<ICONS.Star />} label="Event Type" value={submission.details.event_type} />
+             <DetailItem icon={<ICONS.Star />} label="Mode" value={submission.details.mode_of_delivary} />
+             <DetailItem icon={<ICONS.Users />} label="Participation" value={submission.details.participation_type} />
+        </div>
+         <DetailItem icon={<ICONS.Code />} label="Skills Gained" value={submission.details.skills_gained} isTag />
+        <div>
+            <h4 className="text-sm font-semibold text-gray-700 mb-2">Certificate</h4>
+            <AttachmentPill fileName={submission.attachments[0]?.name} fileUrl={submission.attachments[0]?.url} />
+        </div>
+        <ActionButtons submission={submission} onAction={onAction} />
+    </div>
+);
+
+const PaperPresentationCard = ({ submission, onAction }) => (
+     <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+            <DetailItem icon={<ICONS.Building />} label="Conference Title" value={submission.details.conference_title} />
+            <DetailItem icon={<ICONS.MapPin />} label="Location" value={submission.details.location} />
+            <DetailItem icon={<ICONS.Calendar />} label="Presentation Date" value={formatDate(submission.details.date_of_presentation)} />
+            <DetailItem icon={<ICONS.Award />} label="Award" value={submission.details.award} />
+        </div>
+        <div>
+            <h4 className="text-sm font-semibold text-gray-700 mb-2">Attachments</h4>
+            <AttachmentPill fileName={submission.attachments.find(a => a.type === 'pdf')?.name} fileUrl={submission.attachments.find(a => a.type === 'pdf')?.url} />
+            <AttachmentPill fileName={submission.attachments.find(a => a.type === 'certificate')?.name} fileUrl={submission.attachments.find(a => a.type === 'certificate')?.url} />
+        </div>
+        <ActionButtons submission={submission} onAction={onAction} />
+    </div>
+);
+
+const InternshipCard = ({ submission, onAction }) => (
+     <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+            <DetailItem icon={<ICONS.Building />} label="Company" value={submission.details.company_name} />
+            <DetailItem icon={<ICONS.Briefcase />} label="Role" value={submission.details.roll} />
+            <DetailItem icon={<ICONS.Code />} label="Domain" value={submission.details.domain} />
+            <DetailItem icon={<ICONS.Star />} label="Type" value={submission.details.internship_type} />
+            <DetailItem icon={<ICONS.Calendar />} label="Start Date" value={formatDate(submission.details.start_date)} />
+            <DetailItem icon={<ICONS.Calendar />} label="End Date" value={formatDate(submission.details.end_date)} />
+            <DetailItem icon={<ICONS.UserCheck />} label="Faculty Consultant" value={submission.details.consulted_faculty_name} />
+            <DetailItem icon={<ICONS.UserCheck />} label="Industry Mentor" value={submission.details.industry_mentor_name} />
+        </div>
+        <DetailItem icon={<ICONS.Summary />} label="Outcomes" value={submission.details.outcomes} isTag />
+        <DetailItem icon={<ICONS.Code />} label="Skills Gained" value={submission.details.skill_gained} isTag />
+        <div>
+            <h4 className="text-sm font-semibold text-gray-700 mb-2">Attachments</h4>
+            <AttachmentPill fileName={submission.attachments.find(a => a.type === 'offer_letter')?.name} fileUrl={submission.attachments.find(a => a.type === 'offer_letter')?.url} />
+            <AttachmentPill fileName={submission.attachments.find(a => a.type === 'report')?.name} fileUrl={submission.attachments.find(a => a.type === 'report')?.url} />
+        </div>
+        <ActionButtons submission={submission} onAction={onAction} />
+    </div>
+);
+
+const PatentCard = ({ submission, onAction }) => (
+     <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+            <DetailItem icon={<ICONS.FileText />} label="Application No." value={submission.details.application_number} />
+            <DetailItem icon={<ICONS.Calendar />} label="Filing Date" value={formatDate(submission.details.date_of_filing)} />
+            <DetailItem icon={<ICONS.Star />} label="Patent Status" value={submission.details.patent_status} />
+            <div className="md:col-span-2">
+                <DetailItem icon={<ICONS.Link2 />} label="Patent Listing Link" value={submission.details.link_to_patent_listing} isLink />
+            </div>
+        </div>
+        <DetailItem icon={<ICONS.Summary />} label="Summary" value={submission.details.summary} isTag />
+        <DetailItem icon={<ICONS.Summary />} label="Use Case" value={submission.details.usecase_of_patent} isTag />
+        <div>
+            <h4 className="text-sm font-semibold text-gray-700 mb-2">Attachments</h4>
+            <AttachmentPill fileName={submission.attachments.find(a => a.type === 'patent_docs')?.name} fileUrl={submission.attachments.find(a => a.type === 'patent_docs')?.url} />
+            <AttachmentPill fileName={submission.attachments.find(a => a.type === 'supporting_files')?.name} fileUrl={submission.attachments.find(a => a.type === 'supporting_files')?.url} />
+        </div>
+        <ActionButtons submission={submission} onAction={onAction} />
+    </div>
+);
+
+
+// --- CORRECTED Data Transformation Utility ---
+const transformApiData = (apiData) => {
+    if (!Array.isArray(apiData)) return [];
+
+    return apiData.map((item) => {
+        // Destructure common fields, keeping the rest in 'details'
+        const { upload_type, user_name, ...details } = item;
+        
+        const id = `${upload_type}-${item.id || item.certificate_id}-${Math.random()}`;
+        const typeDisplay = upload_type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        
+        const attachments = [];
+        const addAttachment = (type, path) => {
+            if(path) {
+                attachments.push({ type, path, url: getAttachmentUrl(path), name: path.split(/[/\\]/).pop() });
+            }
+        };
+
+        let title = 'Untitled Submission';
+        let submissionDate = new Date().toISOString();
+        let status = 'Awaiting'; // Default status
+
+        // Determine status based on upload_type FIRST
+        if (upload_type === 'patents') {
+            // Patents use 'patent_status' field
+            if (item.patent_status?.toLowerCase() === 'pending') {
+                status = 'Awaiting';
+            } else if (item.patent_status) { // Any other status like 'Granted', 'Published'
+                status = 'Verified';
+            }
+             // Add logic for 'Rejected' if the API supports it
+        } else {
+            // All other types use 'approval_status'
+            const approvalStatus = item.approval_status;
+            if (approvalStatus === '1' || approvalStatus?.toLowerCase() === 'verified') {
+                status = 'Verified';
+            } else if (approvalStatus?.toLowerCase() === 'rejected') {
+                status = 'Rejected';
+            } else { // Covers 'Pending', '0', null, undefined
+                status = 'Awaiting';
+            }
+        }
+
+        // Determine title, date, and attachments based on type
+        switch (upload_type) {
+            case 'certificate':
+                title = details.event_name || details.platform || details.activity_type || 'Certificate';
+                submissionDate = details.issue_date;
+                addAttachment('certificate', details.certificate_pdf);
+                break;
+            case 'project':
+                title = details.title_idea;
+                submissionDate = details.start_time;
+                addAttachment('report', details.report_pdf);
+                addAttachment('demo', details.demo_video);
+                break;
+            case 'workshop':
+                title = `Workshop: ${details.topic_covered || details.event_nature}`;
+                submissionDate = details.start_date;
+                addAttachment('certificate', details.certificate_pdf);
+                break;
+            case 'paperpresentation':
+                title = details.paper_title;
+                submissionDate = details.date_of_presentation;
+                addAttachment('pdf', details.pdf);
+                addAttachment('certificate', details.certificate);
+                break;
+            case 'internship':
+                title = `${details.internship_type} at ${details.company_name}`;
+                submissionDate = details.start_date;
+                addAttachment('offer_letter', details.offer_letter);
+                addAttachment('report', details.report);
+                break;
+            case 'patents':
+                title = `Patent: ${details.application_number}`;
+                submissionDate = details.date_of_filing;
+                addAttachment('patent_docs', details.patent_docs);
+                addAttachment('supporting_files', details.supporting_files);
+                break;
+            default:
+                title = `${typeDisplay} Submission`;
+                break;
+        }
+
+        return {
+            id,
+            studentName: user_name,
+            title,
+            submissionDate,
+            type: upload_type,
+            typeDisplay,
+            status, // Use the correctly determined status
+            isExpanded: false,
+            attachments,
+            details: { ...details, patent_status: item.patent_status }, // Ensure all original details are passed
+        };
+    });
 };
 
 
+// --- MAIN COMPONENT: Verification ---
 export default function Verification() {
-  const [activeTab, setActiveTab] = useState("Awaiting");
-  const [submissions, setSubmissions] = useState(initialSubmissionsData);
+  const [allSubmissions, setAllSubmissions] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("Date");
-
-  const KNOWN_STATUSES = ["Awaiting", "Verified", "Rejected"];
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [activeTab, setActiveTab] = useState("Awaiting");
+  
+  useEffect(() => {
+    const fetchSubmissions = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const response = await axios.get(
+            'http://localhost:6001/api/studentrequests/varifications', 
+            { withCredentials: true }
+        );
+        
+        if (!response.data) {
+            setError("No data received from the server.");
+            setAllSubmissions([]);
+        } else if (!Array.isArray(response.data)) {
+            console.warn("API did not return an array. Received:", response.data);
+            setError("Unexpected data format received from the server.");
+            setAllSubmissions([]);
+        } else {
+            const transformedData = transformApiData(response.data);
+            setAllSubmissions(transformedData);
+        }
+      } catch (e) {
+        console.error("Failed to fetch submissions:", e);
+        setError("Could not load verification requests. Please try again later.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchSubmissions();
+  }, []);
 
   const handleToggleExpand = (id) => {
-    setSubmissions(prevSubmissions => 
-        prevSubmissions.map(sub => 
-            sub.id === id ? { ...sub, isExpanded: !sub.isExpanded } : sub
-        )
-    );
+    setAllSubmissions(prev => prev.map(sub => sub.id === id ? { ...sub, isExpanded: !sub.isExpanded } : sub));
   };
 
   const handleAction = (id, actionType) => {
-    console.log(`Submission ${id} action: ${actionType}`);
-    setSubmissions(prev => prev.map(s => {
-        if (s.id === id) {
-            return { ...s, status: actionType === 'verify' ? 'Verified' : 'Rejected', isExpanded: false };
-        }
-        return s;
-    }));
-    // Note: `initialSubmissionsData` is not mutated, so tab counts based on it remain consistent
-    // unless you intend to reflect these actions in real-time counts from the `submissions` state.
+    // TODO: Add backend API call here to persist the change
+    console.log(`Action: ${actionType} on submission ID: ${id}`);
+    const newStatus = actionType === 'verify' ? 'Verified' : 'Rejected';
+    setAllSubmissions(prev => prev.map(s => s.id === id ? { ...s, status: newStatus, isExpanded: false } : s));
   };
 
-  const handleSearchChange = (event) => {
-    setSearchTerm(event.target.value);
-  };
+  const handleSearchChange = (event) => setSearchTerm(event.target.value);
+  const handleSortChange = (event) => setSortBy(event.target.value);
 
-  const handleSortChange = (event) => {
-    setSortBy(event.target.value);
-  };
-
-  const tabData = useMemo(() => {
-    const counts = {
-        All: initialSubmissionsData.length,
-        Awaiting: 0,
-        Verified: 0,
-        Rejected: 0,
-    };
-    const typeCounts = {};
-
-    initialSubmissionsData.forEach(sub => {
-        if (KNOWN_STATUSES.includes(sub.status)) {
+  const { tabsConfig, processedSubmissions } = useMemo(() => {
+    const counts = { All: 0, Awaiting: 0, Verified: 0, Rejected: 0 };
+    allSubmissions.forEach(sub => {
+        counts.All++;
+        if (counts[sub.status] !== undefined) {
             counts[sub.status]++;
         }
-        if (sub.type) {
-            typeCounts[sub.type] = (typeCounts[sub.type] || 0) + 1;
+    });
+
+    const TABS_CONFIG = [
+        { name: "All", count: counts.All },
+        { name: "Awaiting", count: counts.Awaiting },
+        { name: "Verified", count: counts.Verified },
+        { name: "Rejected", count: counts.Rejected },
+    ];
+
+    const filtered = allSubmissions.filter(submission => {
+        const tabMatch = activeTab === "All" || submission.status === activeTab;
+        if (!tabMatch) return false;
+
+        const term = searchTerm.toLowerCase();
+        return !term || submission.title.toLowerCase().includes(term) || submission.studentName.toLowerCase().includes(term);
+    });
+
+    const sorted = [...filtered].sort((a, b) => {
+        switch (sortBy) {
+            case "Name": return a.studentName.localeCompare(b.studentName);
+            case "Status": return a.status.localeCompare(b.status);
+            case "Type": return a.type.localeCompare(b.type);
+            case "Date": default: return new Date(b.submissionDate) - new Date(a.submissionDate);
         }
     });
-    
-    const typeTabs = Object.entries(typeCounts)
-        .sort(([a], [b]) => a.localeCompare(b))
-        .map(([typeName, typeCount]) => ({
-            name: typeName,
-            count: typeCount,
-        }));
 
-    return {
-        statusCounts: counts,
-        typeTabs: typeTabs,
+    return { tabsConfig: TABS_CONFIG, processedSubmissions: sorted };
+}, [allSubmissions, activeTab, searchTerm, sortBy]);
+
+
+  const renderCard = (submission) => {
+    const cardProps = {
+        key: submission.id,
+        submission: submission,
+        onAction: handleAction
     };
-  }, []);
 
-  const TABS_CONFIG = [
-    { name: "All", count: tabData.statusCounts.All },
-    { name: "Awaiting", count: tabData.statusCounts.Awaiting },
-    { name: "Verified", count: tabData.statusCounts.Verified },
-    { name: "Rejected", count: tabData.statusCounts.Rejected },
-    ...tabData.typeTabs,
-  ];
+    switch (submission.type) {
+        case 'certificate': return <CertificateCard {...cardProps} />;
+        case 'project': return <ProjectCard {...cardProps} />;
+        case 'workshop': return <WorkshopCard {...cardProps} />;
+        case 'paperpresentation': return <PaperPresentationCard {...cardProps} />;
+        case 'internship': return <InternshipCard {...cardProps} />;
+        case 'patents': return <PatentCard {...cardProps} />;
+        default: return <div className="p-4 text-center">Unsupported submission type: {submission.type}</div>;
+    }
+  };
 
-  const processedSubmissions = useMemo(() => {
-    return submissions
-    .filter(submission => {
-      let tabMatch = false;
-      if (activeTab === "All") {
-        tabMatch = true;
-      } else if (KNOWN_STATUSES.includes(activeTab)) {
-        tabMatch = submission.status === activeTab;
-      } else { // Assumed to be a type-based tab
-        tabMatch = submission.type === activeTab;
-      }
-
-      if (!tabMatch) return false;
-
-      if (searchTerm) {
-        const term = searchTerm.toLowerCase();
-        return (
-          submission.title.toLowerCase().includes(term) ||
-          submission.studentName.toLowerCase().includes(term)
-        );
-      }
-      return true;
-    })
-    .sort((a, b) => {
-      switch (sortBy) {
-        case "Name":
-          return a.studentName.localeCompare(b.studentName);
-        case "Status":
-          return a.status.localeCompare(b.status);
-        case "Type":
-          return (a.type || "").localeCompare(b.type || "");
-        case "Date":
-        default:
-          return new Date(b.submissionDate) - new Date(a.submissionDate);
-      }
-    });
-  }, [submissions, activeTab, searchTerm, sortBy, KNOWN_STATUSES]);
-
+  const renderContent = () => {
+    if (isLoading) return <div className="text-center py-12 text-gray-600">Loading submissions...</div>;
+    if (error) return (
+      <div className="text-center py-12 text-red-600 bg-red-50 p-6 rounded-lg">
+        <AlertTriangle className="w-12 h-12 mb-4 mx-auto" />
+        <h3 className="text-lg font-medium">An Error Occurred</h3>
+        <p>{error}</p>
+      </div>
+    );
+    if (processedSubmissions.length > 0) {
+      return processedSubmissions.map((submission) => (
+         <CardBase key={submission.id} submission={submission} onToggleExpand={handleToggleExpand}>
+            {renderCard(submission)}
+        </CardBase>
+      ));
+    }
+    return (
+        <div className="text-center py-12 text-gray-500 bg-white rounded-lg shadow-sm">
+            <h3 className="text-lg font-medium">No Submissions Found</h3>
+            <p className="text-sm mt-1">
+              {searchTerm 
+                ? `No submissions match "${searchTerm}" in the "${activeTab}" filter.` 
+                : `There are no submissions in the "${activeTab}" category.`}
+            </p>
+        </div>
+    );
+  };
 
   return (
     <div className="p-4 sm:p-6 md:p-8 bg-gray-50 min-h-screen w-full">
-      <div className="max-w-5xl mx-auto">
-        <SearchBarAndSort 
-          searchTerm={searchTerm}
-          onSearchChange={handleSearchChange}
-          sortBy={sortBy}
-          onSortChange={handleSortChange}
-        />
-        <FilterTabs 
-          activeTab={activeTab} 
-          setActiveTab={setActiveTab} 
-          tabsConfig={TABS_CONFIG}
-        />
-        
-        {processedSubmissions.length > 0 ? (
-            processedSubmissions.map((submission) => (
-              <SubmissionCard 
-                key={submission.id} 
-                submission={submission} 
-                onToggleExpand={handleToggleExpand}
-                onAction={handleAction}
-              />
-            ))
-        ) : (
-            <div className="text-center py-12 text-gray-500 bg-white rounded-lg shadow-md">
-                <h3 className="text-lg font-medium">No submissions found</h3>
-                <p className="text-sm">
-                  {searchTerm 
-                    ? `No submissions match your search for "${searchTerm}" under the "${activeTab}" filter.`
-                    : `There are no submissions to display for the "${activeTab}" filter.`
-                  }
-                </p>
-            </div>
-        )}
+      <div className="max-w-6xl mx-auto">
+        <SearchBarAndSort searchTerm={searchTerm} onSearchChange={handleSearchChange} sortBy={sortBy} onSortChange={handleSortChange} />
+        <FilterTabs activeTab={activeTab} setActiveTab={setActiveTab} tabsConfig={tabsConfig} />
+        <div>
+            {renderContent()}
+        </div>
       </div>
     </div>
   );

@@ -213,3 +213,13 @@ func CheckApplied(c *gin.Context) {
 		"applied": count > 0,
 	})
 }
+func DeleteEvent(c *gin.Context){
+	id:= c.Param("id")
+	query:=`Delete from events where id=?`
+	_, err := config.DB.Exec(query, id)
+	if err != nil {
+		log.Println("Error deleting event:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete event"})
+		return
+	}
+}

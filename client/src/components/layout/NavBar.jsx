@@ -9,55 +9,57 @@ import DarkModeIcon from "@mui/icons-material/DarkMode";
 import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
 import DehazeIcon from "@mui/icons-material/Dehaze";
 import Drawer from "@mui/material/Drawer";
-import { useNavigate, useLocation } from "react-router-dom"; 
+import { useNavigate, useLocation } from "react-router-dom";
 import logo from "../../assets/logo_bit.jpg";
 import useAuth from "../../store/UseAuth";
 
-// Faculty Menu Icons
+// Faculty & Admin Menu Icons
 import GroupWorkOutlinedIcon from '@mui/icons-material/GroupWorkOutlined';
 import ApprovalOutlinedIcon from '@mui/icons-material/ApprovalOutlined';
 import VerifiedOutlinedIcon from '@mui/icons-material/VerifiedOutlined';
-import ManageHistoryOutlinedIcon from '@mui/icons-material/ManageHistoryOutlined';
-import FormatListBulletedOutlinedIcon from '@mui/icons-material/FormatListBulletedOutlined';
 import TuneOutlinedIcon from '@mui/icons-material/TuneOutlined';
 import BarChartOutlinedIcon from '@mui/icons-material/BarChartOutlined';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-
 
 export default function NavBar() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
 
+  // Updated activeItem logic to include all Admin routes
   const activeItem = useMemo(() => {
-      const path = location.pathname;
-      if (path === "/dashboard" || path === "/faculty-dashboard") return "dashboard";
-      if (path === "/uploadview") return "upload";
-      if (path === "/resume") return "resume";
-      if (path.includes("/Achivement/ActivityMaster")) return "activityMaster";
-      if (path.includes("/Achivement/ActivityLogger")) return "activityLogger";
-      if (path === "/faculty-approval") return "projectApprovals";
-      if (path === "/faculty-verification") return "certificateVerifications";
-      if (path.includes("/faculty-approval") || path.includes("/faculty-verification")) return "studentRequests";
-      if (path === "/faculty/tracker/all-events-log") return "allEventsLog";
-      if (path === "/faculty-manageActivity") return "manageActivities";
-      if (path.includes("/faculty/tracker") || path.includes("/faculty-manageActivity")) return "activityTracker";
-      if (path === "/faculty-studentperformance") return "studentPerformance";
-      if (path === "/faculty-resumeDraft") return "resumeDrafts";
-      if (path === "/admin-addactivity") return "addactivity"; // Added for admin
-      return "";
-    }, [location.pathname]);  
+    const path = location.pathname;
+    // Common routes
+    if (path === "/dashboard" || path === "/faculty-dashboard" || path === "/admin-dashboard") return "dashboard";
+    if (path === "/uploadview") return "upload";
+    if (path === "/resume") return "resume";
+    // Student routes
+    if (path.includes("/Achivement/ActivityMaster")) return "activityMaster";
+    if (path.includes("/Achivement/ActivityLogger")) return "activityLogger";
+    // Faculty routes
+    if (path === "/faculty-approval") return "projectApprovals";
+    if (path === "/faculty-verification") return "certificateVerifications";
+    if (path.includes("/faculty-approval") || path.includes("/faculty-verification")) return "studentRequests";
+    if (path === "/faculty-manageActivity") return "manageActivities";
+    if (path === "/faculty-studentperformance") return "studentPerformance";
+    if (path === "/faculty-resumeDraft") return "resumeDrafts";
+    // Admin routes
+    if (path === "/admin-addactivity") return "addactivity";
+    if (path === "/admin-studentsPerformance") return "studentsPerformance";
+    if (path === "/admin-AddUsers") return "addusers";
+    return "";
+  }, [location.pathname]);
 
   const [expandedMenus, setExpandedMenus] = useState({
     studentRequests: false,
-    activityTracker: false,
+    // activityTracker is no longer needed here as it's removed
   });
 
   const studentRequestsRef = useRef(null);
-  const activityTrackerRef = useRef(null); 
+  // activityTrackerRef is no longer needed
 
   const handleItemClick = (itemName) => {
-    // Kept for consistency
+    // Kept for consistency or future use
   };
 
   const toggleMenu = (menuName) => {
@@ -79,10 +81,11 @@ export default function NavBar() {
 
   const subMenuTransitionClass = "transition-all overflow-hidden duration-300 ease-in-out";
 
+  // This function is now updated to match SideBar's renderSidebarContent
   const renderDrawerContent = () => {
     if (user?.role === "faculty") {
       return (
-        // Faculty Drawer Content
+        // Updated Faculty Drawer Content
         <>
           <div className="flex flex-col mt-8">
             <ul className="space-y-4 text-[#2e2d2d] font-medium text-[16px]">
@@ -95,11 +98,12 @@ export default function NavBar() {
                 onClick={() => {
                   handleItemClick("dashboard");
                   navigate("/faculty-dashboard");
-                  setOpen(false); 
+                  setOpen(false);
                 }}
               >
                 <DashboardOutlinedIcon fontSize="small" /> Dashboard
               </li>
+
               <li>
                 <div
                   className={`relative flex items-center gap-1 cursor-pointer p-2 rounded-md text-[14px] transition-all duration-300 ease-in-out ${
@@ -109,9 +113,16 @@ export default function NavBar() {
                   }`}
                   onClick={() => toggleMenu("studentRequests")}
                 >
-                  <GroupWorkOutlinedIcon fontSize="small" /> 
-                  <span className={`transition-colors duration-300 ease-in-out ${activeItem === "studentRequests" || expandedMenus.studentRequests ? "text-[#0200e1]" : ""}`}>
-                     Student Requests
+                  <GroupWorkOutlinedIcon fontSize="small" />
+                  <span
+                    className={`transition-colors duration-300 ease-in-out ${
+                      activeItem === "studentRequests" ||
+                      expandedMenus.studentRequests
+                        ? "text-[#0200e1]"
+                        : ""
+                    }`}
+                  >
+                    Student Requests
                   </span>
                   <div
                     className={`ml-auto transform transition-transform duration-100 ${
@@ -146,7 +157,8 @@ export default function NavBar() {
                       setOpen(false);
                     }}
                   >
-                    <ApprovalOutlinedIcon fontSize="small" className="mr-1" /> Approvals
+                    <ApprovalOutlinedIcon fontSize="small" className="mr-1" />{" "}
+                    Approvals
                   </li>
                   <li
                     className={`flex items-center mt-3 gap-3 cursor-pointer ml-6 pl-4 text-[15px] p-2 rounded-md transition-all duration-300 ease-in-out ${
@@ -160,78 +172,32 @@ export default function NavBar() {
                       setOpen(false);
                     }}
                   >
-                    <VerifiedOutlinedIcon fontSize="small" className="mr-1" /> Verifications
-                  </li>
-                </ul>
-                </li>
-              
-              <li>
-                <div
-                  className={`relative flex items-center gap-1 cursor-pointer p-2 rounded-md text-[14px] transition-all duration-300 ease-in-out ${
-                    expandedMenus.activityTracker
-                      ? "text-[#0200e1] w-51"
-                      : "hover:bg-gray-100"
-                  }`}
-                  onClick={() => toggleMenu("activityTracker")}
-                >
-                   <ManageHistoryOutlinedIcon fontSize="small" />
-                   <span className={`transition-colors duration-300 ease-in-out ${activeItem === "activityTracker" || expandedMenus.activityTracker ? "text-[#0200e1]" : ""}`}>
-                      Activity Tracker
-                   </span>
-                  <div
-                     className={`ml-auto transform transition-transform duration-100 ${
-                      expandedMenus.activityTracker ? "rotate-90" : ""
-                    }`}
-                  >
-                    <KeyboardArrowRightRoundedIcon fontSize="small" />
-                  </div>
-                   <div
-                    className={`absolute right-0 top-1/2 transform -translate-y-1/2 w-[3px] h-6 bg-primary rounded-full transition-all duration-300 ease-in-out ${
-                      expandedMenus.activityTracker
-                        ? "block opacity-100"
-                        : "hidden opacity-0"
-                    }`}
-                  ></div>
-                </div>
-                <ul
-                  ref={activityTrackerRef}
-                  className={`${subMenuTransitionClass} w-55 ${
-                    expandedMenus.activityTracker ? "max-h-24" : "max-h-0"
-                  }`}
-                >
-                  <li
-                    className={`flex items-center mt-3 gap-3 cursor-pointer ml-6 pl-4 text-[15px] p-2 rounded-md transition-all duration-300 ease-in-out ${
-                      activeItem === "allEventsLog"
-                        ? "text-white bg-primary"
-                        : "hover:bg-gray-100"
-                    }`}
-                    onClick={() => {
-                      handleItemClick("allEventsLog");
-                      navigate("/faculty-EventLog"); 
-                      setOpen(false);
-                    }}
-                  >
-                    <FormatListBulletedOutlinedIcon fontSize="small" className="mr-1" /> All Events Log
-                  </li>
-                  <li
-                    className={`flex items-center mt-3 gap-3 cursor-pointer ml-6 pl-4 text-[15px] p-2 rounded-md transition-all duration-300 ease-in-out ${
-                      activeItem === "manageActivities"
-                        ? "text-white bg-primary"
-                        : "hover:bg-gray-100"
-                    }`}
-                    onClick={() => {
-                      handleItemClick("manageActivities");
-                      navigate("/faculty-manageActivity"); 
-                      setOpen(false);
-                    }}
-                  >
-                     <TuneOutlinedIcon fontSize="small" className="mr-1" /> Manage Activities
+                    <VerifiedOutlinedIcon fontSize="small" className="mr-1" />{" "}
+                    Verifications
                   </li>
                 </ul>
               </li>
-              
+
+              {/* "Manage Activities" moved out of dropdown */}
               <li
-                className={`flex items-center gap-3 cursor-pointer p-2 rounded-md transition-all duration-300 ease-in-out ${
+                className={`flex items-center gap-3 cursor-pointer p-2 mt-3 rounded-md transition-all duration-300 ease-in-out ${
+                  activeItem === "manageActivities"
+                    ? "text-white bg-primary w-55"
+                    : "hover:bg-gray-100"
+                }`}
+                onClick={() => {
+                  handleItemClick("manageActivities");
+                  navigate("/faculty-manageActivity");
+                  setOpen(false);
+                }}
+              >
+                <TuneOutlinedIcon fontSize="small" className="mr-1" />{" "}
+                Manage Activities
+              </li>
+
+
+              <li
+                className={`flex items-center gap-3 cursor-pointer p-2 mt-3 rounded-md transition-all duration-300 ease-in-out ${
                   activeItem === "studentPerformance"
                     ? "text-white bg-primary w-55"
                     : "hover:bg-gray-100"
@@ -260,9 +226,9 @@ export default function NavBar() {
               </li>
             </ul>
           </div>
-          <div className="">
+          <div className="mt-auto">
             <div
-              onClick={()=>{handleLogout(); setOpen(false);}}
+              onClick={() => { handleLogout(); setOpen(false); }}
               className="flex items-center gap-3 text-[#2e2d2d] font-semibold cursor-pointer transition-all duration-300 ease-in-out hover:bg-gray-100 p-2 rounded-md"
             >
               <LogoutOutlinedIcon fontSize="small" />
@@ -273,28 +239,55 @@ export default function NavBar() {
       );
     } else if (user?.role === "Admin") {
       return (
-        // Admin Drawer Content
+        // Updated Admin Drawer Content
         <>
           <div className="flex flex-col mt-8">
             <ul className="space-y-4 text-[#2e2d2d] font-medium text-[16px]">
+              <li
+                className={`flex items-center gap-3 cursor-pointer p-2 rounded-md transition-all duration-300 ease-in-out ${
+                  activeItem === "dashboard"
+                    ? "text-white bg-primary w-55"
+                    : "hover:bg-gray-100"
+                }`}
+                onClick={() => { navigate("/admin-dashboard"); setOpen(false); }}
+              >
+                <DashboardOutlinedIcon fontSize="small" /> Dashboard
+              </li>
               <li
                 className={`flex items-center gap-3 cursor-pointer p-2 rounded-md transition-all duration-300 ease-in-out ${
                   activeItem === "addactivity"
                     ? "text-white bg-primary w-55"
                     : "hover:bg-gray-100"
                 }`}
-                onClick={() => {
-                  navigate("/admin-addactivity");
-                  setOpen(false);
-                }}
+                onClick={() => { navigate("/admin-addactivity"); setOpen(false); }}
               >
                 <AddCircleOutlineIcon fontSize="small" /> Add Activity
               </li>
+              <li
+                className={`flex items-center gap-3 cursor-pointer p-2 rounded-md transition-all duration-300 ease-in-out ${
+                  activeItem === "studentsPerformance"
+                    ? "text-white bg-primary w-55"
+                    : "hover:bg-gray-100"
+                }`}
+                onClick={() => { navigate("/admin-studentsPerformance"); setOpen(false); }}
+              >
+                <BarChartOutlinedIcon fontSize="small" /> Student Metrics
+              </li>
+              <li
+                className={`flex items-center gap-3 cursor-pointer p-2 rounded-md transition-all duration-300 ease-in-out ${
+                  activeItem === "addusers"
+                    ? "text-white bg-primary w-55"
+                    : "hover:bg-gray-100"
+                }`}
+                onClick={() => { navigate("/admin-AddUsers"); setOpen(false); }}
+              >
+                <AddCircleOutlineIcon fontSize="small" /> Add Users
+              </li>
             </ul>
           </div>
-          <div className="">
+          <div className="mt-auto">
             <div
-              onClick={()=>{handleLogout(); setOpen(false);}}
+              onClick={() => { handleLogout(); setOpen(false); }}
               className="flex items-center gap-3 text-[#2e2d2d] font-semibold cursor-pointer transition-all duration-300 ease-in-out hover:bg-gray-100 p-2 rounded-md"
             >
               <LogoutOutlinedIcon fontSize="small" />
@@ -305,7 +298,7 @@ export default function NavBar() {
       );
     } else {
       return (
-        // Student Drawer Content
+        // Student Drawer Content (remains the same)
         <>
           <div className="flex flex-col mt-8">
             <ul className="space-y-4 text-[#2e2d2d] font-medium text-[16px]">
@@ -383,9 +376,9 @@ export default function NavBar() {
               </li>
             </ul>
           </div>
-          <div className="">
+          <div className="mt-auto">
             <div
-              onClick={()=>{handleLogout(); setOpen(false);}}
+              onClick={() => { handleLogout(); setOpen(false); }}
               className="flex items-center gap-3 text-[#2e2d2d] font-semibold cursor-pointer transition-all duration-300 ease-in-out hover:bg-gray-100 p-2 rounded-md"
             >
               <LogoutOutlinedIcon fontSize="small" />
@@ -396,7 +389,7 @@ export default function NavBar() {
       );
     }
   };
-  
+
   const DrawerList = (
     <>
       <div className="flex items-center text-2xl font-semibold text-primary justify-center mt-5">

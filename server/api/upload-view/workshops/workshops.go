@@ -13,6 +13,7 @@ const maxSize = 5 * 1024 * 1024 // 5MB
 
 func ReceiveWorkshopData(c *gin.Context) {
 	// Corrected to use snake_case for c.PostForm to match frontend payload
+	rollno := c.PostForm("rollno")
 	eventTitle := c.PostForm("event_title")
 	eventType := c.PostForm("event_type")
 	deliveryMode := c.PostForm("delivery_mode")
@@ -66,11 +67,14 @@ func ReceiveWorkshopData(c *gin.Context) {
 		certificateValueToSave = savePathCertificate
 	}
 
+	upload_type := "workshop"
+
 	// Prepare SQL insert
 	// Omit `submitted_on` from the insert list to use the database's DEFAULT CURRENT_TIMESTAMP
 	// Ensure `relevence` matches the column name in your DB schema (it has 'e' in schema image).
 	query := `
 	INSERT INTO workshops (
+		upload_type,
 		rollno,
 		title,
 		event_type,
@@ -88,13 +92,14 @@ func ReceiveWorkshopData(c *gin.Context) {
 		relevence, 
 		skills_gained
 		-- submitted_on is omitted to use DB default
-	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 ` // 16 placeholders
 
 	// Execute insert
 	_, err = config.DB.Exec(
 		query,
-		"7376242AL153",        
+		upload_type,
+		rollno,        
 		eventTitle,            
 		eventType,             
 		deliveryMode,          

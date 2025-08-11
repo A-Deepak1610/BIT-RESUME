@@ -6,7 +6,9 @@ import (
 	activitygraph "bitresume/api/dashboard/activity_graph"
 	headerdetails "bitresume/api/dashboard/header_details"
 	manageactivities "bitresume/api/faculty/ActivityTracker/ManageActivities"
+	studentrequests "bitresume/api/faculty/ActivityTracker/StudentRequests/varifications"
 	addevents "bitresume/api/faculty/AddEvents"
+	dashBoardfaculty "bitresume/api/faculty/dashboardfaculty"
 	pointshandlers "bitresume/api/pointsHandlers"
 	registerevents "bitresume/api/registerEvents"
 	"bitresume/api/resume"
@@ -21,7 +23,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterRoutes(r *gin.Engine){
+func RegisterRoutes(r *gin.Engine) {
 	authGroup := r.Group("/api/auth")
 	authGroup.GET("/google/login", auth.GoogleLogin)
 	authGroup.GET("/google/callback", auth.GoogleCallback)
@@ -41,37 +43,47 @@ func RegisterRoutes(r *gin.Engine){
 		studentOnly.POST("/ps/mentor_mentee/", pointshandlers.HandleMentee)
 		studentOnly.GET("/mentor/details/:rollno", pointshandlers.FetchMentorSkillStats)
 		studentOnly.POST("/mentee/add", pointshandlers.HandleMentee)
-		studentOnly.POST("/projects",projects.RecieveProjectData)
-		studentOnly.POST("/patents",patents.ReceivePatentsData)
-		studentOnly.POST("/internships",internship.ReceiveInternshipData)
-		studentOnly.POST("/workshops",workshops.ReceiveWorkshopData)
-		studentOnly.GET("/fetch/header_details/:rollno",headerdetails.FetchDataRank)
+		studentOnly.POST("/projects", projects.RecieveProjectData)
+		studentOnly.POST("/patents", patents.ReceivePatentsData)
+		studentOnly.POST("/internships", internship.ReceiveInternshipData)
+		studentOnly.POST("/workshops", workshops.ReceiveWorkshopData)
+		studentOnly.GET("/fetch/header_details/:rollno", headerdetails.FetchDataRank)
 		studentOnly.GET("/mentor/institute_avg/fetchData", pointshandlers.FetchSkillWiseAvgMentees)
-		studentOnly.GET("sem_wise_totaldays",pointshandlers.HandleSemDays)
-		studentOnly.POST("/paperpresentation",paperpresentstion.ReceivePaperPresentationData)
-		studentOnly.POST("/certificates/online-course",certificates.ReceiveCertificateData)
-		studentOnly.POST("/certificates/events",certificates.ReceiveCertificateData)
-		studentOnly.POST("/certificates/participation",certificates.ReceiveCertificateData)
-		studentOnly.GET("/activitymaster/fetch",addevents.FetchEvents)
-		studentOnly.POST("/addregisterevents",registerevents.HandleRegisterEvents)
-		studentOnly.GET("/events/registered/:rollno",registerevents.GetRegisteredEvents)
-		studentOnly.GET("/events/requested_events/:rollno",registerevents.GetRequestedEvents)
-		studentOnly.GET("/events/registered_events/:rollno",registerevents.GetRegisteredEvents)
-		studentOnly.PUT("/events/registered_events/approve_reject",registerevents.HandleRequestEventsApproveReject)	
+		studentOnly.GET("sem_wise_totaldays", pointshandlers.HandleSemDays)
+		studentOnly.POST("/paperpresentation", paperpresentstion.ReceivePaperPresentationData)
+		studentOnly.POST("/certificates/online-course", certificates.ReceiveCertificateData)
+		studentOnly.POST("/certificates/events", certificates.ReceiveCertificateData)
+		studentOnly.POST("/certificates/participation", certificates.ReceiveCertificateData)
+		studentOnly.GET("/activitymaster/fetch", addevents.FetchEvents)
+		studentOnly.POST("/addregisterevents", registerevents.HandleRegisterEvents)
+		studentOnly.GET("/events/registered/:rollno", registerevents.GetRegisteredEvents)
+		studentOnly.GET("/events/requested_events/:rollno", registerevents.GetRequestedEvents)
+		studentOnly.GET("/events/registered_events/:rollno", registerevents.GetRegisteredEvents)
+		studentOnly.PUT("/events/registered_events/approve_reject", registerevents.HandleRequestEventsApproveReject)
 		studentOnly.GET("/checkapplied", addevents.CheckApplied)
+		studentOnly.GET("/resume/getprojects/:rollno", resume.GetProjectsData)
+		studentOnly.GET("/resume/getcertificates/:rollno", resume.GetCertificatesData)
 	}
 	facultyOnly := r.Group("/api")
 	facultyOnly.Use(middleware.AuthorizeRoles("faculty"))
 	{
-		facultyOnly.GET("/manageactivities",manageactivities.GetActivityData)
-		facultyOnly.GET("/manageactivities/approvels",manageactivities.HandleActivityApprovals)
-		facultyOnly.PUT("/manageactivities/approvels_reject",manageactivities.HandleApproveReject)
-
+		facultyOnly.GET("/manageactivities", manageactivities.GetActivityData)
+		facultyOnly.GET("/manageactivities/approvels/:rollno", manageactivities.HandleActivityApprovals)
+		facultyOnly.PUT("/manageactivities/approvels_reject", manageactivities.HandleApproveReject)
+		facultyOnly.GET("/dashboard/leardeardborad/:rollno", dashBoardfaculty.Leaderboard)
+		facultyOnly.GET("/dashboard/prioritylearners/:rollno", dashBoardfaculty.HandlePriorityLearners)
+		facultyOnly.GET("/studentrequests/varifications", studentrequests.GetVerifications)
+		facultyOnly.POST("/manageactivities/createActivity", manageactivities.ReceiveActivityData)
+		facultyOnly.GET("/manageactivities/receiveActivities", manageactivities.GetActivityData)
+		facultyOnly.GET("manageactivities/progressgrpah/:rollno", manageactivities.HandleProgressGraph)
+		
+	}
+	adminOnly := r.Group("/api")
+	adminOnly.Use(middleware.AuthorizeRoles("Admin"))
+	{
+		adminOnly.DELETE("/deleteevents/:id", addevents.DeleteEvent)
+		adminOnly.POST("/addevents/create", addevents.AddEvents)
 	}
 	// faculty page
-	r.POST("/api/addevents/create",addevents.AddEvents)	
-	r.POST("/api/manageactivities/createActivity",manageactivities.ReceiveActivityData)
-	r.GET("/api/manageactivities/receiveActivities",manageactivities.GetActivityData)
-	r.GET("/api/resume/getprojects/:rollno", resume.GetProjectsData)
-	r.GET("/api/resume/getcertificates/:rollno", resume.GetCertificatesData)
+
 }

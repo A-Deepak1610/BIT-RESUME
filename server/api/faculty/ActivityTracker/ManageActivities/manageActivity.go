@@ -1,3 +1,4 @@
+
 package manageactivities
 
 import (
@@ -17,13 +18,19 @@ func ReceiveActivityData(c *gin.Context) {
 	// This check is now redundant if each type has its own handler,
 	// but we keep the logic as is.
 
+	if activity_type == "Sessions"{
+		activity_type = "Session"
+	}
+	
 	fmt.Println("============================")
 	fmt.Println("Activity_type", activity_type)
 
 	query := `
 		INSERT INTO activity_list (activity_type, activity_title, created_at)
 		VALUES (?, ?, NOW())`
+
 	res, err := config.DB.Exec(query, activity_type, activity_title)
+
 	if err != nil {
 		fmt.Println("Error inserting into activity_list:", err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Could not insert into the activity_list database"})
@@ -46,6 +53,9 @@ func ReceiveActivityData(c *gin.Context) {
 		return
 	}else if activity_type == "Meeting"{
 		ReceiveMeetingData(c,activity_id)
+		return
+	}else if activity_type == "Session"{
+		ReceiveSessionData(c,activity_id)
 		return
 	}
 
@@ -77,6 +87,27 @@ func GetActivityData(c *gin.Context){
         allActivities = append(allActivities, surveys...)
     }
 
+	// Fetch meetings
+	meetings, err := GetMeetingData()
+	if err != nil{
+		c.JSON(http.StatusInternalServerError, gin.H{"message" : "Could not fetch meeting details"})
+		return
+	}
+	if meetings != nil{
+		allActivities = append(allActivities, meetings...)
+	}
+
+	sessions, err := GetsessionData()
+	if err != nil{
+		c.JSON(http.StatusInternalServerError, gin.H{"message" : "Could not fetch Session details"})
+		return
+	}
+	if sessions != nil {
+		allActivities = append(allActivities, sessions...)
+	}
 
     c.JSON(http.StatusOK, allActivities)
 }   
+func HandleProgressGraph(c *gin.Context) {
+
+}

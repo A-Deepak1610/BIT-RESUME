@@ -1,8 +1,8 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import initialSubmissionsData from "../../../../dummydatas/approval.json";
-import { Search, FileText, ChevronDown, Paperclip, Pencil, X, Check, ChevronRight } from 'lucide-react';
-
+import { FileText, ChevronRight } from 'lucide-react';
+import useAuth from "../../../../store/UseAuth";
 
 const DashboardApprovalItem = ({ submission, onSelect }) => {
   return (
@@ -22,23 +22,88 @@ const DashboardApprovalItem = ({ submission, onSelect }) => {
   );
 };
 
+// Map backend data into the UI's expected shape without changing the UI component structure
+function mapBackendToUI(item, index) {
+  return {
+    // UI expects an id for React keys and onSelect parameter – compose a stable id
+    id: `${item.rollno || "NA"}-${item.event_code || "NA"}-${index}`,
+
+    // UI fields
+    studentName: (item.applicant_name || "").trim(),
+    eventTitle: (item.event_name || "").trim(),
+
+    // Status mapping: backend "pending" -> UI "Awaiting"; "accepted" -> "Approved"
+    status:
+      item.verified === "pending"
+        ? "Awaiting"
+        : item.verified === "accepted"
+        ? "Approved"
+        : (item.verified || "Unknown"),
+
+    // Dates
+    submissionDate: item.submitted_date || null,
+    eventStartDate: item.event_start_date || null,
+
+    // Extra fields (not rendered in current UI but useful to keep)
+    domain: item.domain || "",
+    problemStatement: item.problem_statement || "",
+    rollno: item.rollno || "",
+    eventType: item.event_type || "",
+    eventCode: item.event_code || "",
+  };
+}
+
 export function AwaitingApprovals() {
   const navigate = useNavigate();
+  const { rollno } = useAuth();
 
+  const [loading, setLoading] = useState(false); // kept for internal control; no UI change
+  const [error, setError] = useState(null); // kept for internal control; no UI change
+  const [submissions, setSubmissions] = useState([]);
 
-  const awaitingSubmissions = useMemo(() => {
-    return initialSubmissionsData
-      .filter(sub => sub.status === 'Awaiting')
-      .sort((a, b) => new Date(b.submissionDate) - new Date(a.submissionDate));
+  const handleEvents = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await fetch(`http://localhost:6001/api/manageactivities/approvels/${rollno}`, {
+        method: "GET",
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Network response was not ok');
+      const data = await response.json();
+      console.log("Raw backend data:", data); // Debug log
+      const mapped = Array.isArray(data) ? data.map(mapBackendToUI) : [];
+      console.log("Mapped for UI:", mapped);
+      setSubmissions(mapped);
+    } catch (error) {
+      console.error("Error fetching events:", error);
+      setError("Failed to load approvals data");
+      // Fallback to empty; UI will still show from dummy if desired
+      setSubmissions([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    handleEvents();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  
+
+  // Prefer backend data when present; otherwise fallback to existing dummy data.
+  const awaitingSubmissions = useMemo(() => {
+    const source = submissions.length ? submissions : initialSubmissionsData;
+    return source
+      .filter(sub => sub.status === 'Awaiting')
+      .sort((a, b) => new Date(b.submissionDate || 0) - new Date(a.submissionDate || 0));
+  }, [submissions]);
 
   const handleSelectSubmission = () => {
     navigate(`/faculty-approval`);
   };
 
   return (
-    // This container is designed to be flexible and scrollable within its parent
     <div className="h-full flex flex-col">
       <div className="mb-4">
         <div className="flex items-center justify-between">
@@ -51,7 +116,6 @@ export function AwaitingApprovals() {
         </div>
       </div>
 
-      {/* This div will grow to fill available space and become scrollable */}
       <div className="overflow-y-auto flex-grow pr-1">
         {awaitingSubmissions.length > 0 ? (
           awaitingSubmissions.map((submission) => (

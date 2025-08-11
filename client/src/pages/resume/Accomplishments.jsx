@@ -3,7 +3,7 @@ import { Award, Briefcase, ShieldCheck } from 'lucide-react';
 import { Modal, Box, Typography, IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import Certifications from './certifications/Certifications';
-import InternshipExperience from '../InternshipExperience/internshipExperience';
+import InternshipExperience from './InternshipExperience/internshipExperience';
 import Hackathons from './hackathons/Hackathons';
 
 // Style object for the MUI Modal content

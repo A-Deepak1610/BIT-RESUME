@@ -96,6 +96,8 @@ export default function CreateActivityModal({ open, handleClose }) {
                 newErrors.end_date = 'End Date cannot be before Start Date.';
             }
         }
+
+
         if ((activity_type === "Workshop" || activity_type === "Meeting") && !host.trim()) {
             newErrors.host = 'Host is required for Workshops and Meetings.';
         }
@@ -168,11 +170,22 @@ export default function CreateActivityModal({ open, handleClose }) {
             formData.append('all_students', isForAllStudents);
         }
         
-        console.log("--- Sending Data to Backend ---");
-        for (let [key, value] of formData.entries()) {
-            console.log(`${key}:`, value);
+        // ======================================================================
+        // --- ✅ START: LOGGING DATA FOR 'SESSIONS' TYPE ---
+        // This block will only execute if the activity type is "Sessions"
+        if (activity_type === 'Sessions') {
+            console.log("---------------------------------------------");
+            console.log("✅ Submitting data for a 'SESSIONS' activity:");
+            // Loop through the FormData object to log each key-value pair
+            for (let [key, value] of formData.entries()) {
+                console.log(`  ${key}:`, value);
+            }
+            console.log("---------------------------------------------");
         }
-        console.log("-----------------------------");
+        // --- ✅ END: LOGGING DATA FOR 'SESSIONS' TYPE ---
+        // ======================================================================
+
+
         const API_URL = 'http://localhost:6001/api/manageactivities/createActivity';
         try {
             const response = await axios.post(API_URL, formData, {
@@ -205,6 +218,7 @@ export default function CreateActivityModal({ open, handleClose }) {
 
 
                 <div className="p-4 sm:p-6 max-h-[75vh] overflow-y-auto">
+                    {/* ... The rest of your JSX form ... */}
                     {errors.submit && <ErrorDisplay message={errors.submit} />}
                     <section className="mb-6 sm:mb-8">
                         <h3 className="text-lg font-medium text-gray-700 mb-4">Basic Information</h3>

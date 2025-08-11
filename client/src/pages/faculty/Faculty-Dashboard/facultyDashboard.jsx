@@ -6,6 +6,7 @@ import Leaderboard from "./Leaderboard/Leaderboard";
 import PriorityLearners from "./priorityLearners/PrirorityLearners";
 
 export default function FacultyDashboard() {
+  
   return (
     <div className="p-4 w-full mx-auto overflow-hidden" style={{ height: "calc(100vh - 4rem)" }}>
       <div className="flex flex-col lg:flex-row gap-4 h-full">

@@ -13,6 +13,7 @@ import (
 )
 
 func HandleActivityApprovals(c *gin.Context) {
+	rollno:= c.Param("rollno")
 	query := `
 	SELECT DISTINCT
 		e.event_name,
@@ -39,10 +40,11 @@ func HandleActivityApprovals(c *gin.Context) {
 		register_teams rt ON re.team_code = rt.team_code 
 	LEFT JOIN 
 		login l ON re.rollno = l.rollno 
-	ORDER BY 
+		where l.mentor_id=?
+	ORDER BY 	
 		re.created_at DESC`
 
-	rows, err := config.DB.Query(query)
+	rows, err := config.DB.Query(query,rollno)
 	if err != nil {
 		fmt.Printf("Database query error: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database query failed"})

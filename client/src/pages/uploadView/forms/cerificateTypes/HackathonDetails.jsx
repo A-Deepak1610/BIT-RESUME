@@ -1,133 +1,92 @@
 import React from 'react';
-import { FileText, Award } from 'lucide-react';
+// Assuming these icons are used by your SectionHeader component
+import { Award, Info, Upload } from 'lucide-react';
 
-const WIN_RESULTS = ['Winner', 'Runner-up', 'Top 5', 'Top 10', 'Participation Only', 'Other'];
 
-const HackathonDetails = (props) => {
-  const {
+const HackathonDetails = ({
     formData,
     handleChange,
     errors,
+    handleFileSelect,
+    setFormError,
     InputField,
     SelectField,
     FileUploadField,
-    RequiredAst,
+    RequiredAst, // RequiredAst is used by InputField/SelectField internally
     SectionHeader,
-    handleFileSelect,
-    setFormError,
-  } = props;
-
-  return (
+    FileText // Assuming this might be needed for the file upload part
+}) => (
     <div className="space-y-6">
-      <SectionHeader title="Hackathon / Competition Specifics" icon={Award} />
-      <InputField
-        id="hackathonEventTitle"
-        name="eventTitle"
-        label="Event Name"
-        value={formData.eventTitle || ''}
-        onChange={handleChange}
-        error={errors.eventTitle}
-        placeholder="e.g., Smart India Hackathon 2023"
-        required
-      />
-      <InputField
-        id="hackathonEventCode"
-        name="eventCode"
-        label="Event Code"
-        value={formData.eventCode || ''}
-        onChange={handleChange}
-        error={errors.eventCode}
-        placeholder="e.g., SIH2023, EVT123" // Removed (Optional)
-        required // Added required prop
-      />
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Participation Type <RequiredAst />
-        </label>
-        <div className="mt-2 space-y-2 sm:flex sm:items-center sm:space-y-0 sm:space-x-6">
-          <div className="flex items-center">
-            <input
-              id="hackathonIndividual"
-              name="participationType"
-              type="radio"
-              value="Individual"
-              checked={formData.participationType === 'Individual'}
-              onChange={handleChange}
-              className="focus:ring-primary h-4 w-4 text-primary-dark border-gray-300"
-              required
-            />
-            <label htmlFor="hackathonIndividual" className="ml-2 block text-sm text-gray-900">
-              Individual
-            </label>
-          </div>
-          <div className="flex items-center">
-            <input
-              id="hackathonTeam"
-              name="participationType"
-              type="radio"
-              value="Team"
-              checked={formData.participationType === 'Team'}
-              onChange={handleChange}
-              className="focus:ring-primary h-4 w-4 text-primary-dark border-gray-300"
-              required
-            />
-            <label htmlFor="hackathonTeam" className="ml-2 block text-sm text-gray-900">
-              Team
-            </label>
-          </div>
+        <div>
+            <SectionHeader title="Event Information" icon={Info} />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1">
+                <InputField id="hackathonEventTitle" name="eventTitle" label="Event Name" value={formData.eventTitle || ''} onChange={handleChange} error={errors.eventTitle} required placeholder="e.g., Smart India Hackathon" />
+                <InputField id="eventCode" name="eventCode" label="Event Code" value={formData.eventCode || ''} onChange={handleChange} error={errors.eventCode} required placeholder="e.g., SIH2023" />
+            </div>
+            <div className="mt-1">
+                <InputField id="hackathonSummary" name="summary" label="Event Summary (max 15 words)" value={formData.summary || ''} onChange={handleChange} error={errors.summary} required placeholder="A brief one-line summary of the event's theme." />
+            </div>
+            <div className="mt-1">
+              <InputField id="linkedinLink" name="linkedinLink" label="LinkedIn Post URL" type="url" value={formData.linkedinLink || ''} onChange={handleChange} error={errors.linkedinLink} required placeholder="https://www.linkedin.com/in/your-profile" />
+            </div>
         </div>
-        {errors.participationType && <p className="mt-1 text-sm text-red-600">{errors.participationType}</p>}
-      </div>
 
-      {formData.participationType === 'Team' && (
-        <InputField
-          id="hackathonTeamId"
-          name="teamId"
-          label="Team ID / Name"
-          value={formData.teamId || ''}
-          onChange={handleChange}
-          error={errors.teamId}
-          placeholder="Enter your Team ID or Name"
-          required
-        />
-      )}
 
-      <SelectField
-        id="hackathonWinResult"
-        name="winResult"
-        label="Result / Achievement"
-        value={formData.winResult || ''}
-        onChange={handleChange}
-        error={errors.winResult}
-        required
-      >
-        <option value="" disabled>Select result</option>
-        {WIN_RESULTS.map(r => <option key={r} value={r}>{r}</option>)}
-      </SelectField>
-      
-      <FileUploadField
-        id="certificateFileHackathon"
-        name="certificateFile"
-        label="Upload Certificate File"
-        selectedFile={formData.certificateFile}
-        onFileSelect={handleFileSelect}
-        error={errors.certificateFile}
-        helperText="PDF, PNG, JPG up to 5MB."
-        required
-        setFormError={setFormError}
-        py="py-6"
-        existingFileName={formData.existingFileName}
-      />
-      {formData.existingFileId && !formData.certificateFile && !errors.certificateFile && (
-          <div className="mt-2 flex items-center text-sm text-gray-600 bg-gray-50 p-2 rounded-md border border-gray-200">
-            <FileText size={16} className="mr-2 flex-shrink-0 text-green-600" aria-hidden="true" />
-            <span className="font-medium mr-2 text-green-700">
-              Current file: {formData.existingFileName || 'Previously uploaded file'}. Replace by uploading a new one.
-            </span>
-          </div>
-      )}
+        <div>
+            <SectionHeader title="Participation Details" icon={Award} />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1">
+                <SelectField id="participationType" name="participationType" label="Participation Type" value={formData.participationType || ''} onChange={handleChange} error={errors.participationType} required>
+                    <option value="">Select a type...</option>
+                    <option value="Individual">Individual</option>
+                    <option value="Team">Team</option>
+                </SelectField>
+
+
+                {formData.participationType === 'Team' && (
+                    <InputField id="teamId" name="teamId" label="Team ID / Name" value={formData.teamId || ''} onChange={handleChange} error={errors.teamId} required={formData.participationType === 'Team'} placeholder="e.g., Team Innovate" />
+                )}
+
+
+                 <SelectField id="winResult" name="winResult" label="Result / Achievement" value={formData.winResult || ''} onChange={handleChange} error={errors.winResult} required>
+                    <option value="">Select result...</option>
+                    <option value="Winner">Winner</option>
+                    <option value="Runner-up">Runner-up</option>
+                    <option value="Finalist">Finalist</option>
+                    <option value="Participant">Participant</option>
+                </SelectField>
+
+
+                {/* --- NEW FIELD ADDED HERE --- */}
+                <InputField
+                    id="issueDate"
+                    name="issueDate" // This is the name sent to the backend
+                    label="Issue Date"
+                    type="date"
+                    value={formData.issueDate || ''}
+                    onChange={handleChange}
+                    error={errors.issueDate}
+                    required
+                />
+            </div>
+        </div>
+
+
+         <div>
+            <SectionHeader title="Proof of Participation/Win" icon={Upload} />
+            <FileUploadField
+                id="certificateFile-hackathon"
+                name="certificateFile"
+                label="Upload Certificate/Proof"
+                onFileSelect={handleFileSelect}
+                selectedFile={formData.certificateFile}
+                error={errors.certificateFile}
+                required
+                setFormError={setFormError}
+                existingFileName={formData.existingFileName}
+            />
+        </div>
     </div>
-  );  
-};
+);
+
 
 export default HackathonDetails;

@@ -501,7 +501,7 @@ const PaperPresentation = ({ onBack, initialData = {} }) => {
     }
 
     try {
-      const response = await axios.post('http://YOUR_API_ENDPOINT/api/paper-presentations', payload, {
+      const response = await axios.post('http://localhost:6001/api/paperpresentation', payload, {
         withCredentials: true,
       });
 

@@ -9,25 +9,21 @@ export default function StudentDashboardPage() {
   const [studentRoll, setStudentRoll] = useState("");
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-
-  // Check for mobile view on initial render and window resize
   useEffect(() => {
     const checkIsMobile = () => {
-      setIsMobile(window.innerWidth < 1024); // Tailwind's 'lg' breakpoint
+      setIsMobile(window.innerWidth < 1024); 
     };
     checkIsMobile();
     window.addEventListener("resize", checkIsMobile);
     return () => window.removeEventListener("resize", checkIsMobile);
   }, []);
 
-  // Handler to set student and close the panel
   const handleStudentSelect = (student) => {
     setStudentName(student.name);
     setStudentRoll(student.rollNo);
     setIsPanelOpen(false);
   };
 
-  // On large screens, select the first student by default for a better initial view
   useEffect(() => {
     if (!isMobile && data.length > 0) {
       setStudentName(data[0].name);
@@ -62,7 +58,7 @@ export default function StudentDashboardPage() {
         `}
       >
         {/* Modal Backdrop */}
-        <div 
+        <div
           className="fixed inset-0 bg-gray-800 bg-opacity-50 lg:hidden" 
           onClick={() => setIsPanelOpen(false)}
         ></div>

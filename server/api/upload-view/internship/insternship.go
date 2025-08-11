@@ -12,6 +12,7 @@ import (
 const maxPdfSize = 5 * 1024 * 1024 // 5MB
 
 func ReceiveInternshipData(c *gin.Context) {
+	rollno := c.PostForm("rollno")
 	company_name := c.PostForm("company_name")
 	roll := c.PostForm("roll")
 	domain := c.PostForm("domain")
@@ -71,9 +72,12 @@ func ReceiveInternshipData(c *gin.Context) {
 		}
 	}
 
+	uploadType := "internship"
+
 	// Insert into database
 	query := `
 		INSERT INTO internships (
+			upload_type,
 			rollno,
 			company_name,
 			roll,
@@ -91,12 +95,13 @@ func ReceiveInternshipData(c *gin.Context) {
 			skill_gained,
 			outcomes,
 			submitted_on
-		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_DATE)
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_DATE)
 	`
 
 	_, err = config.DB.Exec(
 		query,
-		"7376242AD336",
+		uploadType,
+		rollno,
 		company_name,
 		roll,
 		domain,
