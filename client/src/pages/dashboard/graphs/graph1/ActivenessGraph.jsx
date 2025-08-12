@@ -3,7 +3,7 @@ import Plot from "react-plotly.js";
 import useAuth from "../../../../store/UseAuth";
 // import activenessData from "../../../../dummydatas/activenessNew.json";
 
-const ActivenessGraph = () => {
+const ActivenessGraph = (props) => {
   const [viewMode, setViewMode] = useState("year");
   const [currentSemester, setCurrentSemester] = useState("sem-1");
   const [isViewDropdownOpen, setIsViewDropdownOpen] = useState(false);
@@ -11,6 +11,8 @@ const ActivenessGraph = () => {
   const viewDropdownRef = useRef(null);
   const semDropdownRef = useRef(null);
   const {fetchUser,rollno}=useAuth();
+  const student_rollno=props.rollno||rollno;
+  console.log("Student Roll No:", student_rollno);
   useEffect(() => {
     fetchUser();
   }, []);
@@ -18,7 +20,7 @@ const ActivenessGraph = () => {
   const API_URL=import.meta.env.VITE_API_URL
   useEffect(() => {
     handlePoints();handleSemDays();
-  }, []);
+  }, [student_rollno]);
   const sendData = async (payload) =>{
     try {
       const response = await fetch(`${API_URL}api/points_logs/ps/attempts`, {
@@ -39,82 +41,10 @@ const ActivenessGraph = () => {
       console.error("Error sending data:", error.message);
     }
   };
-  const generateDummyData = async () => {
-    const baseDate = new Date();
-  
-    const skillMap = {
-      "CS": [
-        { name: "C", level: 0 },
-        { name: "C++", level: 5 },
-        { name: "Python", level: 4 },
-        { name: "Java", level: 3 },
-        { name: "Data Structures", level: 2 },
-        { name: "Algorithms", level: 1 },
-        { name: "OS", level: 2 },
-        { name: "DBMS", level: 4 },
-        { name: "Computer Networks", level: 3 },
-        { name: "Machine Learning", level: 6 },
-      ],
-      "Electrical": [
-        { name: "Circuit Analysis", level: 5 },
-        { name: "Power Systems", level: 4 },
-        { name: "Control Systems", level: 3 },
-        { name: "Electrical Machines", level: 2 },
-        { name: "Analog Electronics", level: 2 },
-        { name: "Digital Electronics", level: 5 },
-        { name: "Microcontrollers", level: 1 },
-        { name: "Signal Processing", level: 3 },
-        { name: "Embedded Systems", level: 2 },
-        { name: "Instrumentation", level: 4 },
-      ],
-      "Soft Skills": [
-        { name: "Typing Speed", level: 6 },
-        { name: "English Grammar", level: 2 },
-        { name: "Productivity Tools", level: 3 },
-        { name: "Time Management", level: 4 },
-      ],
-      "Non-Technical": [
-        { name: "Linux Basics", level: 2 },
-        { name: "Cybersecurity Awareness", level: 3 },
-        { name: "Cloud Fundamentals", level: 1 },
-        { name: "Git & GitHub", level: 4 },
-        { name: "Excel", level: 3 },
-      ],
-    };
-  
-    const allDomains = Object.keys(skillMap);
-  
-    for (let i = 0; i < 150; i++) {
-      const currentDate = new Date(baseDate);
-      currentDate.setDate(baseDate.getDate() + i); // increment days
-  
-      const randomDomain = allDomains[Math.floor(Math.random() * allDomains.length)];
-      const skills = skillMap[randomDomain];
-      const randomSkill = skills[Math.floor(Math.random() * skills.length)];
-  
-      const points = ((i % 7) + 1) * 300;
-      const attempts = Math.floor(Math.random() * 10) + 1;
-      const sem = i < 70 ? 1 : 2;
-  
-      const payload = {
-        rollno: "STU001",
-        points: points > 2000 ? 2000 : points,
-        skilldomain: randomDomain,
-        skillname: randomSkill.name,
-        skilllevel: `${randomSkill.level}/7`,  // ⬅ SkillLevel as string
-        attempts: attempts,
-        sem: sem,
-        currdate: currentDate.toISOString().split("T")[0],
-      };
-  
-      await sendData(payload); // send one at a time
-    }
-  };
-
   const handlePoints = async () => {
     try {
       const res = await fetch(
-        `${API_URL}api/activity_graph/fetchData/${rollno}`,
+        `${API_URL}api/activity_graph/fetchData/${student_rollno}`,
         {
           method: "GET",
           headers: {

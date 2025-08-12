@@ -4,7 +4,7 @@ import achivementsPointsDataFromFile from "../../../../dummydatas/achivementPoin
 import achivementPointsStudentDataFromFile from "../../../../dummydatas/achivementPointsStudent.json";
 import useAuth from "../../../../store/UseAuth";
 
-const AchievementsGraph = () => {
+const AchievementsGraph = (props) => {
   const [primaryColor, setPrimaryColor] = useState("#2D4BFF");
   const [secondaryColor, setSecondaryColor] = useState("#FFA500"); // Default, can be overridden
   const [viewMode, setViewMode] = useState("year");
@@ -17,13 +17,14 @@ const AchievementsGraph = () => {
   const viewDropdownRef = useRef(null);
   const semDropdownRef = useRef(null);
   const {fetchUser,rollno}=useAuth();
+  const student_rollno= props.rollno || rollno;
   // useEffect(() => {
   //   fetchUser();
   // }, []);
   const API_URL=import.meta.env.VITE_API_URL
   const handlePoints = async () => {
     try {
-      const res = await fetch(`${API_URL}api/achievement_graph/fetchData/${rollno}`, {
+      const res = await fetch(`${API_URL}api/achievement_graph/fetchData/${student_rollno}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -61,7 +62,7 @@ const AchievementsGraph = () => {
   }
   useEffect(()=>{
     handleInstituteAvg();handlePoints();
-  },[])
+  },[student_rollno])
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (viewDropdownRef.current && !viewDropdownRef.current.contains(event.target)) {

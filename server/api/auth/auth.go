@@ -43,7 +43,7 @@ func GoogleCallback(c *gin.Context){
 		return
 	} 
 	// Step 2: Create JWT
-	jwtToken, err := utils.GenerateJWT(user.Email, user.RollNo, user.Role)
+	jwtToken, err := utils.GenerateJWT(user.Email, user.RollNo, user.Role,user.UserName)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Token generation failed"})
 		return
@@ -79,6 +79,7 @@ func Me(c *gin.Context) { // Decode the token and send to frontend
 			"email":  claims["email"],
 			"rollNo": claims["rollNo"],
 			"role":   claims["role"],
+			"user_name": claims["user_name"],
 		},
 	})
 }

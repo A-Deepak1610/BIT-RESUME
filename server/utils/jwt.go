@@ -10,11 +10,12 @@ import (
 func getJWTSecret() []byte {
 	return []byte(os.Getenv("JWT_SECRET"))
 }
-func GenerateJWT(email, rollNo, role string) (string, error) {
+func GenerateJWT(email, rollNo, role,user_name string) (string, error) {
 	claims := jwt.MapClaims{
 		"email":  email,
 		"rollNo": rollNo,
 		"role":   role,
+		"user_name": user_name,
 		"exp":    time.Now().Add(24 * time.Hour).Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

@@ -182,7 +182,7 @@ export default function PriorityLearners() {
 
       <div className="flex-shrink-0 mt-4 pt-4 border-t border-gray-200">
         <button
-          onClick={() => navigate("/faculty-priority-learners")}
+          onClick={() => navigate("/faculty-studentperformance")}
           className="w-full flex items-center justify-center space-x-2 bg-red-50 border border-red-200 hover:bg-red-100 text-red-700 font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
         >
           {/* Replaced FaExclamationTriangle with AlertTriangle */}

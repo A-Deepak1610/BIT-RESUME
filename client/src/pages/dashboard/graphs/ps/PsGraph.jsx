@@ -6,7 +6,7 @@ import useAuth from "../../../../store/UseAuth";
 
 const FIXED_DOMAINS_ORDER = ["CS", "Electrical", "Soft Skills", "Non-Technical"];
 
-const PsSkillGraph = () => {
+const PsSkillGraph = (props) => {
   const [activeTab, setActiveTab] = useState(FIXED_DOMAINS_ORDER[0]);
   const [isMobileDomainPopoverOpen, setIsMobileDomainPopoverOpen] =
     useState(false);
@@ -16,6 +16,7 @@ const PsSkillGraph = () => {
   const popoverAttemptsRef = useRef(null);
   const containerRef = useRef(null);
   const { fetchUser, rollno } = useAuth();
+  const student_rollno = props.rollno || rollno; // Use rollno from props or auth context
   useEffect(() => {
     fetchUser();
   }, []);
@@ -35,7 +36,7 @@ const PsSkillGraph = () => {
 
   const fetchPsAttempts = async () => {
     try {
-      const res = await fetch(`${API_URL}api/ps/attempts/${rollno}`, {
+      const res = await fetch(`${API_URL}api/ps/attempts/${student_rollno}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -57,7 +58,7 @@ const PsSkillGraph = () => {
 
   const fetchPsCompletionData = async () => {
     try {
-      const res = await fetch(`${API_URL}api/ps/levels_status/${rollno}`, {
+      const res = await fetch(`${API_URL}api/ps/levels_status/${student_rollno}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -86,7 +87,7 @@ const PsSkillGraph = () => {
       .catch(() => {
         setIsLoading(false);
       });
-  }, [rollno]); 
+  }, [student_rollno]); 
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (

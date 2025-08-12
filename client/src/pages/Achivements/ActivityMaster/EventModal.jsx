@@ -1,21 +1,19 @@
 import React, { useEffect, useState } from "react";
 import {
   X,
-  CalendarDays,
-  Users,
-  Tag,
   Plus,
   Trash2,
   Clock,
   ExternalLinkIcon,
-  Trophy,
+  Users,
+  Tag,
   Laptop,
   Users2,
-  AlertTriangle, // Icon for Constraints
-  Info, // Icon for Description
-  ListChecks, // Icon for Rules
-  Award, // Icon for Rewards
-  GitCommitHorizontal, // Icon for Rounds
+  AlertTriangle,
+  Info,
+  ListChecks,
+  Award,
+  GitCommitHorizontal,
 } from "lucide-react";
 import Modal from "@mui/material/Modal";
 import Box from "@mui/material/Box";
@@ -38,25 +36,30 @@ const modalStyle = {
 };
 
 const ApplyModal = ({ isOpen, onClose, eventName, eventCode }) => {
+  // --- STATE MANAGEMENT ---
+  const [participationType, setParticipationType] = useState("team");
+  const [teamName, setTeamName] = useState(""); // <-- ADDED: State for team name
   const [teamMates, setTeamMates] = useState([""]);
   const [domain, setDomain] = useState("");
   const [problemStatement, setProblemStatement] = useState("");
   const { rollno } = useAuth();
 
+  // --- API SUBMISSION LOGIC ---
   const handleEventsApply = async () => {
-    // Filter out empty strings from teammates array
-    const finalTeamMates = teamMates.filter((mate) => mate.trim() !== "");
+    const finalTeamMates =
+      participationType === "team"
+        ? teamMates.filter((mate) => mate.trim() !== "")
+        : [];
 
     try {
       const response = await fetch(
         `http://localhost:6001/api/addregisterevents`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             eventCode: eventCode,
+            teamName: teamName, // <-- ADDED: Include teamName in the payload
             domain: domain,
             problemStatement: problemStatement,
             leaderRollNo: rollno,
@@ -77,9 +80,7 @@ const ApplyModal = ({ isOpen, onClose, eventName, eventCode }) => {
         alert(`✅ Registration Successful! Your Team Code: ${data.teamCode}`);
         onClose();
       } else {
-        alert(
-          data.message || "Registration failed. Please check your details."
-        );
+        alert(data.message || "Registration failed. Please check your details.");
       }
     } catch (error) {
       console.error("Error submitting application:", error);
@@ -93,129 +94,91 @@ const ApplyModal = ({ isOpen, onClose, eventName, eventCode }) => {
     setTeamMates(newTeamMates);
   };
 
-  const addTeamMate = () => {
-    setTeamMates([...teamMates, ""]);
-  };
-
-  const removeTeamMate = (index) => {
-    const newTeamMates = teamMates.filter((_, i) => i !== index);
-    setTeamMates(newTeamMates);
-  };
+  const addTeamMate = () => setTeamMates([...teamMates, ""]);
+  const removeTeamMate = (index) => setTeamMates(teamMates.filter((_, i) => i !== index));
 
   const handleSubmit = (e) => {
     e.preventDefault();
     handleEventsApply();
   };
+
   return (
     <Modal open={isOpen} onClose={onClose} aria-labelledby="apply-modal-title">
       <Box sx={{ ...modalStyle, maxWidth: "36rem" }}>
         <div className="bg-white rounded-xl shadow-2xl w-full max-h-[90vh] flex flex-col overflow-hidden">
           <div className="p-4 sm:p-5 border-b border-gray-200 flex justify-between items-center">
-            <h2
-              id="apply-modal-title"
-              className="text-xl font-bold text-gray-800"
-            >
+            <h2 id="apply-modal-title" className="text-xl font-bold text-gray-800">
               Apply for: <span className="text-indigo-600">{eventName}</span>
             </h2>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors p-1 -m-1 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              aria-label="Close modal"
-            >
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors p-1 -m-1 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500" aria-label="Close modal">
               <X size={24} />
             </button>
           </div>
-          <form
-            onSubmit={handleSubmit}
-            className="p-4 sm:p-5 overflow-y-auto space-y-4"
-          >
+          <form onSubmit={handleSubmit} className="p-4 sm:p-5 overflow-y-auto space-y-6">
+            {/* Participation Type Radio Buttons */}
             <div>
-              <label
-                htmlFor="teammates"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
-                Teammates' Roll Numbers (optional)
-              </label>
-              <div className="space-y-2">
-                {teamMates.map((mate, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      value={mate}
-                      onChange={(e) =>
-                        handleTeamMateChange(index, e.target.value)
-                      }
-                      placeholder={`Teammate ${index + 1} Roll Number`}
-                      className="flex-grow block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeTeamMate(index)}
-                      className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                ))}
+              <label className="block text-sm font-medium text-gray-700 mb-2">Participation Type</label>
+              <div className="flex items-center gap-x-6">
+                <div className="flex items-center">
+                  <input id="team-radio" name="participationType" type="radio" value="team" checked={participationType === "team"} onChange={(e) => setParticipationType(e.target.value)} className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-600"/>
+                  <label htmlFor="team-radio" className="ml-2 block text-sm font-medium leading-6 text-gray-900">Team</label>
+                </div>
+                <div className="flex items-center">
+                  <input id="individual-radio" name="participationType" type="radio" value="individual" checked={participationType === "individual"} onChange={(e) => setParticipationType(e.target.value)} className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-600"/>
+                  <label htmlFor="individual-radio" className="ml-2 block text-sm font-medium leading-6 text-gray-900">Individual</label>
+                </div>
               </div>
-              <button
-                type="button"
-                onClick={addTeamMate}
-                className="mt-2 text-sm font-medium text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
-              >
-                <Plus size={16} /> Add Teammate
-              </button>
+            </div>
+
+            {/* --- ADDED: Team Name Input --- */}
+            <div>
+                <label htmlFor="team-name" className="block text-sm font-medium text-gray-700">
+                    {participationType === 'team' ? 'Team Name' : 'Project Name'}
+                </label>
+                <input
+                    id="team-name"
+                    type="text"
+                    value={teamName}
+                    onChange={(e) => setTeamName(e.target.value)}
+                    className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    placeholder={participationType === 'team' ? "e.g., The Code Crusaders" : "e.g., Smart Irrigation System"}
+                    required
+                />
+            </div>
+            
+            {/* Conditional Teammates Section */}
+            {participationType === "team" && (
+              <div>
+                <label htmlFor="teammates" className="block text-sm font-medium text-gray-700 mb-2">
+                  Teammates' Roll Numbers
+                </label>
+                <div className="space-y-2">
+                  {teamMates.map((mate, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <input type="text" value={mate} onChange={(e) => handleTeamMateChange(index, e.target.value)} placeholder={`Teammate ${index + 1} Roll Number`} className="flex-grow block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"/>
+                      <button type="button" onClick={() => removeTeamMate(index)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full"><Trash2 size={16} /></button>
+                    </div>
+                  ))}
+                </div>
+                <button type="button" onClick={addTeamMate} className="mt-2 text-sm font-medium text-indigo-600 hover:text-indigo-800 flex items-center gap-1"><Plus size={16} /> Add Teammate</button>
+              </div>
+            )}
+
+            {/* Domain and Problem Statement Inputs */}
+            <div>
+              <label htmlFor="domain" className="block text-sm font-medium text-gray-700">Domain</label>
+              <input id="domain" type="text" value={domain} onChange={(e) => setDomain(e.target.value)} className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="e.g., Web Development, AI/ML" required/>
             </div>
 
             <div>
-              <label
-                htmlFor="domain"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Domain
-              </label>
-              <input
-                id="domain"
-                type="text"
-                value={domain}
-                onChange={(e) => setDomain(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="e.g., Web Development, AI/ML"
-                required
-              />
+              <label htmlFor="problem-statement" className="block text-sm font-medium text-gray-700">Problem Statement</label>
+              <textarea id="problem-statement" rows={4} value={problemStatement} onChange={(e) => setProblemStatement(e.target.value)} className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Briefly describe your chosen problem statement or project idea." required/>
             </div>
 
-            <div>
-              <label
-                htmlFor="problem-statement"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Problem Statement
-              </label>
-              <textarea
-                id="problem-statement"
-                rows={4}
-                value={problemStatement}
-                onChange={(e) => setProblemStatement(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="Briefly describe your chosen problem statement or project idea."
-                required
-              />
-            </div>
+            {/* Action Buttons */}
             <div className="pt-4 border-t border-gray-200 flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-              >
-                Submit Application
-              </button>
+              <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Cancel</button>
+              <button type="submit" className="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Submit Application</button>
             </div>
           </form>
         </div>
@@ -224,6 +187,8 @@ const ApplyModal = ({ isOpen, onClose, eventName, eventCode }) => {
   );
 };
 
+
+// The EventDetailModal component remains the same. No changes are needed here.
 const EventDetailModal = ({ isOpen, onClose, eventData }) => {
   const [activeTab, setActiveTab] = useState("Description");
 
@@ -531,5 +496,4 @@ const EventDetailModal = ({ isOpen, onClose, eventData }) => {
     </>
   );
 };
-
 export default EventDetailModal;

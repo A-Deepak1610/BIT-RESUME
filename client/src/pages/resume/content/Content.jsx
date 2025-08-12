@@ -7,7 +7,9 @@ import Projects from "../projects/Projects";
 import Accomplishments from "../Accomplishments"; 
 import { GraduationCap, Trophy, CalendarCheck, TrendingUp } from "lucide-react";
 
-export default function Content() {
+export default function Content(props) {
+  const rollno=props.rollno;
+  console.log("Content rollno:", rollno);
   return (
     <div className="w-full flex flex-col items-center">
       <div className="w-full max-w-[1800px] flex flex-col">
@@ -15,7 +17,7 @@ export default function Content() {
         <div className="flex flex-col lg:flex-row items-center justify-center">
           {/* Graph 1 */}
           <div className="p-2 md:p-2 bg-white shadow rounded-lg h-[32vh] w-full lg:w-[45%]">
-            <ActivenessGraph />
+            <ActivenessGraph rollno={rollno}/>
           </div>
 
           {/* Card */}
@@ -53,7 +55,7 @@ export default function Content() {
           </div>
           {/* Graph 4 */}
           <div className="p-2 md:p-2 bg-white shadow rounded-lg h-[32vh] w-full lg:w-[45%] mt-2 lg:mt-0">
-            <MentorMenteesGraph />
+            <MentorMenteesGraph  rollno={rollno}/>
           </div>
         </div>
 
@@ -61,12 +63,12 @@ export default function Content() {
         <div className="mt-2 flex flex-col lg:flex-row items-center justify-center">
           {/* Graph 2 */}
           <div className="p-2 md:p-2 bg-white w-full lg:w-[50%] shadow rounded-lg h-[32vh] flex flex-col">
-            <PsSkillGraph />
+            <PsSkillGraph rollno={rollno} />
           </div>
 
           {/* Graph 3 */}
           <div className="p-2 md:p-2 mt-2 lg:mt-0 lg:ml-2 bg-white w-full lg:w-[50%] shadow rounded-lg h-[32vh]">
-            <AchievementsGraph />
+            <AchievementsGraph  rollno={rollno}/>
           </div>
         </div>
 
@@ -74,12 +76,12 @@ export default function Content() {
         <div className="flex justify-center w-full mt-2">
           <div className="flex flex-col lg:flex-row w-full max-w-[1800px]">
             <div className="w-full lg:w-[50%] mb-2 lg:mb-0 lg:mr-2">
-              <Projects />
+              <Projects rollno={rollno}/>
             </div>
             
             {/* Accomplishments (takes up the remaining space) */}
             <div className="w-full lg:w-[50%] mb-2 lg:mb-0">
-              <Accomplishments />
+              <Accomplishments rollno={rollno}/>
             </div>
           </div>
         </div>

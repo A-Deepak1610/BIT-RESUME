@@ -61,7 +61,7 @@ export default function Applayout() {
               <Route path="/uploadview/SeminarOrWorkshop" element={<SeminarOrWorkshop />} />
               <Route path='/uploadview/internship' element={<Internship />} />
             </Route>
-            <Route path="/resume" element={<Resume />} />
+            {/* <Route path="/resume" element={<Resume />} /> */}
             <Route path="/downloadResume" element={<DownloadResume />} />
           </Route>
 
@@ -75,6 +75,7 @@ export default function Applayout() {
               <Route path="/faculty-approval" element={<Approvals/>}/>
             </Route>
             <Route path="/student-resume" element={<StudentResume />} />
+            
           </Route>
           <Route element={<ProtectedRoute allowedRoles={["Admin"]}/>}>
           <Route element={<DashboardLayout/>}>
@@ -85,7 +86,8 @@ export default function Applayout() {
           </Route>
           <Route path="/admin-resume" element={<Resume/>}/>
           </Route>
-
+          {/* Both faculty and Student */}
+          <Route path="/resume" element={<Resume />} />
           <Route path="*" element={<PageNotFound />} />
         </Routes>
       ) : (

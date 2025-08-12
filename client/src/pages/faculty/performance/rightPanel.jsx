@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom"; // Make sure to have react-router-dom installed
+import { useNavigate } from "react-router-dom";
 import { TrendingUp, Puzzle, CalendarDays, Users } from 'lucide-react';
 import PsSkillGraph from "../../dashboard/graphs/ps/PsGraph";
 import MentorMenteesGraph from "../../dashboard/graphs/mentor/MentorGraph";
@@ -15,14 +15,14 @@ const tabsData = [
 
 export default function GraphVisual({ name, roll }) {
     const [activeTab, setActiveTab] = useState(tabsData[0].id);
-    const navigate = useNavigate(); // Hook for navigation
+    const navigate = useNavigate();
 
     const handleResumeClick = () => {
-        navigate('/admin-resume');
+        navigate('/resume',{state: { rollno: roll }});
     };
 
     return (
-        <div className="p-4 md:p-6 bg-gray-50 min-h-screen">
+        <div className="p-4 md:p-6 bg-gray-50 ">
             <div className="mb-6">
                 <div className="text-2xl md:text-3xl font-bold text-gray-800">
                     {name ? `${name}'s Performance` : "Performance Overview"}
@@ -81,10 +81,10 @@ export default function GraphVisual({ name, roll }) {
                     </div>
                     {/* Graph Content Area */}
                     <div className="mb-8">
-                        {activeTab === 'activeness' && <div className="border border-gray-200 p-2 md:p-4 bg-white w-full rounded-xl shadow-md h-[50vh]"><ActivenessGraph /></div>}
-                        {activeTab === 'achievement' && <div className="border border-gray-200 p-2 md:p-4 bg-white w-full rounded-xl shadow-md h-[50vh]"><AchievementsGraph /></div>}
-                        {activeTab === 'psgraph' && <div className="border border-gray-200 p-2 md:p-4 bg-white w-full rounded-xl shadow-md h-[50vh]"><PsSkillGraph /></div>}
-                        {activeTab === 'mentograph' && <div className="border border-gray-200 p-2 md:p-4 bg-white w-full rounded-xl shadow-md h-[50vh]"><MentorMenteesGraph /></div>}
+                        {activeTab === 'activeness' && <div className="border border-gray-200 p-2 md:p-4 bg-white w-full rounded-xl shadow-md h-[50vh]"><ActivenessGraph rollno={roll} /></div>}
+                        {activeTab === 'achievement' && <div className="border border-gray-200 p-2 md:p-4 bg-white w-full rounded-xl shadow-md h-[50vh]"><AchievementsGraph rollno={roll} /></div>}
+                        {activeTab === 'psgraph' && <div className="border border-gray-200 p-2 md:p-4 bg-white w-full rounded-xl shadow-md h-[50vh]"><PsSkillGraph rollno={roll} /></div>}
+                        {activeTab === 'mentograph' && <div className="border border-gray-200 p-2 md:p-4 bg-white w-full rounded-xl shadow-md h-[50vh]"><MentorMenteesGraph rollno={roll} /></div>}
                     </div>
                     {/* View Resume Button */}
                     <div className="mt-6 text-center">

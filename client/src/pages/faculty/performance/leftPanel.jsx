@@ -1,20 +1,19 @@
-
 import React, { useState } from "react";
 import { Search, UserX, X } from "lucide-react";
 
-// This helper function should only be defined once.
 const getRankBadgeColor = (rank) => {
     switch (rank?.toLowerCase()) {
-        case "top performer":
+        case "titanium":
             return "bg-blue-100 text-blue-700 border border-blue-300";
-        case "low performer":
-            return "bg-red-100 text-red-700 border border-red-300";
+        case "gold":
+            return "bg-yellow-100 text-yellow-800 border border-yellow-300";
+        case "silver":
+            return "bg-gray-200 text-gray-800 border border-gray-400";
         default:
             return "bg-indigo-100 text-indigo-700 border border-indigo-300";
     }
 };
 
-// The component should only be defined and exported once.
 export default function StudentPerformance({
     datas = [],
     selectedStudentName,
@@ -24,7 +23,7 @@ export default function StudentPerformance({
     const [searchTerm, setSearchTerm] = useState("");
 
     const filteredStudents = datas.filter((student) =>
-        student.name.toLowerCase().includes(searchTerm.toLowerCase())
+        student.user_name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     const handleClickOnLeft = (student) => {
@@ -69,21 +68,21 @@ export default function StudentPerformance({
                 <div className="space-y-4">
                     {filteredStudents.map((item, index) => (
                         <div
-                            key={item.id || item.name + index}
+                            key={item.rollno || index}
                             className={`bg-white border border-gray-200 rounded-xl p-4 shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out cursor-pointer
-                                        ${selectedStudentName === item.name ? 'ring-2 ring-indigo-500 border-indigo-500' : ''} `}
+                                        ${selectedStudentName === item.user_name ? 'ring-2 ring-indigo-500 border-indigo-500' : ''} `}
                             onClick={() => handleClickOnLeft(item)}
                         >
                             <div className="flex flex-col sm:flex-row justify-between sm:items-start mb-3">
                                 <h3 className="text-lg font-semibold text-indigo-700 mb-1 sm:mb-0">
-                                    {item.name}
+                                    {item.user_name}
                                 </h3>
                                 <span
                                     className={`px-3 py-1 text-xs font-medium rounded-full whitespace-nowrap ${getRankBadgeColor(
-                                        item.performance
+                                        item.current_rank
                                     )}`}
                                 >
-                                    {item.performance}
+                                    {item.current_rank}
                                 </span>
                             </div>
 
@@ -93,19 +92,17 @@ export default function StudentPerformance({
                                         Cumulative Points
                                     </p>
                                     <p className="text-xl font-bold text-indigo-600">
-                                        {item.cumulativePoints}
+                                        {item.cummulative_points}
                                     </p>
                                 </div>
-                                {item.rank && (
-                                    <div className="bg-green-50 p-3 rounded-lg shadow-inner w-full">
-                                        <p className="text-xs text-green-500 font-medium mb-0.5">
-                                            Rank
-                                        </p>
-                                        <p className="text-md font-semibold text-green-700">
-                                            {item.rank}
-                                        </p>
-                                    </div>
-                                )}
+                                <div className="bg-green-50 p-3 rounded-lg shadow-inner w-full">
+                                    <p className="text-xs text-green-500 font-medium mb-0.5">
+                                        Current Points
+                                    </p>
+                                    <p className="text-md font-semibold text-green-700">
+                                        {item.current_point}
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     ))}
@@ -127,5 +124,3 @@ export default function StudentPerformance({
         </div>
     );
 }
-
-// DO NOT ADD ANOTHER COPY OF THE CODE HERE. THE FILE SHOULD END.

@@ -23,12 +23,13 @@ const LegendItem = ({ color, label }) => (
   </div>
 );
 
-const MentorMenteesGraph = () => {
+const MentorMenteesGraph = (props) => {
   const [mentorSkillData, setMentorSkillData] = useState([]);
   const [instituteAverageData, setInstituteAverageData] = useState([]);
   const [processedChartData, setProcessedChartData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const {fetchUser,rollno}=useAuth();
+  const student_rollno= props.rollno || rollno; // Use prop or fallback to context value
   useEffect(() => {
     fetchUser();
   }, []);
@@ -83,7 +84,7 @@ const MentorMenteesGraph = () => {
       setIsLoading(true);
       try {
         const [mentorRes, avgRes] = await Promise.all([
-          fetchMentorDetails(rollno),
+          fetchMentorDetails(student_rollno),
           fetchInstituteAverage(),
         ]);
         setMentorSkillData(mentorRes);
@@ -95,7 +96,7 @@ const MentorMenteesGraph = () => {
       setIsLoading(false);
     };
     loadData();
-  }, [rollno]);
+  }, [student_rollno]);
   useEffect(() => {
     if (mentorSkillData.length > 0 && instituteAverageData.length > 0) {
       const instituteAvgMap = new Map(
@@ -254,7 +255,7 @@ const MentorMenteesGraph = () => {
           </h1>
         </Box>
         <div className="flex justify-center items-center flex-grow text-gray-500">
-          No mentorship data to display for {rollno}.
+          No mentorship data to display for {student_rollno}.
         </div>
       </div>
     );

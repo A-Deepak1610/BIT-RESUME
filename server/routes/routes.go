@@ -8,6 +8,7 @@ import (
 	manageactivities "bitresume/api/faculty/ActivityTracker/ManageActivities"
 	studentrequests "bitresume/api/faculty/ActivityTracker/StudentRequests/varifications"
 	addevents "bitresume/api/faculty/AddEvents"
+	studentdata "bitresume/api/faculty/StudentData"
 	dashBoardfaculty "bitresume/api/faculty/dashboardfaculty"
 	pointshandlers "bitresume/api/pointsHandlers"
 	registerevents "bitresume/api/registerEvents"
@@ -35,21 +36,19 @@ func RegisterRoutes(r *gin.Engine) {
 		studentOnly.POST("/points_logs/", pointshandlers.HandlePointlogs)
 		studentOnly.POST("/points_logs/ps/attempts", pointshandlers.HandlePs)
 		studentOnly.POST("/points_logs/ps/levels", pointshandlers.HandlePsLevelStatus)
-		studentOnly.GET("/activity_graph/fetchData/:rollno", activitygraph.FetchActivityGraphData)
-		studentOnly.GET("/achievement_graph/fetchData/:rollno", achievementgraph.HandleFetchAchievementGraph)
-		studentOnly.GET("/achievement_graph/institute_avg/fetchData", achievementgraph.HandleFetchInstituteAvg)
-		studentOnly.GET("/ps/attempts/:rollno", pointshandlers.HandleFetchPsAttempts)
-		studentOnly.GET("/ps/levels_status/:rollno", pointshandlers.HandleFetchPsLevels)
+		// studentOnly.GET("/activity_graph/fetchData/:rollno", activitygraph.FetchActivityGraphData)
+		// studentOnly.GET("/achievement_graph/fetchData/:rollno", achievementgraph.HandleFetchAchievementGraph)
+		// studentOnly.GET("/achievement_graph/institute_avg/fetchData", achievementgraph.HandleFetchInstituteAvg)
+		// studentOnly.GET("/ps/attempts/:rollno", pointshandlers.HandleFetchPsAttempts)
+		// studentOnly.GET("/ps/levels_status/:rollno", pointshandlers.HandleFetchPsLevels)
+		// studentOnly.GET("/mentor/details/:rollno", pointshandlers.FetchMentorSkillStats)
 		studentOnly.POST("/ps/mentor_mentee/", pointshandlers.HandleMentee)
-		studentOnly.GET("/mentor/details/:rollno", pointshandlers.FetchMentorSkillStats)
 		studentOnly.POST("/mentee/add", pointshandlers.HandleMentee)
 		studentOnly.POST("/projects", projects.RecieveProjectData)
 		studentOnly.POST("/patents", patents.ReceivePatentsData)
 		studentOnly.POST("/internships", internship.ReceiveInternshipData)
 		studentOnly.POST("/workshops", workshops.ReceiveWorkshopData)
 		studentOnly.GET("/fetch/header_details/:rollno", headerdetails.FetchDataRank)
-		studentOnly.GET("/mentor/institute_avg/fetchData", pointshandlers.FetchSkillWiseAvgMentees)
-		studentOnly.GET("sem_wise_totaldays", pointshandlers.HandleSemDays)
 		studentOnly.POST("/paperpresentation", paperpresentstion.ReceivePaperPresentationData)
 		studentOnly.POST("/certificates/online-course", certificates.ReceiveCertificateData)
 		studentOnly.POST("/certificates/events", certificates.ReceiveCertificateData)
@@ -76,6 +75,7 @@ func RegisterRoutes(r *gin.Engine) {
 		facultyOnly.POST("/manageactivities/createActivity", manageactivities.ReceiveActivityData)
 		facultyOnly.GET("/manageactivities/receiveActivities", manageactivities.GetActivityData)
 		facultyOnly.GET("manageactivities/progressgrpah/:rollno", manageactivities.HandleProgressGraph)
+		facultyOnly.GET("/studentdata/fetchmentees/:rollno", studentdata.HandleMenteesData)
 		
 	}
 	adminOnly := r.Group("/api")
@@ -83,8 +83,17 @@ func RegisterRoutes(r *gin.Engine) {
 	{
 		adminOnly.DELETE("/deleteevents/:id", addevents.DeleteEvent)
 		adminOnly.POST("/addevents/create", addevents.AddEvents)
+		adminOnly.GET("/events/fetchregisteredteams/:eventcode", registerevents.HandleRegisteredTeams)
 	}
 	r.GET("/api/activitymaster/fetch", addevents.FetchEvents)
-	// faculty page
+	//both student and faculty 
+	r.GET("/api/activity_graph/fetchData/:rollno", activitygraph.FetchActivityGraphData)
+	r.GET("/api/achievement_graph/fetchData/:rollno", achievementgraph.HandleFetchAchievementGraph)
+	r.GET("/api/achievement_graph/institute_avg/fetchData", achievementgraph.HandleFetchInstituteAvg)
+	r.GET("/api/ps/attempts/:rollno", pointshandlers.HandleFetchPsAttempts)
+	r.GET("/api/ps/levels_status/:rollno", pointshandlers.HandleFetchPsLevels)
+	r.GET("/api/mentor/details/:rollno", pointshandlers.FetchMentorSkillStats)
+	r.GET("/api/mentor/institute_avg/fetchData", pointshandlers.FetchSkillWiseAvgMentees)
+	r.GET("/api/sem_wise_totaldays", pointshandlers.HandleSemDays)
 
 }

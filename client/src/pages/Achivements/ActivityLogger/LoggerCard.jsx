@@ -22,7 +22,6 @@ import {
   Chip,
 } from "@mui/material";
 import CertificateUpload from "../../uploadView/forms/certificate";
-import AutoFill from "../../../store/Autofill";
 
 // This component renders a single stage in the progress tracker
 const ProgressStage = ({ stage, status }) => {

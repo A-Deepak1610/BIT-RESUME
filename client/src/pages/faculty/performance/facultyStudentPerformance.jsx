@@ -1,17 +1,51 @@
 import React, { useState, useEffect } from "react";
 import StudentPerformance from "./leftPanel";
-import data from "../../../dummydatas/faculty-mentees.json";
 import GraphVisual from "./rightPanel";
 import { Search } from "lucide-react";
+import useAuth from "../../../store/UseAuth";
 
 export default function StudentDashboardPage() {
+  const [mentees, setMentees] = useState([]);
   const [studentName, setStudentName] = useState("");
   const [studentRoll, setStudentRoll] = useState("");
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const { rollno } = useAuth(); //this is mentor rollno
+
+  const handleStudentsData = async () => {
+    if (!rollno) return;
+    try {
+      const response = await fetch(`http://localhost:6001/api/studentdata/fetchmentees/${rollno}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      const result = await response.json();
+      setMentees(result.mentees || []);
+    } catch (error) {
+      console.error("Error fetching students data:", error);
+    }
+  };
+
+  useEffect(() => {
+    handleStudentsData();
+  }, [rollno]);
+
+  useEffect(() => {
+    if (!isMobile && mentees.length > 0) {
+      setStudentName(mentees[0].user_name);
+      setStudentRoll(mentees[0].rollno);
+    }
+  }, [isMobile, mentees]);
+
   useEffect(() => {
     const checkIsMobile = () => {
-      setIsMobile(window.innerWidth < 1024); 
+      setIsMobile(window.innerWidth < 1024);
     };
     checkIsMobile();
     window.addEventListener("resize", checkIsMobile);
@@ -19,17 +53,10 @@ export default function StudentDashboardPage() {
   }, []);
 
   const handleStudentSelect = (student) => {
-    setStudentName(student.name);
-    setStudentRoll(student.rollNo);
+    setStudentName(student.user_name);
+    setStudentRoll(student.rollno);
     setIsPanelOpen(false);
   };
-
-  useEffect(() => {
-    if (!isMobile && data.length > 0) {
-      setStudentName(data[0].name);
-      setStudentRoll(data[0].rollNo);
-    }
-  }, [isMobile]);
 
   return (
     <div className="relative flex flex-col lg:flex-row h-screen bg-slate-50">
@@ -59,13 +86,13 @@ export default function StudentDashboardPage() {
       >
         {/* Modal Backdrop */}
         <div
-          className="fixed inset-0 bg-gray-800 bg-opacity-50 lg:hidden" 
+          className="fixed inset-0 bg-gray-800 bg-opacity-50 lg:hidden"
           onClick={() => setIsPanelOpen(false)}
         ></div>
-        
+
         <div className="relative w-full max-w-lg lg:max-w-full h-full bg-slate-50">
           <StudentPerformance
-            datas={data}
+            datas={mentees}
             selectedStudentName={studentName}
             onStudentSelect={handleStudentSelect}
             onClose={() => setIsPanelOpen(false)}

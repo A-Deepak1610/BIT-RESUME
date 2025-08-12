@@ -293,7 +293,7 @@ const ProjectStep3_TimelineTech = ({ formData, handleChange, setFormData, errors
             </div>
             <div ref={techInputContainerRef}>
                 <label htmlFor="techStackInput" className="block text-sm font-medium text-gray-700 mb-1">
-                    Technology Stack (Planned)
+                    Technology Stack 
                 </label>
                 {formData.techStack.length > 0 && (
                     <div className="mb-2 flex flex-wrap gap-2 p-2 border border-gray-200 rounded-md bg-gray-50">

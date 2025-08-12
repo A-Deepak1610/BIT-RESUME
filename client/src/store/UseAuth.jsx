@@ -3,15 +3,18 @@ const useAuth = create((set) => ({
   user: null,
   loading: true,
   rollno:null,
+  name: null,
   fetchUser: async () => {
     try {
       const res = await fetch("http://localhost:6001/api/auth/me", {
         credentials: "include",
       });
       const data = await res.json();
+      console.log(data)
       if (data?.user) {
         set({ user: data.user, loading: false });
         set({ rollno: data.user.rollNo });
+        set({ name: data.user.user_name});
       } else {
         set({ user: null, loading: false });
       }
