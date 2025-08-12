@@ -27,6 +27,7 @@ func GetInternship() ([]facultymodel.Varification, error) {
 			i.report,
 			i.skill_gained,
 			i.outcomes,
+			i.status,
 			l.user_name
 		FROM internships AS i
 		INNER JOIN login AS l 
@@ -60,6 +61,7 @@ func GetInternship() ([]facultymodel.Varification, error) {
 			&v.Report,
 			&v.SkillGained,
 			&v.Outcomes,
+			&v.Approval_status,
 			&v.User_name,
 		)
 		if err != nil {

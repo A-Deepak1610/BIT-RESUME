@@ -189,10 +189,9 @@ export default function CreateActivityModal({ open, handleClose }) {
         const API_URL = 'http://localhost:6001/api/manageactivities/createActivity';
         try {
             const response = await axios.post(API_URL, formData, {
+                withCredentials:true,
                 headers: { 'Content-Type': 'multipart/form-data' },
-                withCredentials: true, // Ensure cookies are sent with the request
             });
-            
             console.log('Activity created successfully:', response.data);
             handleClose(); // Close modal on success
         } catch (error) {

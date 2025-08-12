@@ -1,100 +1,133 @@
 import React, { useState, useEffect, useMemo } from "react";
 import SurveyCard from "./surveyCard";
-import MasterCard from "./masterCard";
+import MasterCard from "./masterCard"; // Assuming this component exists and works as intended
 import MeetingOrSessionCard from "./meetingorsessioncard";
-import EventDetailModal from "./EventModal";
+import EventDetailModal from "./EventModal"; // Assuming this component exists
 import { Search, ChevronDown } from "lucide-react";
-import useAuth from "../../../store/UseAuth";
+import useAuth from "../../../store/UseAuth"; // Assuming this hook provides { rollno }
 
 const ActivityMaster = () => {
   const [activeTab, setActiveTab] = useState("activities");
   const [selectedStatus, setSelectedStatus] = useState("All Statuses");
-  const [selectedType, setSelectedType] = useState("All Types");
-
   const [searchTerm, setSearchTerm] = useState("");
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedEventData, setSelectedEventData] = useState(null);
-  const [activityMasterData, setActivityMasterData] = useState([]);
-  const [surveys, setSurveys] = useState([]); // State for fetched survey data
-  const meetings = []; // Assuming meetings are also fetched or handled similarly
-  const { rollno } = useAuth();
 
-  useEffect(() => {
-    handleData();
-    fetchSurveyData(); // Fetch survey data on component mount
-  }, []);
+  const [activityMasterData, setActivityMasterData] = useState([]);
+  const [surveys, setSurveys] = useState([]);
+  const [meetingsAndSessions, setMeetingsAndSessions] = useState([]); // Renamed for clarity
+
   const [limit, setLimit] = useState(25);
   const [offset, setOffset] = useState(0);
+
+  const { rollno } = useAuth();
+
+  // Fetch data for the active tab when it changes or on pagination
+  useEffect(() => {
+    if (activeTab === "activities") {
+      handleData();
+    }
+  }, [offset, limit, activeTab]);
+
+  // Fetch survey, meeting, and session data once on mount or if the user changes
+  useEffect(() => {
+    if (rollno) {
+      fetchSurveyData();
+      fetchMeetingAndSessionData();
+    }
+  }, [rollno]);
+
   const handlePaginationplus = () => {
     setOffset((prevOffset) => prevOffset + limit);
-    handleData();
   };
+
   const handlePaginationminus = () => {
     setOffset((prevOffset) => Math.max(prevOffset - limit, 0));
-    handleData();
   };
+
   const handleData = async () => {
     try {
       const response = await fetch(
         `http://localhost:6001/api/activitymaster/fetch?limit=${limit}&offset=${offset}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-        }
+        { credentials: "include" }
       );
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
+      if (!response.ok) throw new Error("Network response was not ok for activities");
       const data = await response.json();
       setActivityMasterData(data.events || []);
     } catch (error) {
-      console.error(
-        "There has been a problem with your fetch operation:",
-        error
-      );
+      console.error("There has been a problem fetching activities:", error);
     }
   };
 
   const fetchSurveyData = async () => {
-    // Using a default rollno for the example
     try {
       const response = await fetch(
         `http://localhost:6001/api/activitymaster/getsurveydata/${rollno}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-        }
+        { credentials: "include" }
       );
-      if (!response.ok) {
-        throw new Error("Network response was not ok for survey data");
-      }
+      if (!response.ok) throw new Error("Network response was not ok for survey data");
       const data = await response.json();
-
       const processedSurveys = data.map((survey) => {
         const today = new Date();
-        const startDate = new Date(survey["start-date"]);
-        const endDate = new Date(survey["end-date"]);
-
-        let status = "Pending";
-        if (today > endDate) {
-          status = "Missed"; // Or "Completed" based on submission, which we can't determine here
-        }
-
-        return { ...survey, Status: status };
+        today.setHours(0, 0, 0, 0);
+        const endDate = new Date(survey.end_date);
+        return {
+          id: survey.activity_id,
+          title: survey.description,
+          publishedBy: survey.publishing_department,
+          startDate: survey.start_date,
+          endDate: survey.end_date,
+          link: survey.link_or_location,
+          status: today > endDate ? "Missed" : "Pending",
+        };
       });
-
       setSurveys(processedSurveys);
     } catch (error) {
-      console.error(
-        "There has been a problem with your fetch operation for survey data:",
-        error
+      console.error("There was a problem fetching survey data:", error);
+    }
+  };
+
+  const fetchMeetingAndSessionData = async () => {
+    try {
+      const response = await fetch(
+        `http://localhost:6001/api/activitymaster/getsessiondata/${rollno}`,
+        { credentials: "include" }
       );
+      if (!response.ok) throw new Error("Network response was not ok for meeting/session data");
+      const data = await response.json();
+
+      const meetings = data.meetings || [];
+      const sessions = data.sessions || [];
+
+      const processEvent = (event, type) => {
+        const dateKey = type === 'Meeting' ? 'date_of_meeting' : 'date_of_session';
+        const now = new Date();
+        const eventDateTime = new Date(`${event[dateKey]}T${event.end_time}`);
+        return {
+          id: event.activity_id,
+          type: type,
+          title: event.description,
+          department: event.publishing_department,
+          host: event.host,
+          date: event[dateKey],
+          startTime: event.start_time,
+          endTime: event.end_time,
+          location: event.link_or_location,
+          status: now > eventDateTime ? "Completed" : "Upcoming",
+        };
+      };
+
+      const processedMeetings = meetings.map(m => processEvent(m, 'Meeting'));
+      const processedSessions = sessions.map(s => processEvent(s, 'Session'));
+
+      const allEvents = [...processedMeetings, ...processedSessions];
+      // Sort by date, with the soonest events first
+      allEvents.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+      setMeetingsAndSessions(allEvents);
+    } catch (error) {
+      console.error("There was a problem fetching meeting/session data:", error);
     }
   };
 
@@ -108,36 +141,25 @@ const ActivityMaster = () => {
   const filteredSurveys = useMemo(() => {
     return surveys.filter((survey) => {
       const statusMatch =
-        selectedStatus === "All Statuses" || survey.Status === selectedStatus;
-      const typeMatch =
-        selectedType === "All Types" ||
-        survey["activity-type"] === selectedType;
+        selectedStatus === "All Statuses" || survey.status === selectedStatus;
       const termMatch =
         !searchTerm ||
-        survey["activity-title"]
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase());
-      return statusMatch && typeMatch && termMatch;
+        survey.title.toLowerCase().includes(searchTerm.toLowerCase());
+      return statusMatch && termMatch;
     });
-  }, [searchTerm, surveys, selectedStatus, selectedType]);
+  }, [searchTerm, surveys, selectedStatus]);
 
-  const filteredMeetings = useMemo(() => {
-    // This would also be updated to use fetched meeting data
-    return meetings.filter((meeting) => {
+  const filteredMeetingsAndSessions = useMemo(() => {
+    return meetingsAndSessions.filter((event) => {
       const statusMatch =
-        selectedStatus === "All Statuses" ||
-        meeting.Status.toLowerCase() === selectedStatus.toLowerCase();
-      const typeMatch =
-        selectedType === "All Types" || meeting.serveyType === selectedType;
+        selectedStatus === "All Statuses" || event.status === selectedStatus;
       const termMatch =
         !searchTerm ||
-        Object.values(meeting)
-          .join(" ")
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase());
-      return statusMatch && typeMatch && termMatch;
+        event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        event.host.toLowerCase().includes(searchTerm.toLowerCase());
+      return statusMatch && termMatch;
     });
-  }, [searchTerm, meetings, selectedStatus, selectedType]);
+  }, [searchTerm, meetingsAndSessions, selectedStatus]);
 
   const handleCardClick = (eventData) => {
     setSelectedEventData(eventData);
@@ -153,18 +175,16 @@ const ActivityMaster = () => {
     setActiveTab(tab);
     setSearchTerm("");
     setSelectedStatus("All Statuses");
-    setSelectedType("All Types");
   };
 
   const TabButton = ({ label, value }) => (
     <button
       onClick={() => handleTabClick(value)}
-      className={`py-3 px-6 font-medium text-sm focus:outline-none -mb-px border-b-2
-        ${
-          activeTab === value
-            ? "border-blue-600 text-blue-600"
-            : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-        }`}
+      className={`py-3 px-6 font-medium text-sm focus:outline-none -mb-px border-b-2 ${
+        activeTab === value
+          ? "border-blue-600 text-blue-600"
+          : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+      }`}
     >
       {label}
     </button>
@@ -196,12 +216,12 @@ const ActivityMaster = () => {
         return (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredSurveys.length > 0 ? (
-              filteredSurveys.map((survey, index) => (
-                <SurveyCard key={index} survey={survey} />
+              filteredSurveys.map((survey) => (
+                <SurveyCard key={survey.id} survey={survey} />
               ))
             ) : (
               <p className="col-span-full text-center text-gray-500 py-10">
-                No surveys match.
+                No surveys match your criteria.
               </p>
             )}
           </div>
@@ -213,35 +233,32 @@ const ActivityMaster = () => {
               data={filteredActivities}
               onCardClick={handleCardClick}
             />
-            {/* <div className="fixed bottom-4 right-4 flex gap-2">
+            <div className="fixed bottom-4 right-4 flex gap-2">
               <button
                 onClick={handlePaginationminus}
-                className="bg-primary hover:bg-blue-800 cursor-pointer text-white font-semibold py-2 px-4 rounded-lg shadow-lg"
+                className="bg-blue-600 hover:bg-blue-800 cursor-pointer text-white font-semibold py-2 px-4 rounded-lg shadow-lg"
               >
                 &lt;
               </button>
               <button
                 onClick={handlePaginationplus}
-                className="bg-primary hover:bg-blue-800 cursor-pointer text-white font-semibold py-2 px-4 rounded-lg shadow-lg"
+                className="bg-blue-600 hover:bg-blue-800 cursor-pointer text-white font-semibold py-2 px-4 rounded-lg shadow-lg"
               >
                 &gt;
               </button>
-            </div> */}
+            </div>
           </>
         );
-      case "meetings":
+      case "meetings": // This tab now shows both meetings and sessions
         return (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredMeetings.length > 0 ? (
-              filteredMeetings.map((meeting, index) => (
-                <MeetingOrSessionCard
-                  key={meeting.id || index}
-                  meeting={meeting}
-                />
+            {filteredMeetingsAndSessions.length > 0 ? (
+              filteredMeetingsAndSessions.map((event) => (
+                <MeetingOrSessionCard key={`${event.type}-${event.id}`} meeting={event} />
               ))
             ) : (
               <p className="col-span-full text-center text-gray-500 py-10">
-                No meetings match.
+                No meetings or sessions match your criteria.
               </p>
             )}
           </div>
@@ -251,20 +268,10 @@ const ActivityMaster = () => {
     }
   };
 
-  const statusOptions = ["All Statuses", "Pending", "Completed", "Missed"];
-  const uniqueSurveyTypes = [
-    "All Types",
-    "Survey",
-    "Feedback",
-    "Quiz",
-    "General",
-  ];
-  const uniqueMeetingTypes = [
-    "All Types",
-    "One-on-One",
-    "Team Sync",
-    "Workshop",
-  ];
+  const statusOptions = {
+    surveys: ["All Statuses", "Pending", "Missed"],
+    meetings: ["All Statuses", "Upcoming", "Completed"],
+  };
 
   return (
     <div className="bg-gray-100 min-h-screen py-6 md:py-8">
@@ -285,7 +292,7 @@ const ActivityMaster = () => {
             <input
               type="text"
               className="block w-full pl-10 pr-4 py-2.5 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm md:text-base shadow-sm border border-gray-300"
-              placeholder={`Search ${activeTab}...`}
+              placeholder={`Search in ${activeTab}...`}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -295,18 +302,8 @@ const ActivityMaster = () => {
               <FilterDropdown
                 value={selectedStatus}
                 onChange={setSelectedStatus}
-                options={statusOptions}
+                options={statusOptions[activeTab]}
                 label="Filter by status"
-              />
-              <FilterDropdown
-                value={selectedType}
-                onChange={setSelectedType}
-                options={
-                  activeTab === "surveys"
-                    ? uniqueSurveyTypes
-                    : uniqueMeetingTypes
-                }
-                label="Filter by type"
               />
             </div>
           )}

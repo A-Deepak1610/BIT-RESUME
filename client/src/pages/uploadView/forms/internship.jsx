@@ -7,16 +7,21 @@ import {
   Award, MessageSquare, Target, AlertTriangle, UserCheck, UserPlus, Building, Type
 } from 'lucide-react';
 
-const DEBUG_MODE = true; // Set to true for console logs
+
+import useAuth from '../../../store/UseAuth';
+
+
+const DEBUG_MODE = true;
+
 
 const MAX_FILE_SIZE_MB = 5;
 const SUPPORTED_FORMATS_LABEL = `Supported formats: PDF, PNG, JPG (max ${MAX_FILE_SIZE_MB}MB)`;
 const ACCEPT_STRING = ".pdf,.png,.jpg,.jpeg,image/png,image/jpeg,application/pdf";
 
-// --- Helper Components ---
+
 const RequiredAst = () => <span className="text-red-500 ml-0.5">*</span>;
 
-// --- File Upload Component (Unchanged from your provided code, assuming it's correct) ---
+
 const FileUploadField = ({
   id,
   name,
@@ -32,8 +37,10 @@ const FileUploadField = ({
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef(null);
 
+
   const processFile = (file) => {
     if (setFormError) setFormError(name, '');
+
 
     if (file) {
       const fileSizeMB = file.size / 1024 / 1024;
@@ -45,15 +52,19 @@ const FileUploadField = ({
         return;
       }
 
+
       const acceptedTypes = ACCEPT_STRING.split(',').map(t => t.trim().toLowerCase());
       const fileExtension = `.${file.name.split('.').pop().toLowerCase()}`;
       const fileMimeType = file.type.toLowerCase();
+
 
       let isValidType = acceptedTypes.includes(fileExtension) ||
                         acceptedTypes.includes(fileMimeType) ||
                         (fileMimeType === 'application/pdf' && acceptedTypes.includes('.pdf')) ||
                         (fileMimeType === 'image/png' && (acceptedTypes.includes('image/png') || acceptedTypes.includes('.png'))) ||
                         (fileMimeType === 'image/jpeg' && (acceptedTypes.includes('image/jpeg') || acceptedTypes.includes('.jpg') || acceptedTypes.includes('.jpeg')));
+
+
 
 
       if (!isValidType) {
@@ -67,6 +78,7 @@ const FileUploadField = ({
     }
   };
 
+
   const handleFileChange = (event) => {
     if (event.target.files && event.target.files[0]) {
       processFile(event.target.files[0]);
@@ -74,6 +86,7 @@ const FileUploadField = ({
       onFileSelect({ target: { name, value: null } });
     }
   };
+
 
   const handleDrop = (event) => {
     event.preventDefault();
@@ -84,15 +97,18 @@ const FileUploadField = ({
     }
   };
 
+
   const commonDragEvent = (event, enter) => {
     event.preventDefault();
     event.stopPropagation();
     if (enter !== undefined) setIsDragging(enter);
   };
 
+
   const triggerFileInput = () => {
     fileInputRef.current?.click();
   };
+
 
   const clearFile = (e) => {
     e.stopPropagation();
@@ -100,6 +116,7 @@ const FileUploadField = ({
     if (fileInputRef.current) fileInputRef.current.value = "";
     onFileSelect({ target: { name, value: null } });
   };
+
 
   return (
     <div className="mb-4">
@@ -156,6 +173,8 @@ const FileUploadField = ({
 };
 
 
+
+
 // --- Input Field Component (Unchanged) ---
 const InputField = ({ id, name, label, value, onChange, error, placeholder, type = "text", required, helperText, readOnly = false, className = "" }) => (
   <div>
@@ -177,6 +196,7 @@ const InputField = ({ id, name, label, value, onChange, error, placeholder, type
   </div>
 );
 
+
 // --- Textarea Field Component (Unchanged) ---
 const TextareaField = ({ id, name, label, value, onChange, error, placeholder, rows = 3, required, helperText }) => (
   <div>
@@ -196,6 +216,7 @@ const TextareaField = ({ id, name, label, value, onChange, error, placeholder, r
     {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
   </div>
 );
+
 
 // --- Checkbox Field Component (Unchanged) ---
 const CheckboxField = ({ id, name, label, checked, onChange, description }) => (
@@ -219,6 +240,7 @@ const CheckboxField = ({ id, name, label, checked, onChange, description }) => (
   </div>
 );
 
+
 // --- Select Field Component (Unchanged) ---
 const SelectField = ({ id, name, label, value, onChange, error, required, helperText, children }) => (
   <div>
@@ -239,6 +261,7 @@ const SelectField = ({ id, name, label, value, onChange, error, required, helper
   </div>
 );
 
+
 // --- Section Header Component (Unchanged) ---
 const SectionHeader = ({ title, icon: Icon }) => (
   <div className="flex items-center mb-6 pt-4">
@@ -248,7 +271,9 @@ const SectionHeader = ({ title, icon: Icon }) => (
 );
 
 
-// --- Validation Functions for Internship (Updated) ---
+
+
+// --- Validation Functions for Internship (Unchanged) ---
 const validateStep1_Internship = (formData) => {
   const errors = {};
   if (!formData.company_name?.trim()) errors.company_name = 'Organization/Company name is required.';
@@ -263,6 +288,7 @@ const validateStep1_Internship = (formData) => {
   return errors;
 };
 
+
 const validateStep2_Internship = (formData) => {
   const errors = {};
   if (formData.industry_mentor_contact && !/^\S+@\S+\.\S+$/.test(formData.industry_mentor_contact)) {
@@ -271,12 +297,14 @@ const validateStep2_Internship = (formData) => {
   return errors;
 };
 
+
 const validateStep3_Internship = (formData) => {
   const errors = {};
   if (!formData.offer_letter) errors.offer_letter = 'Offer letter (PDF, PNG, JPG) is required.';
   // report is optional, so no validation if not present
   return errors;
 };
+
 
 const validateStep4_Internship = (formData) => {
   const errors = {};
@@ -286,7 +314,10 @@ const validateStep4_Internship = (formData) => {
 };
 
 
-// --- Step Components for Internship (Updated) ---
+
+
+// --- Step Components for Internship (Unchanged) ---
+
 
 const InternshipStep1_CoreDetails = ({ formData, handleChange, errors }) => (
   <div className="space-y-6">
@@ -303,6 +334,7 @@ const InternshipStep1_CoreDetails = ({ formData, handleChange, errors }) => (
       </SelectField>
     </div>
 
+
     <SectionHeader title="Duration & Stipend" icon={CalendarDays} />
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
       <InputField id="start_date" name="start_date" label="Start Date" type="date" value={formData.start_date} onChange={handleChange} error={errors.start_date} required className="appearance-none"/>
@@ -311,6 +343,7 @@ const InternshipStep1_CoreDetails = ({ formData, handleChange, errors }) => (
     <CheckboxField id="is_stipend" name="is_stipend" label="This was a paid internship (received stipend)" checked={formData.is_stipend} onChange={handleChange} description="Check this if you received a stipend" />
   </div>
 );
+
 
 const InternshipStep2_Supervision = ({ formData, handleChange, errors }) => (
   <div className="space-y-6">
@@ -322,6 +355,7 @@ const InternshipStep2_Supervision = ({ formData, handleChange, errors }) => (
     <InputField id="industry_mentor_contact" name="industry_mentor_contact" label="Industry Mentor Contact (Optional)" value={formData.industry_mentor_contact} onChange={handleChange} error={errors.industry_mentor_contact} placeholder="e.g. john@company.com" type="email" helperText="Email or phone number of industry mentor" />
   </div>
 );
+
 
 const InternshipStep3_Documentation = ({ formData, handleFileSelect, errors, setFormError }) => (
   <div className="space-y-6">
@@ -352,6 +386,7 @@ const InternshipStep3_Documentation = ({ formData, handleFileSelect, errors, set
   </div>
 );
 
+
 const InternshipStep4_Reflections = ({ formData, handleChange, errors }) => (
   <div className="space-y-6">
     <SectionHeader title="Skills & Outcomes" icon={Sparkles} />
@@ -381,6 +416,7 @@ const InternshipStep4_Reflections = ({ formData, handleChange, errors }) => (
   </div>
 );
 
+
 const InternshipStep5_Review = ({ formData }) => {
   const DetailItem = ({ label, value, isFile = false, isBoolean = false }) => (
     <div>
@@ -398,9 +434,11 @@ const InternshipStep5_Review = ({ formData }) => {
     </div>
   );
 
+
   return (
     <div className="space-y-8">
       <SectionHeader title="Review Internship Submission" icon={Info} />
+
 
       <section>
         <h3 className="text-lg font-semibold text-gray-700 mb-3 pb-2 border-b border-gray-200">Core Details & Duration</h3>
@@ -415,6 +453,7 @@ const InternshipStep5_Review = ({ formData }) => {
         </div>
       </section>
 
+
       <section>
         <h3 className="text-lg font-semibold text-gray-700 mb-3 pb-2 border-b border-gray-200">Supervision</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
@@ -424,6 +463,7 @@ const InternshipStep5_Review = ({ formData }) => {
         </div>
       </section>
 
+
       <section>
         <h3 className="text-lg font-semibold text-gray-700 mb-3 pb-2 border-b border-gray-200">Documentation</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
@@ -431,6 +471,7 @@ const InternshipStep5_Review = ({ formData }) => {
           <DetailItem label="Internship Report" value={formData.report} isFile />
         </div>
       </section>
+
 
       <section>
         <h3 className="text-lg font-semibold text-gray-700 mb-3 pb-2 border-b border-gray-200">Skills & Outcomes</h3>
@@ -444,7 +485,9 @@ const InternshipStep5_Review = ({ formData }) => {
 };
 
 
-// --- Main Internship Component (Updated) ---
+
+
+// --- Main Internship Component (UPDATED) ---
 const STEP_CONFIG_INTERNSHIP = [
   { title: 'Core Details', validate: validateStep1_Internship, icon: Briefcase },
   { title: 'Supervision', validate: validateStep2_Internship, icon: Users },
@@ -453,11 +496,15 @@ const STEP_CONFIG_INTERNSHIP = [
   { title: 'Review', icon: Info }, // No validation function for review step
 ];
 
+
 const Internship = ({ onBack, initialData = {} }) => {
+  // --- CHANGE 1: Moved useAuth() hook inside the component ---
+  const { rollno } = useAuth();
   const [currentStep, setCurrentStep] = useState(0);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+
 
   const [formData, setFormData] = useState({
     // From Step 1
@@ -469,19 +516,23 @@ const Internship = ({ onBack, initialData = {} }) => {
     end_date: initialData.end_date || '',
     is_stipend: initialData.is_stipend || false, // TINYINT(1) -> boolean
 
+
     // From Step 2
     consulted_faculty_name: initialData.consulted_faculty_name || '', // Optional
     industry_mentor_name: initialData.industry_mentor_name || '', // Optional
     industry_mentor_contact: initialData.industry_mentor_contact || '', // Optional
 
+
     // From Step 3
     offer_letter: initialData.offer_letter || null, // File, Required
     report: initialData.report || null, // File, Optional
+
 
     // From Step 4
     skill_gained: initialData.skill_gained || '',
     outcomes: initialData.outcomes || '',
   });
+
 
   const handleChange = useCallback((e) => {
     const { name, value, type, checked } = e.target;
@@ -499,6 +550,7 @@ const Internship = ({ onBack, initialData = {} }) => {
     }));
   }, []);
 
+
   const handleFileSelect = useCallback(({ target: { name, value } }) => {
     setErrors(prevErrors => {
       const newErrors = { ...prevErrors };
@@ -511,18 +563,23 @@ const Internship = ({ onBack, initialData = {} }) => {
     }));
   }, []);
 
+
   const setFormErrorForFile = useCallback((fieldName, errorMessage) => {
     setErrors(prev => ({ ...prev, [fieldName]: errorMessage }));
   }, []);
+
+
 
 
   const validateCurrentStep = useCallback(() => {
     let currentStepErrors = {};
     const currentStepConfig = STEP_CONFIG_INTERNSHIP[currentStep];
 
+
     if (currentStepConfig && currentStepConfig.validate) {
       currentStepErrors = currentStepConfig.validate(formData);
     }
+
 
     // Preserve existing file errors if they were not re-validated in this step
     const preservedFileErrors = {};
@@ -530,13 +587,18 @@ const Internship = ({ onBack, initialData = {} }) => {
     if (errors.report && !currentStepErrors.report) preservedFileErrors.report = errors.report;
 
 
+
+
     setErrors({
         ...preservedFileErrors, // Keep old file errors if not part of current step validation
         ...currentStepErrors
     });
 
+
     return Object.keys(currentStepErrors).length === 0;
   }, [currentStep, formData, errors.offer_letter, errors.report]);
+
+
 
 
   const nextStep = useCallback(() => {
@@ -549,12 +611,12 @@ const Internship = ({ onBack, initialData = {} }) => {
     window.scrollTo(0, 0);
   }, [validateCurrentStep, errors]);
 
+
   const prevStep = useCallback(() => {
     setCurrentStep(prev => Math.max(prev - 1, 0));
     window.scrollTo(0, 0);
-    // Optionally clear errors for the step you are going back to, or all errors
-    // setErrors({}); // Clears all errors, might be too aggressive
   }, []);
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -565,9 +627,11 @@ const Internship = ({ onBack, initialData = {} }) => {
     setIsSubmitting(true);
     setErrors({}); // Clear previous submission errors
 
+
     let allValid = true;
     let firstErrorStep = -1;
     const combinedValidationErrors = {};
+
 
     // Validate all steps programmatically before submission
     for (let i = 0; i < STEP_CONFIG_INTERNSHIP.length - 1; i++) { // Exclude review step
@@ -582,7 +646,7 @@ const Internship = ({ onBack, initialData = {} }) => {
       }
     }
 
-    // Manually add any persistent file errors if not caught by step validations (though they should be)
+
     if (errors.offer_letter) {
         allValid = false;
         combinedValidationErrors.offer_letter = errors.offer_letter;
@@ -610,7 +674,20 @@ const Internship = ({ onBack, initialData = {} }) => {
         return;
     }
 
+
+    // --- CHANGE 2: Console log the roll number ---
+    if (DEBUG_MODE) {
+      console.log(`[DEBUG] Submitting form for rollno: ${rollno}`);
+    }
+
+
     const payload = new FormData();
+
+
+    // --- CHANGE 3: Add rollno to the payload ---
+    payload.append('rollno', rollno);
+
+
     payload.append('company_name', formData.company_name.trim());
     payload.append('roll', formData.roll.trim());
     payload.append('domain', formData.domain.trim());
@@ -618,6 +695,7 @@ const Internship = ({ onBack, initialData = {} }) => {
     payload.append('is_stipend', formData.is_stipend ? '1' : '0');
     payload.append('start_date', formData.start_date);
     payload.append('end_date', formData.end_date);
+
 
     if (formData.consulted_faculty_name && formData.consulted_faculty_name.trim()) {
         payload.append('consulted_faculty_name', formData.consulted_faculty_name.trim());
@@ -629,6 +707,7 @@ const Internship = ({ onBack, initialData = {} }) => {
         payload.append('industry_mentor_contact', formData.industry_mentor_contact.trim());
     }
 
+
     if (formData.offer_letter) {
         payload.append('offer_letter', formData.offer_letter, formData.offer_letter.name);
     }
@@ -636,10 +715,10 @@ const Internship = ({ onBack, initialData = {} }) => {
         payload.append('report', formData.report, formData.report.name);
     }
 
+
     payload.append('skill_gained', formData.skill_gained.trim());
     payload.append('outcomes', formData.outcomes.trim());
 
-    // Note: 'id', 'rollno', 'faculty_remarks', 'submitted_on' are not sent as they are handled by backend/faculty.
 
     if (DEBUG_MODE) {
         console.log('[DEBUG] Submitting Internship data to API:');
@@ -648,15 +727,17 @@ const Internship = ({ onBack, initialData = {} }) => {
         }
     }
 
+
     try {
-      // Replace with your actual API endpoint
       const response = await axios.post('http://localhost:6001/api/internships', payload, {
         withCredentials: true,
       });
 
+
       if (DEBUG_MODE) console.log('Internship submission successful:', response.data);
       setSubmitSuccess(true);
       window.scrollTo(0, 0);
+
 
     } catch (error) {
       let errorMessage = 'Upload failed. Please try again.';
@@ -681,6 +762,7 @@ const Internship = ({ onBack, initialData = {} }) => {
     }
   };
 
+
   const resetForm = () => {
     setFormData({
       company_name: '', roll: '', domain: '', internship_type: '',
@@ -696,6 +778,7 @@ const Internship = ({ onBack, initialData = {} }) => {
     window.scrollTo(0, 0);
   };
 
+
   const renderStepContent = () => {
     switch (currentStep) {
       case 0: return <InternshipStep1_CoreDetails formData={formData} handleChange={handleChange} errors={errors} />;
@@ -706,6 +789,7 @@ const Internship = ({ onBack, initialData = {} }) => {
       default: return null;
     }
   };
+
 
   if (submitSuccess) {
     return (
@@ -736,6 +820,7 @@ const Internship = ({ onBack, initialData = {} }) => {
     );
   }
 
+
   return (
     <div className="max-w-3xl mx-auto bg-white py-4 md:py-8 px-4 sm:px-6 lg:px-10 mt-2 md:mt-4 rounded-lg shadow-xl mb-10">
       <div className="flex items-center mb-8 border-b pb-5 border-gray-200">
@@ -744,6 +829,7 @@ const Internship = ({ onBack, initialData = {} }) => {
           <p className="mt-1.5 text-sm text-gray-500">Fill in the details for your internship experience.</p>
         </div>
       </div>
+
 
       <div className="mb-6 px-2 pt-2">
         <div className="md:hidden mb-4">
@@ -758,7 +844,7 @@ const Internship = ({ onBack, initialData = {} }) => {
                 {stepIdx < currentStep ? (
                   <>
                     <div className="absolute inset-0 flex items-center" aria-hidden="true"><div className="h-1 w-full bg-indigo-600" /></div>
-                    <button type="button" onClick={() => { setCurrentStep(stepIdx); /* setErrors({}); */ }}
+                    <button type="button" onClick={() => { setCurrentStep(stepIdx); }}
                       className="relative w-10 h-10 flex items-center justify-center bg-indigo-600 rounded-full hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                       <Check className="w-6 h-6 text-white" aria-hidden="true" />
                       <span className="sr-only">{step.title} - Completed</span>
@@ -790,8 +876,9 @@ const Internship = ({ onBack, initialData = {} }) => {
         </nav>
       </div>
 
+
       <div className="bg-white py-6">
-        <form noValidate onSubmit={handleSubmit}> {/* onSubmit moved to form for enter key submission on last step */}
+        <form noValidate onSubmit={handleSubmit}>
           <div className="min-h-[300px] mb-8 px-1.5">
             {renderStepContent()}
             {errors.submit && (
@@ -801,13 +888,15 @@ const Internship = ({ onBack, initialData = {} }) => {
             )}
           </div>
 
+
           <div className="mt-10 pt-6 flex justify-between items-center border-t border-gray-200 px-1.5">
             {currentStep > 0 ? (
               <button type="button" onClick={prevStep} disabled={isSubmitting}
                 className="px-7 py-2.5 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-150 disabled:opacity-50">
                 Back
               </button>
-            ) : <div />} {/* Placeholder to keep Next/Submit button to the right */}
+            ) : <div />}
+
 
             {currentStep < STEP_CONFIG_INTERNSHIP.length - 1 ? (
               <button type="button" onClick={nextStep} disabled={isSubmitting}
@@ -828,5 +917,6 @@ const Internship = ({ onBack, initialData = {} }) => {
     </div>
   );
 };
+
 
 export default Internship;

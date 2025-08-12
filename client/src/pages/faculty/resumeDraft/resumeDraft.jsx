@@ -7,17 +7,13 @@ export default function ResumeDraft() {
     const { rollno } = useAuth(); // Mentor's rollno
     const navigate = useNavigate();
 
-    // State to hold the data grouped by year, e.g., { "Year 1": [...], "Year 2": [...] }
     const [menteesByYear, setMenteesByYear] = useState({});
-    // State to manage which year sections are expanded
     const [expandedYears, setExpandedYears] = useState({});
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-
     useEffect(() => {
         const handleStudentsData = async () => {
             if (!rollno) return;
-
             try {
                 setLoading(true);
                 const response = await fetch(`http://localhost:6001/api/studentdata/fetchmentees/${rollno}`, {

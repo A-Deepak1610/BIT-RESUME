@@ -1,6 +1,7 @@
 package routes
 
 import (
+	activitymaster "bitresume/api/ActivityMaster"
 	auth "bitresume/api/auth"
 	achievementgraph "bitresume/api/dashboard/achievement_graph"
 	activitygraph "bitresume/api/dashboard/activity_graph"
@@ -18,6 +19,7 @@ import (
 	"bitresume/api/upload-view/paperpresentstion"
 	"bitresume/api/upload-view/patents"
 	"bitresume/api/upload-view/projects"
+	dashboard "bitresume/api/upload-view/upload_view_dashboard"
 	"bitresume/api/upload-view/workshops"
 	"bitresume/middleware"
 
@@ -61,7 +63,9 @@ func RegisterRoutes(r *gin.Engine) {
 		studentOnly.GET("/checkapplied", addevents.CheckApplied)
 		studentOnly.GET("/resume/getprojects/:rollno", resume.GetProjectsData)
 		studentOnly.GET("/resume/getcertificates/:rollno", resume.GetCertificatesData)
-		// studentOnly.GET("/activitymaster/fetch", addevents.FetchEvents)
+		studentOnly.GET("/activitymaster/getsurveydata/:rollno",activitymaster.GetSurveys)
+		studentOnly.GET("/activitymaster/getsessiondata/:rollno",activitymaster.GetSessionsByRollNo)
+		studentOnly.GET("/uploadview/getuploaddetails/:rollno",dashboard.UploadViewDashboard)
 	}
 	facultyOnly := r.Group("/api")
 	facultyOnly.Use(middleware.AuthorizeRoles("faculty"))
@@ -76,6 +80,7 @@ func RegisterRoutes(r *gin.Engine) {
 		facultyOnly.GET("/manageactivities/receiveActivities", manageactivities.GetActivityData)
 		facultyOnly.GET("manageactivities/progressgrpah/:rollno", manageactivities.HandleProgressGraph)
 		facultyOnly.GET("/studentdata/fetchmentees/:rollno", studentdata.HandleMenteesData)
+		facultyOnly.POST("/studentrequests/varifications",studentrequests.PostVarification)
 		
 	}
 	adminOnly := r.Group("/api")

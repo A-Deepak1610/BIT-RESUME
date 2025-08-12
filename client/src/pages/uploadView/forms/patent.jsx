@@ -2,17 +2,26 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import axios from 'axios';
 import {
   ChevronLeft, Loader2, X, Check, CheckCircle,
-  FileText, Users, Lightbulb, Info, Upload, Award, FileSignature, UploadCloud, Paperclip, MessageSquare, CalendarDays, // Added CalendarDays for potential future use
+  FileText, Users, Lightbulb, Info, Upload, Award, FileSignature, UploadCloud, Paperclip, MessageSquare, CalendarDays,
 } from 'lucide-react';
 
+
+// --- ADDED useAuth IMPORT ---
+import useAuth from '../../../store/UseAuth';
+
+
 const DEBUG_MODE = true;
+
 
 const MAX_FILE_SIZE_MB = 5;
 const SUPPORTED_FORMATS_LABEL = `Supported formats: PDF, PNG, JPG (max ${MAX_FILE_SIZE_MB}MB)`;
 const ACCEPT_STRING = ".pdf,.png,.jpg,.jpeg,image/png,image/jpeg,application/pdf";
 
+
 const RequiredAst = () => <span className="text-red-500 ml-0.5">*</span>;
 
+
+// --- SHARED COMPONENTS (Unchanged) ---
 const FileUploadField = ({
   id,
   name,
@@ -27,8 +36,10 @@ const FileUploadField = ({
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef(null);
 
+
   const processFile = (file) => {
     if (setFormError) setFormError(name, '');
+
 
     if (file) {
       const fileSizeMB = file.size / 1024 / 1024;
@@ -40,15 +51,19 @@ const FileUploadField = ({
         return;
       }
 
+
       const acceptedTypes = ACCEPT_STRING.split(',').map(t => t.trim().toLowerCase());
       const fileExtension = `.${file.name.split('.').pop().toLowerCase()}`;
       const fileMimeType = file.type.toLowerCase();
+
 
       let isValidType = acceptedTypes.includes(fileExtension) ||
                         acceptedTypes.includes(fileMimeType) ||
                         (fileMimeType === 'application/pdf' && acceptedTypes.includes('.pdf')) ||
                         (fileMimeType === 'image/png' && (acceptedTypes.includes('image/png') || acceptedTypes.includes('.png'))) ||
                         (fileMimeType === 'image/jpeg' && (acceptedTypes.includes('image/jpeg') || acceptedTypes.includes('.jpg') || acceptedTypes.includes('.jpeg')));
+
+
 
 
       if (!isValidType) {
@@ -62,6 +77,7 @@ const FileUploadField = ({
     }
   };
 
+
   const handleFileChange = (event) => {
     if (event.target.files && event.target.files[0]) {
       processFile(event.target.files[0]);
@@ -69,6 +85,7 @@ const FileUploadField = ({
       onFileSelect({ target: { name, value: null } });
     }
   };
+
 
   const handleDrop = (event) => {
     event.preventDefault();
@@ -79,15 +96,18 @@ const FileUploadField = ({
     }
   };
 
+
   const commonDragEvent = (event, enter) => {
     event.preventDefault();
     event.stopPropagation();
     if (enter !== undefined) setIsDragging(enter);
   };
 
+
   const triggerFileInput = () => {
     fileInputRef.current?.click();
   };
+
 
   const clearFile = (e) => {
     e.stopPropagation();
@@ -95,6 +115,7 @@ const FileUploadField = ({
     if (fileInputRef.current) fileInputRef.current.value = "";
     onFileSelect({ target: { name, value: null } });
   };
+
 
   return (
     <div className="mb-4">
@@ -151,7 +172,9 @@ const FileUploadField = ({
 };
 
 
-// --- Validation Functions ---
+
+
+// --- Validation Functions (Unchanged) ---
 const validateStep1_Patent = (formData) => {
   const errors = {};
   if (!formData.title?.trim()) {
@@ -160,11 +183,12 @@ const validateStep1_Patent = (formData) => {
   if (!formData.application_number?.trim()) {
     errors.application_number = 'Application number is required.';
   }
-  if (!formData.date_of_filing) { // Date input returns empty string if not selected
+  if (!formData.date_of_filing) {
     errors.date_of_filing = 'Date of filing is required.';
   }
   return errors;
 };
+
 
 const validateStep2_Patent = (formData) => {
   const errors = {};
@@ -186,6 +210,7 @@ const validateStep2_Patent = (formData) => {
   return errors;
 };
 
+
 const validateStep3_Patent = (formData) => {
   const errors = {};
   if (!formData.summary?.trim()) {
@@ -197,7 +222,8 @@ const validateStep3_Patent = (formData) => {
   return errors;
 };
 
-// --- Step Components ---
+
+// --- Step Components (Unchanged) ---
 const PatentStep1_Details = ({ formData, handleChange, errors }) => (
   <div className="space-y-6">
     <div className="flex items-center mb-4">
@@ -252,6 +278,7 @@ const PatentStep1_Details = ({ formData, handleChange, errors }) => (
   </div>
 );
 
+
 const PatentStep2_Documentation = ({ formData, handleFileSelect, handleChange, errors, setFormError }) => (
   <div className="space-y-6">
     <div className="flex items-center mb-4">
@@ -297,6 +324,7 @@ const PatentStep2_Documentation = ({ formData, handleFileSelect, handleChange, e
     </div>
   </div>
 );
+
 
 const PatentStep3_SummaryContext = ({ formData, handleChange, errors }) => (
   <div className="space-y-6">
@@ -353,6 +381,7 @@ const PatentStep3_SummaryContext = ({ formData, handleChange, errors }) => (
   </div>
 );
 
+
 const PatentStep4_Review = ({ formData }) => {
     const DetailItem = ({ label, value, isFile = false }) => (
         <div>
@@ -368,12 +397,14 @@ const PatentStep4_Review = ({ formData }) => {
         </div>
     );
 
+
     return (
         <div className="space-y-8">
             <div className="flex items-center mb-4">
                 <Info className="h-6 w-6 text-indigo-600 mr-3" />
                 <h2 className="text-xl font-semibold text-gray-800">Review Patent Submission</h2>
             </div>
+
 
             <section>
                 <h3 className="text-lg font-semibold text-gray-700 mb-3 pb-2 border-b border-gray-200 flex items-center">
@@ -386,6 +417,7 @@ const PatentStep4_Review = ({ formData }) => {
                 </div>
             </section>
 
+
             <section>
                 <h3 className="text-lg font-semibold text-gray-700 mb-3 pb-2 border-b border-gray-200 flex items-center">
                      <UploadCloud size={20} className="mr-2 text-indigo-500" /> Documentation
@@ -396,6 +428,7 @@ const PatentStep4_Review = ({ formData }) => {
                     <DetailItem label="Link to Patent Listing" value={formData.link_to_patent_listing} />
                 </div>
             </section>
+
 
             <section>
                 <h3 className="text-lg font-semibold text-gray-700 mb-3 pb-2 border-b border-gray-200 flex items-center">
@@ -416,7 +449,9 @@ const PatentStep4_Review = ({ formData }) => {
 };
 
 
-// --- Main Patent Component ---
+
+
+// --- Main Patent Component (UPDATED) ---
 const STEP_CONFIG_PATENT = [
   { title: 'Details', validate: validateStep1_Patent, icon: FileSignature },
   { title: 'Docs', validate: validateStep2_Patent, icon: UploadCloud },
@@ -424,16 +459,21 @@ const STEP_CONFIG_PATENT = [
   { title: 'Review', icon: Info },
 ];
 
+
 const Patent = ({ onBack, initialData = {} }) => {
+  // --- CHANGE 1: Get rollno from useAuth hook ---
+  const { rollno } = useAuth();
+ 
   const [currentStep, setCurrentStep] = useState(0);
   const [errors, setErrors] = useState({});
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+
   const [formData, setFormData] = useState({
     title: initialData.title || '',
     application_number: initialData.application_number || '',
-    date_of_filing: initialData.date_of_filing || '', // Added
+    date_of_filing: initialData.date_of_filing || '',
     patent_docs: initialData.patent_docs || null,
     supporting_files: initialData.supporting_files || null,
     link_to_patent_listing: initialData.link_to_patent_listing || '',
@@ -441,6 +481,7 @@ const Patent = ({ onBack, initialData = {} }) => {
     usecase_of_patent: initialData.usecase_of_patent || '',
     faculty_remarks: initialData.faculty_remarks || '',
   });
+
 
   const handleChange = useCallback((e) => {
     const { name, value } = e.target;
@@ -455,6 +496,7 @@ const Patent = ({ onBack, initialData = {} }) => {
     }));
   }, []);
 
+
   const handleFileSelect = useCallback(({ target: { name, value } }) => {
     setErrors(prevErrors => {
         const newErrors = { ...prevErrors };
@@ -467,29 +509,36 @@ const Patent = ({ onBack, initialData = {} }) => {
     }));
   }, []);
 
+
   const setFormErrorForFile = useCallback((fieldName, errorMessage) => {
       setErrors(prev => ({ ...prev, [fieldName]: errorMessage }));
   }, []);
+
 
   const validateCurrentStep = useCallback(() => {
     let currentStepErrors = {};
     const currentStepConfig = STEP_CONFIG_PATENT[currentStep];
 
+
     if (currentStepConfig && currentStepConfig.validate) {
       currentStepErrors = currentStepConfig.validate(formData);
     }
 
+
     const preservedFileErrors = {};
     if (errors.patent_docs) preservedFileErrors.patent_docs = errors.patent_docs;
     if (errors.supporting_files) preservedFileErrors.supporting_files = errors.supporting_files;
+
 
     setErrors({
         ...preservedFileErrors,
         ...currentStepErrors
     });
 
+
     return Object.keys(currentStepErrors).length === 0;
   }, [currentStep, formData, errors.patent_docs, errors.supporting_files]);
+
 
   const nextStep = useCallback(() => {
     if (!validateCurrentStep()) {
@@ -501,11 +550,13 @@ const Patent = ({ onBack, initialData = {} }) => {
     window.scrollTo(0, 0);
   }, [validateCurrentStep]);
 
+
   const prevStep = useCallback(() => {
     setCurrentStep(prev => Math.max(prev - 1, 0));
     window.scrollTo(0, 0);
     setErrors({});
   }, []);
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -516,9 +567,11 @@ const Patent = ({ onBack, initialData = {} }) => {
     setIsSubmitting(true);
     setErrors({});
 
+
     let allValid = true;
     let firstErrorStep = -1;
     const combinedValidationErrors = {};
+
 
     for (let i = 0; i < STEP_CONFIG_PATENT.length - 1; i++) {
       const stepConfig = STEP_CONFIG_PATENT[i];
@@ -532,6 +585,7 @@ const Patent = ({ onBack, initialData = {} }) => {
       }
     }
 
+
     if (errors.patent_docs) {
         allValid = false;
         combinedValidationErrors.patent_docs = errors.patent_docs;
@@ -542,6 +596,7 @@ const Patent = ({ onBack, initialData = {} }) => {
         combinedValidationErrors.supporting_files = errors.supporting_files;
          if (firstErrorStep === -1 || firstErrorStep > 1) firstErrorStep = 1;
     }
+
 
     if (!allValid) {
         setErrors(prev => ({...prev, ...combinedValidationErrors}));
@@ -554,10 +609,22 @@ const Patent = ({ onBack, initialData = {} }) => {
         return;
     }
 
+
+    // --- CHANGE 2: Console log the roll number ---
+    if (DEBUG_MODE) {
+      console.log(`[DEBUG] Submitting patent for rollno: ${rollno}`);
+    }
+
+
     const payload = new FormData();
+    // --- CHANGE 3: Add rollno to the payload ---
+    payload.append('rollno', rollno);
+
+
     payload.append('title', formData.title.trim());
     payload.append('application_number', formData.application_number.trim());
-    payload.append('date_of_filing', formData.date_of_filing); // Added
+    payload.append('date_of_filing', formData.date_of_filing);
+
 
     if (formData.patent_docs) {
         payload.append('patent_docs', formData.patent_docs, formData.patent_docs.name);
@@ -570,6 +637,7 @@ const Patent = ({ onBack, initialData = {} }) => {
     }
     payload.append('summary', formData.summary.trim());
 
+
     if (formData.usecase_of_patent && formData.usecase_of_patent.trim()) {
         payload.append('usecase_of_patent', formData.usecase_of_patent.trim());
     }
@@ -579,20 +647,23 @@ const Patent = ({ onBack, initialData = {} }) => {
 
 
     if (DEBUG_MODE) {
-        console.log('[DEBUG] Submitting Patent data (mapped to DB schema) to /api/petent:');
+        console.log('[DEBUG] Submitting Patent data to /api/patents:');
         for (let [key, value] of payload.entries()) {
             console.log(key, value instanceof File ? `${value.name} (File)` : value);
         }
     }
+
 
     try {
       const response = await axios.post('http://localhost:6001/api/patents', payload, {
         withCredentials: true,
       });
 
+
       if (DEBUG_MODE) console.log('Patent submission successful:', response.data);
       setSubmitSuccess(true);
       window.scrollTo(0, 0);
+
 
     } catch (error) {
       let errorMessage = 'Upload failed. Please try again.';
@@ -617,11 +688,12 @@ const Patent = ({ onBack, initialData = {} }) => {
     }
   };
 
+
   const resetForm = () => {
     setFormData({
       title: '',
       application_number: '',
-      date_of_filing: '', // Added
+      date_of_filing: '',
       patent_docs: null,
       supporting_files: null,
       link_to_patent_listing: '',
@@ -636,6 +708,7 @@ const Patent = ({ onBack, initialData = {} }) => {
     window.scrollTo(0, 0);
   };
 
+
   const renderStepContent = () => {
     switch (currentStep) {
       case 0: return <PatentStep1_Details formData={formData} handleChange={handleChange} errors={errors} />;
@@ -645,6 +718,7 @@ const Patent = ({ onBack, initialData = {} }) => {
       default: return null;
     }
   };
+
 
   if (submitSuccess) {
     return (
@@ -675,6 +749,7 @@ const Patent = ({ onBack, initialData = {} }) => {
     );
   }
 
+
   return (
     <div className="max-w-3xl mx-auto bg-white py-4 md:py-8 px-4 sm:px-6 lg:px-10 mt-2 md:mt-4 rounded-lg shadow-xl">
       <div className="flex items-center mb-8 border-b pb-5 border-gray-200">
@@ -684,12 +759,14 @@ const Patent = ({ onBack, initialData = {} }) => {
         </div>
       </div>
 
+
       <div className="mb-6 px-2 pt-2">
         <div className="md:hidden mb-4">
           <h2 className="text-lg font-semibold text-gray-800">
             {STEP_CONFIG_PATENT[currentStep].title}
           </h2>
         </div>
+
 
         <nav aria-label="Progress" className="hidden md:block">
           <ol role="list" className="flex items-center">
@@ -743,6 +820,8 @@ const Patent = ({ onBack, initialData = {} }) => {
       </div>
 
 
+
+
       <div className="bg-white ">
         <form noValidate onSubmit={handleSubmit}>
           <div className="min-h-[400px] px-1.5 mt-10">
@@ -753,6 +832,7 @@ const Patent = ({ onBack, initialData = {} }) => {
               </p>
             )}
           </div>
+
 
           <div className="mt-3 pt-6 flex justify-between items-center border-t border-gray-200 px-1.5">
             {currentStep > 0 ? (
@@ -767,6 +847,7 @@ const Patent = ({ onBack, initialData = {} }) => {
             ) : (
               <div />
             )}
+
 
             {currentStep < STEP_CONFIG_PATENT.length - 1 ? (
               <button
@@ -794,5 +875,6 @@ const Patent = ({ onBack, initialData = {} }) => {
     </div>
   );
 };
+
 
 export default Patent;

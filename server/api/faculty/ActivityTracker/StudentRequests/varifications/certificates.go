@@ -100,7 +100,7 @@ INNER JOIN login AS l ON cv.rollno = l.rollno;
 			&a.Issue_date,
 			&a.Course_link,
 			&a.Certificate_pdf,
-			&a.Certificate_id,
+			&a.Id,
 			&a.EventName,
 			&a.EventCode,
 			&a.Participation_type,

@@ -2,18 +2,27 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import axios from 'axios'; // Added for API calls
 import {
   ChevronLeft, Loader2, X, Check, CheckCircle,
-  FileText, Users, Lightbulb, Info, Upload, 
-  Briefcase, CalendarDays, Sparkles, 
+  FileText, Users, Lightbulb, Info, Upload,
+  Briefcase, CalendarDays, Sparkles,
   Award, MessageSquare, Target, AlertTriangle, UserCheck, UserPlus, Building, Type,
   MapPin // For location
 } from 'lucide-react';
 
-const DEBUG_MODE = true; 
+
+// --- ADDED useAuth IMPORT ---
+import useAuth from '../../../store/UseAuth';
+
+
+const DEBUG_MODE = true;
+
 
 const MAX_FILE_SIZE_MB = 5;
 const SUPPORTED_FORMATS_LABEL = `Supported formats: PDF, PNG, JPG (max ${MAX_FILE_SIZE_MB}MB)`;
 const ACCEPT_STRING = ".pdf,.png,.jpg,.jpeg,image/png,image/jpeg,application/pdf";
 const RequiredAst = () => <span className="text-red-500 ml-0.5">*</span>;
+
+
+// --- SHARED COMPONENTS (Unchanged) ---
 const FileUploadField = ({
   id,
   name,
@@ -29,8 +38,10 @@ const FileUploadField = ({
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef(null);
 
+
   const processFile = (file) => {
     if (setFormError) setFormError(name, '');
+
 
     if (file) {
       const fileSizeMB = file.size / 1024 / 1024;
@@ -42,15 +53,19 @@ const FileUploadField = ({
         return;
       }
 
+
       const acceptedTypes = ACCEPT_STRING.split(',').map(t => t.trim().toLowerCase());
       const fileExtension = `.${file.name.split('.').pop().toLowerCase()}`;
       const fileMimeType = file.type.toLowerCase();
+
 
       let isValidType = acceptedTypes.includes(fileExtension) ||
                         acceptedTypes.includes(fileMimeType) ||
                         (fileMimeType === 'application/pdf' && acceptedTypes.includes('.pdf')) ||
                         (fileMimeType === 'image/png' && (acceptedTypes.includes('image/png') || acceptedTypes.includes('.png'))) ||
                         (fileMimeType === 'image/jpeg' && (acceptedTypes.includes('image/jpeg') || acceptedTypes.includes('.jpg') || acceptedTypes.includes('.jpeg')));
+
+
 
 
       if (!isValidType) {
@@ -64,6 +79,7 @@ const FileUploadField = ({
     }
   };
 
+
   const handleFileChange = (event) => {
     if (event.target.files && event.target.files[0]) {
       processFile(event.target.files[0]);
@@ -71,6 +87,7 @@ const FileUploadField = ({
       onFileSelect({ target: { name, value: null } });
     }
   };
+
 
   const handleDrop = (event) => {
     event.preventDefault();
@@ -81,15 +98,18 @@ const FileUploadField = ({
     }
   };
 
+
   const commonDragEvent = (event, enter) => {
     event.preventDefault();
     event.stopPropagation();
     if (enter !== undefined) setIsDragging(enter);
   };
 
+
   const triggerFileInput = () => {
     fileInputRef.current?.click();
   };
+
 
   const clearFile = (e) => {
     e.stopPropagation();
@@ -97,6 +117,7 @@ const FileUploadField = ({
     if (fileInputRef.current) fileInputRef.current.value = "";
     onFileSelect({ target: { name, value: null } });
   };
+
 
   return (
     <div className="mb-4">
@@ -152,7 +173,7 @@ const FileUploadField = ({
   );
 };
 
-// --- Input Field Component (Copied from reference) ---
+
 const InputField = ({ id, name, label, value, onChange, error, placeholder, type = "text", required, helperText, readOnly = false, className = "" }) => (
   <div>
     <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1">
@@ -173,7 +194,7 @@ const InputField = ({ id, name, label, value, onChange, error, placeholder, type
   </div>
 );
 
-// --- Textarea Field Component (Copied from reference) ---
+
 const TextareaField = ({ id, name, label, value, onChange, error, placeholder, rows = 3, required, helperText }) => (
   <div>
     <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1">
@@ -193,7 +214,7 @@ const TextareaField = ({ id, name, label, value, onChange, error, placeholder, r
   </div>
 );
 
-// --- Section Header Component (Copied from reference) ---
+
 const SectionHeader = ({ title, icon: Icon }) => (
   <div className="flex items-center mb-6 pt-4">
     {Icon && <Icon className="h-6 w-6 text-indigo-600 mr-3" />}
@@ -201,7 +222,8 @@ const SectionHeader = ({ title, icon: Icon }) => (
   </div>
 );
 
-// --- Validation Functions for Paper Presentation ---
+
+// --- Validation Functions for Paper Presentation (Unchanged) ---
 const validateStep1_PaperPresentation = (formData) => {
   const errors = {};
   if (!formData.paper_title?.trim()) errors.paper_title = 'Paper title is required.';
@@ -211,21 +233,21 @@ const validateStep1_PaperPresentation = (formData) => {
   return errors;
 };
 
+
 const validateStep2_PaperPresentation = (formData) => {
   const errors = {};
   if (!formData.pdf) errors.pdf = 'Presentation PDF is required.';
-  // certificate is optional, so no validation if not present unless there's an error from FileUpload (size/type)
   return errors;
 };
+
 
 const validateStep3_PaperPresentation = (formData) => {
   const errors = {};
-  // award is optional
   return errors;
 };
 
-// --- Step Components for Paper Presentation ---
 
+// --- Step Components for Paper Presentation (Unchanged) ---
 const PaperPresentationStep1_Details = ({ formData, handleChange, errors }) => (
   <div className="space-y-6">
     <SectionHeader title="Presentation Core Details" icon={Type} />
@@ -239,6 +261,7 @@ const PaperPresentationStep1_Details = ({ formData, handleChange, errors }) => (
     </div>
   </div>
 );
+
 
 const PaperPresentationStep2_Documents = ({ formData, handleFileSelect, errors, setFormError }) => (
   <div className="space-y-6">
@@ -269,6 +292,7 @@ const PaperPresentationStep2_Documents = ({ formData, handleFileSelect, errors, 
   </div>
 );
 
+
 const PaperPresentationStep3_Achievements = ({ formData, handleChange, errors }) => (
   <div className="space-y-6">
     <SectionHeader title="Award / Recognition (Optional)" icon={Award} />
@@ -286,6 +310,7 @@ const PaperPresentationStep3_Achievements = ({ formData, handleChange, errors })
   </div>
 );
 
+
 const PaperPresentationStep4_Review = ({ formData }) => {
   const DetailItem = ({ label, value, isFile = false }) => (
     <div>
@@ -301,9 +326,11 @@ const PaperPresentationStep4_Review = ({ formData }) => {
     </div>
   );
 
+
   return (
     <div className="space-y-8">
       <SectionHeader title="Review Paper Presentation Submission" icon={Info} />
+
 
       <section>
         <h3 className="text-lg font-semibold text-gray-700 mb-3 pb-2 border-b border-gray-200">Core Details</h3>
@@ -315,6 +342,7 @@ const PaperPresentationStep4_Review = ({ formData }) => {
         </div>
       </section>
 
+
       <section>
         <h3 className="text-lg font-semibold text-gray-700 mb-3 pb-2 border-b border-gray-200">Supporting Documents</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
@@ -322,6 +350,7 @@ const PaperPresentationStep4_Review = ({ formData }) => {
           <DetailItem label="Certificate" value={formData.certificate} isFile />
         </div>
       </section>
+
 
       <section>
         <h3 className="text-lg font-semibold text-gray-700 mb-3 pb-2 border-b border-gray-200">Award / Recognition</h3>
@@ -332,29 +361,37 @@ const PaperPresentationStep4_Review = ({ formData }) => {
 };
 
 
-// --- Main Paper Presentation Component ---
+
+
+// --- Main Paper Presentation Component (UPDATED) ---
 const STEP_CONFIG_PAPER_PRESENTATION = [
   { title: 'Details', validate: validateStep1_PaperPresentation, icon: Type },
   { title: 'Documents', validate: validateStep2_PaperPresentation, icon: Upload },
   { title: 'Achievements', validate: validateStep3_PaperPresentation, icon: Award },
-  { title: 'Review', icon: Info }, // No validation function for review step
+  { title: 'Review', icon: Info },
 ];
 
+
 const PaperPresentation = ({ onBack, initialData = {} }) => {
+  // --- CHANGE 1: Get rollno from useAuth hook ---
+  const { rollno } = useAuth();
+ 
   const [currentStep, setCurrentStep] = useState(0);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+
 
   const [formData, setFormData] = useState({
     paper_title: initialData.paper_title || '',
     conference_title: initialData.conference_title || '',
     location: initialData.location || '',
     date_of_presentation: initialData.date_of_presentation || '',
-    pdf: initialData.pdf || null, // File, Required
-    certificate: initialData.certificate || null, // File, Optional
-    award: initialData.award || '', // Optional
+    pdf: initialData.pdf || null,
+    certificate: initialData.certificate || null,
+    award: initialData.award || '',
   });
+
 
   const handleChange = useCallback((e) => {
     const { name, value } = e.target;
@@ -369,6 +406,7 @@ const PaperPresentation = ({ onBack, initialData = {} }) => {
     }));
   }, []);
 
+
   const handleFileSelect = useCallback(({ target: { name, value } }) => {
     setErrors(prevErrors => {
       const newErrors = { ...prevErrors };
@@ -381,31 +419,38 @@ const PaperPresentation = ({ onBack, initialData = {} }) => {
     }));
   }, []);
 
+
   const setFormErrorForFile = useCallback((fieldName, errorMessage) => {
     setErrors(prev => ({ ...prev, [fieldName]: errorMessage }));
   }, []);
+
+
 
 
   const validateCurrentStep = useCallback(() => {
     let currentStepErrors = {};
     const currentStepConfig = STEP_CONFIG_PAPER_PRESENTATION[currentStep];
 
+
     if (currentStepConfig && currentStepConfig.validate) {
       currentStepErrors = currentStepConfig.validate(formData);
     }
-    
-    // Preserve existing file errors if they were not re-validated in this step
+   
     const preservedFileErrors = {};
     if (errors.pdf && !currentStepErrors.pdf) preservedFileErrors.pdf = errors.pdf;
     if (errors.certificate && !currentStepErrors.certificate) preservedFileErrors.certificate = errors.certificate;
+
 
     setErrors({
         ...preservedFileErrors,
         ...currentStepErrors
     });
 
+
     return Object.keys(currentStepErrors).length === 0;
   }, [currentStep, formData, errors.pdf, errors.certificate]);
+
+
 
 
   const nextStep = useCallback(() => {
@@ -416,12 +461,14 @@ const PaperPresentation = ({ onBack, initialData = {} }) => {
     }
     setCurrentStep(prev => Math.min(prev + 1, STEP_CONFIG_PAPER_PRESENTATION.length - 1));
     window.scrollTo(0, 0);
-  }, [validateCurrentStep, errors]); // `errors` dependency added
+  }, [validateCurrentStep, errors]);
+
 
   const prevStep = useCallback(() => {
     setCurrentStep(prev => Math.max(prev - 1, 0));
     window.scrollTo(0, 0);
   }, []);
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -432,9 +479,11 @@ const PaperPresentation = ({ onBack, initialData = {} }) => {
     setIsSubmitting(true);
     setErrors({});
 
+
     let allValid = true;
     let firstErrorStep = -1;
     const combinedValidationErrors = {};
+
 
     for (let i = 0; i < STEP_CONFIG_PAPER_PRESENTATION.length - 1; i++) {
       const stepConfig = STEP_CONFIG_PAPER_PRESENTATION[i];
@@ -448,7 +497,7 @@ const PaperPresentation = ({ onBack, initialData = {} }) => {
       }
     }
 
-    // Manually add any persistent file errors
+
     if (errors.pdf) {
         allValid = false;
         combinedValidationErrors.pdf = errors.pdf;
@@ -456,13 +505,15 @@ const PaperPresentation = ({ onBack, initialData = {} }) => {
             firstErrorStep = STEP_CONFIG_PAPER_PRESENTATION.findIndex(s => s.title === 'Documents');
         }
     }
-     if (errors.certificate) { // Optional file, but if errored (e.g. size/type) it's an error
+     if (errors.certificate) {
         allValid = false;
         combinedValidationErrors.certificate = errors.certificate;
          if (firstErrorStep === -1 || firstErrorStep > STEP_CONFIG_PAPER_PRESENTATION.findIndex(s => s.title === 'Documents')) {
             firstErrorStep = STEP_CONFIG_PAPER_PRESENTATION.findIndex(s => s.title === 'Documents');
         }
     }
+
+
 
 
     if (!allValid) {
@@ -475,14 +526,25 @@ const PaperPresentation = ({ onBack, initialData = {} }) => {
         setIsSubmitting(false);
         return;
     }
+   
+    // --- CHANGE 2: Console log the roll number ---
+    if (DEBUG_MODE) {
+      console.log(`[DEBUG] Submitting paper presentation for rollno: ${rollno}`);
+    }
+
 
     const payload = new FormData();
+    // --- CHANGE 3: Add rollno to the payload ---
+    payload.append('rollno', rollno);
+
+
     payload.append('paper_title', formData.paper_title.trim());
     payload.append('conference_title', formData.conference_title.trim());
     payload.append('location', formData.location.trim());
     payload.append('date_of_presentation', formData.date_of_presentation);
 
-    if (formData.pdf) { // This is required, so should always be present if validation passed
+
+    if (formData.pdf) {
         payload.append('pdf', formData.pdf, formData.pdf.name);
     }
     if (formData.certificate) {
@@ -491,7 +553,7 @@ const PaperPresentation = ({ onBack, initialData = {} }) => {
     if (formData.award && formData.award.trim()) {
         payload.append('award', formData.award.trim());
     }
-    // 'id', 'rollno', 'approval_status', 'submitted_on' are handled by backend/faculty
+
 
     if (DEBUG_MODE) {
         console.log('[DEBUG] Submitting Paper Presentation data to API:');
@@ -500,14 +562,18 @@ const PaperPresentation = ({ onBack, initialData = {} }) => {
         }
     }
 
+
     try {
-      const response = await axios.post('http://localhost:6001/api/paperpresentation', payload, {
+      // --- CHANGE 4: Updated API endpoint ---
+      const response = await axios.post('http://localhost:6001/api/paper-presentations', payload, {
         withCredentials: true,
       });
+
 
       if (DEBUG_MODE) console.log('Paper Presentation submission successful:', response.data);
       setSubmitSuccess(true);
       window.scrollTo(0, 0);
+
 
     } catch (error) {
       let errorMessage = 'Upload failed. Please try again.';
@@ -532,6 +598,7 @@ const PaperPresentation = ({ onBack, initialData = {} }) => {
     }
   };
 
+
   const resetForm = () => {
     setFormData({
       paper_title: '', conference_title: '', location: '', date_of_presentation: '',
@@ -544,6 +611,7 @@ const PaperPresentation = ({ onBack, initialData = {} }) => {
     window.scrollTo(0, 0);
   };
 
+
   const renderStepContent = () => {
     switch (currentStep) {
       case 0: return <PaperPresentationStep1_Details formData={formData} handleChange={handleChange} errors={errors} />;
@@ -553,6 +621,7 @@ const PaperPresentation = ({ onBack, initialData = {} }) => {
       default: return null;
     }
   };
+
 
   if (submitSuccess) {
     return (
@@ -583,6 +652,7 @@ const PaperPresentation = ({ onBack, initialData = {} }) => {
     );
   }
 
+
   return (
     <div className="max-w-3xl mx-auto bg-white py-4 md:py-8 px-4 sm:px-6 lg:px-10 mt-2 md:mt-4 rounded-lg shadow-xl mb-10">
       <div className="flex items-center mb-8 border-b pb-5 border-gray-200">
@@ -591,6 +661,7 @@ const PaperPresentation = ({ onBack, initialData = {} }) => {
           <p className="mt-1.5 text-sm text-gray-500">Fill in the details for your paper presentation.</p>
         </div>
       </div>
+
 
       <div className="mb-6 px-2 pt-2">
         <div className="md:hidden mb-4">
@@ -605,7 +676,7 @@ const PaperPresentation = ({ onBack, initialData = {} }) => {
                 {stepIdx < currentStep ? (
                   <>
                     <div className="absolute inset-0 flex items-center" aria-hidden="true"><div className="h-1 w-full bg-indigo-600" /></div>
-                    <button type="button" onClick={() => { setCurrentStep(stepIdx); /* setErrors({}); */ }}
+                    <button type="button" onClick={() => { setCurrentStep(stepIdx); }}
                       className="relative w-10 h-10 flex items-center justify-center bg-indigo-600 rounded-full hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                       <Check className="w-6 h-6 text-white" aria-hidden="true" />
                       <span className="sr-only">{step.title} - Completed</span>
@@ -637,9 +708,10 @@ const PaperPresentation = ({ onBack, initialData = {} }) => {
         </nav>
       </div>
 
+
       <div className="bg-white py-6">
         <form noValidate onSubmit={handleSubmit}>
-          <div className="min-h-[250px] mb-8 px-1.5"> {/* Adjusted min-height for potentially less content per step */}
+          <div className="min-h-[250px] mb-8 px-1.5">
             {renderStepContent()}
             {errors.submit && (
               <p className="mt-6 text-center text-sm text-red-600 bg-red-50 p-3 rounded-md">
@@ -648,6 +720,7 @@ const PaperPresentation = ({ onBack, initialData = {} }) => {
             )}
           </div>
 
+
           <div className="mt-10 pt-6 flex justify-between items-center border-t border-gray-200 px-1.5">
             {currentStep > 0 ? (
               <button type="button" onClick={prevStep} disabled={isSubmitting}
@@ -655,6 +728,7 @@ const PaperPresentation = ({ onBack, initialData = {} }) => {
                 Back
               </button>
             ) : <div />}
+
 
             {currentStep < STEP_CONFIG_PAPER_PRESENTATION.length - 1 ? (
               <button type="button" onClick={nextStep} disabled={isSubmitting}
@@ -675,5 +749,6 @@ const PaperPresentation = ({ onBack, initialData = {} }) => {
     </div>
   );
 };
+
 
 export default PaperPresentation;

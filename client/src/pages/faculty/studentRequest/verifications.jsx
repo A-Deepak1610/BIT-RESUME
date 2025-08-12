@@ -1,5 +1,8 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { Search, ChevronDown, Paperclip, X, Check, AlertTriangle, Trophy, Users, FileText as FileTextIcon, Star, Code, Building, GitBranch, Link2, Video, Award, FileText, Briefcase, Calendar, MapPin, UserCheck } from 'lucide-react';
+import {
+    Search, ChevronDown, Paperclip, X, Check, AlertTriangle, Trophy, Users, Star, Code,
+    Building, GitBranch, Link2, Video, Award, Briefcase, Calendar, MapPin, UserCheck, FileText
+} from 'lucide-react';
 import axios from 'axios';
 
 const ICONS = {
@@ -11,7 +14,8 @@ const ICONS = {
     Verify: () => <Check className="w-4 h-4 mr-1.5" strokeWidth={2.5} />,
     Trophy: () => <Trophy className="w-4 h-4 mr-1.5 text-yellow-600" strokeWidth={1.5} />,
     Users: () => <Users className="w-4 h-4 mr-1.5 text-blue-600" strokeWidth={1.5} />,
-    Summary: () => <FileTextIcon className="w-4 h-4 mr-1.5 text-gray-600" strokeWidth={1.5} />,
+    Summary: () => <FileText className="w-4 h-4 mr-1.5 text-gray-600" strokeWidth={1.5} />,
+    FileText: () => <FileText className="w-4 h-4 mr-1.5 text-gray-600" strokeWidth={1.5} />,
     Star: () => <Star className="w-4 h-4 mr-1.5 text-gray-600" strokeWidth={1.5} />,
     Code: () => <Code className="w-4 h-4 mr-1.5 text-gray-600" strokeWidth={1.5} />,
     Building: () => <Building className="w-4 h-4 mr-1.5 text-gray-600" strokeWidth={1.5} />,
@@ -25,7 +29,6 @@ const ICONS = {
     UserCheck: () => <UserCheck className="w-4 h-4 mr-1.5 text-gray-600" strokeWidth={1.5} />,
 };
 
-// --- Utility Functions ---
 const getAttachmentUrl = (path) => {
     const backendUrl = "http://localhost:6001";
     if (!path) return '#';
@@ -44,9 +47,8 @@ const getStatusClasses = (status) => {
 
 const formatDate = (dateString) => dateString ? new Date(dateString).toLocaleDateString() : 'N/A';
 
-// --- Reusable Sub-Components ---
 const DetailItem = ({ icon, label, value, isLink, isTag, isList }) => {
-    if (!value) return null;
+    if (!value && value !== 0) return null;
     return (
         <div>
             <h4 className="text-sm font-semibold text-gray-700 mb-1 flex items-center">{icon} {label}</h4>
@@ -122,9 +124,6 @@ const ActionButtons = ({ submission, onAction, children }) => (
     </div>
 );
 
-
-// --- CARD COMPONENTS ---
-
 const CardBase = ({ submission, onToggleExpand, children }) => (
     <div className="bg-white shadow-lg rounded-lg mb-5 overflow-hidden border border-gray-200 transition-all duration-300">
         <div className="flex items-center justify-between p-4 border-b border-gray-200 cursor-pointer hover:bg-gray-50" onClick={() => onToggleExpand(submission.id)}>
@@ -148,7 +147,7 @@ const CardBase = ({ submission, onToggleExpand, children }) => (
     </div>
 );
 
-// --- Specific Cards for each Upload Type ---
+// --- Specific Card Components ---
 
 const CertificateCard = ({ submission, onAction }) => (
     <div className="space-y-4">
@@ -156,18 +155,18 @@ const CertificateCard = ({ submission, onAction }) => (
             <DetailItem icon={<ICONS.Building />} label="Platform" value={submission.details.platform} />
             <DetailItem icon={<ICONS.Calendar />} label="Issue Date" value={formatDate(submission.details.issue_date)} />
             <div className="md:col-span-2"> <DetailItem icon={<ICONS.Link2 />} label="Course Link" value={submission.details.course_link} isLink /> </div>
-            {submission.details.activity_type && <DetailItem icon={<ICONS.Star />} label="Activity Type" value={submission.details.activity_type} />}
-            {submission.details.duration && <DetailItem icon={<ICONS.Calendar />} label="Duration" value={submission.details.duration} />}
-            {submission.details.location && <DetailItem icon={<ICONS.MapPin />} label="Location" value={submission.details.location} />}
-            {submission.details.participation_type && <DetailItem icon={<ICONS.Users />} label="Participation" value={submission.details.participation_type} />}
-            {submission.details.winning_status && <DetailItem icon={<ICONS.Trophy />} label="Result" value={submission.details.winning_status} />}
+            <DetailItem icon={<ICONS.Star />} label="Activity Type" value={submission.details.activity_type} />
+            <DetailItem icon={<ICONS.Calendar />} label="Duration" value={submission.details.duration} />
+            <DetailItem icon={<ICONS.MapPin />} label="Location" value={submission.details.location} />
+            <DetailItem icon={<ICONS.Users />} label="Participation" value={submission.details.participation_type} />
+            <DetailItem icon={<ICONS.Trophy />} label="Result" value={submission.details.winning_status} />
         </div>
-        {submission.details.summary && <DetailItem icon={<ICONS.Summary />} label="Summary" value={submission.details.summary} isTag />}
+        <DetailItem icon={<ICONS.Summary />} label="Summary" value={submission.details.summary} isTag />
         <div>
             <h4 className="text-sm font-semibold text-gray-700 mb-2">Certificate</h4>
             <AttachmentPill fileName={submission.attachments[0]?.name} fileUrl={submission.attachments[0]?.url} />
         </div>
-        <ActionButtons submission={submission} onAction={onAction} />
+        {submission.status === 'Awaiting' && <ActionButtons submission={submission} onAction={onAction} />}
     </div>
 );
 
@@ -179,7 +178,7 @@ const ProjectCard = ({ submission, onAction }) => (
             <DetailItem icon={<ICONS.Users />} label="Team Members" value={submission.details.member_name} />
             <DetailItem icon={<ICONS.Code />} label="Technologies Used" value={submission.details.tech_names} isList />
             <DetailItem icon={<ICONS.GitBranch />} label="GitHub Link" value={submission.details.github_link} isLink />
-            {submission.details.awards_won && <DetailItem icon={<ICONS.Award />} label="Awards Won" value={submission.details.awards_won} />}
+            <DetailItem icon={<ICONS.Award />} label="Awards Won" value={submission.details.awards_won} />
         </div>
         <DetailItem icon={<ICONS.Summary />} label="Problem Statement" value={submission.details.problem_statement} isTag />
         <DetailItem icon={<ICONS.Summary />} label="Summary" value={submission.details.summary} isTag />
@@ -188,17 +187,19 @@ const ProjectCard = ({ submission, onAction }) => (
             <AttachmentPill fileName={submission.attachments.find(a => a.type === 'report')?.name} fileUrl={submission.attachments.find(a => a.type === 'report')?.url} />
             <AttachmentPill fileName={submission.attachments.find(a => a.type === 'demo')?.name} fileUrl={submission.attachments.find(a => a.type === 'demo')?.url} />
         </div>
-        <ActionButtons submission={submission} onAction={onAction}>
-             <div>
-                <label htmlFor={`complexity-${submission.id}`} className="block text-sm font-semibold text-gray-700 mb-1">Complexity Rating</label>
-                <select id={`complexity-${submission.id}`} className="border border-gray-300 rounded-md py-2.5 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-white shadow-sm w-full sm:w-auto">
-                    <option value="">Select Tier</option>
-                    <option value="T1">T1</option>
-                    <option value="T2">T2</option>
-                    <option value="T3">T3</option>
-                </select>
-            </div>
-        </ActionButtons>
+        {submission.status === 'Awaiting' && (
+            <ActionButtons submission={submission} onAction={onAction}>
+                 <div>
+                    <label htmlFor={`complexity-${submission.id}`} className="block text-sm font-semibold text-gray-700 mb-1">Complexity Rating</label>
+                    <select id={`complexity-${submission.id}`} className="border border-gray-300 rounded-md py-2.5 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-white shadow-sm w-full sm:w-auto">
+                        <option value="">Select Tier</option>
+                        <option value="T1">T1</option>
+                        <option value="T2">T2</option>
+                        <option value="T3">T3</option>
+                    </select>
+                </div>
+            </ActionButtons>
+        )}
     </div>
 );
 
@@ -218,7 +219,7 @@ const WorkshopCard = ({ submission, onAction }) => (
             <h4 className="text-sm font-semibold text-gray-700 mb-2">Certificate</h4>
             <AttachmentPill fileName={submission.attachments[0]?.name} fileUrl={submission.attachments[0]?.url} />
         </div>
-        <ActionButtons submission={submission} onAction={onAction} />
+        {submission.status === 'Awaiting' && <ActionButtons submission={submission} onAction={onAction} />}
     </div>
 );
 
@@ -235,7 +236,7 @@ const PaperPresentationCard = ({ submission, onAction }) => (
             <AttachmentPill fileName={submission.attachments.find(a => a.type === 'pdf')?.name} fileUrl={submission.attachments.find(a => a.type === 'pdf')?.url} />
             <AttachmentPill fileName={submission.attachments.find(a => a.type === 'certificate')?.name} fileUrl={submission.attachments.find(a => a.type === 'certificate')?.url} />
         </div>
-        <ActionButtons submission={submission} onAction={onAction} />
+        {submission.status === 'Awaiting' && <ActionButtons submission={submission} onAction={onAction} />}
     </div>
 );
 
@@ -258,7 +259,7 @@ const InternshipCard = ({ submission, onAction }) => (
             <AttachmentPill fileName={submission.attachments.find(a => a.type === 'offer_letter')?.name} fileUrl={submission.attachments.find(a => a.type === 'offer_letter')?.url} />
             <AttachmentPill fileName={submission.attachments.find(a => a.type === 'report')?.name} fileUrl={submission.attachments.find(a => a.type === 'report')?.url} />
         </div>
-        <ActionButtons submission={submission} onAction={onAction} />
+        {submission.status === 'Awaiting' && <ActionButtons submission={submission} onAction={onAction} />}
     </div>
 );
 
@@ -279,22 +280,18 @@ const PatentCard = ({ submission, onAction }) => (
             <AttachmentPill fileName={submission.attachments.find(a => a.type === 'patent_docs')?.name} fileUrl={submission.attachments.find(a => a.type === 'patent_docs')?.url} />
             <AttachmentPill fileName={submission.attachments.find(a => a.type === 'supporting_files')?.name} fileUrl={submission.attachments.find(a => a.type === 'supporting_files')?.url} />
         </div>
-        <ActionButtons submission={submission} onAction={onAction} />
+        {submission.status === 'Awaiting' && <ActionButtons submission={submission} onAction={onAction} />}
     </div>
 );
 
-
-// --- CORRECTED Data Transformation Utility ---
 const transformApiData = (apiData) => {
     if (!Array.isArray(apiData)) return [];
 
     return apiData.map((item) => {
-        // Destructure common fields, keeping the rest in 'details'
         const { upload_type, user_name, ...details } = item;
-        
-        const id = `${upload_type}-${item.id || item.certificate_id}-${Math.random()}`;
+        const idForReact = `${upload_type}-${details.id}`;
         const typeDisplay = upload_type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-        
+       
         const attachments = [];
         const addAttachment = (type, path) => {
             if(path) {
@@ -304,30 +301,28 @@ const transformApiData = (apiData) => {
 
         let title = 'Untitled Submission';
         let submissionDate = new Date().toISOString();
-        let status = 'Awaiting'; // Default status
+        let status = 'Awaiting';
 
-        // Determine status based on upload_type FIRST
         if (upload_type === 'patents') {
-            // Patents use 'patent_status' field
-            if (item.patent_status?.toLowerCase() === 'pending') {
-                status = 'Awaiting';
-            } else if (item.patent_status) { // Any other status like 'Granted', 'Published'
+            const patentStatus = item.patent_status?.toLowerCase();
+            if (patentStatus === 'approved') {
                 status = 'Verified';
-            }
-             // Add logic for 'Rejected' if the API supports it
-        } else {
-            // All other types use 'approval_status'
-            const approvalStatus = item.approval_status;
-            if (approvalStatus === '1' || approvalStatus?.toLowerCase() === 'verified') {
-                status = 'Verified';
-            } else if (approvalStatus?.toLowerCase() === 'rejected') {
+            } else if (patentStatus === 'rejected' || patentStatus === 'notapproved') {
                 status = 'Rejected';
-            } else { // Covers 'Pending', '0', null, undefined
+            } else { 
+                status = 'Awaiting';
+            }
+        } else {
+            const approvalStatus = item.approval_status?.toLowerCase();
+            if (approvalStatus === '1' || approvalStatus === 'verified' || approvalStatus === 'approved') {
+                status = 'Verified';
+            } else if (approvalStatus === 'rejected') {
+                status = 'Rejected';
+            } else {
                 status = 'Awaiting';
             }
         }
 
-        // Determine title, date, and attachments based on type
         switch (upload_type) {
             case 'certificate':
                 title = details.event_name || details.platform || details.activity_type || 'Certificate';
@@ -369,20 +364,19 @@ const transformApiData = (apiData) => {
         }
 
         return {
-            id,
+            id: idForReact,
             studentName: user_name,
             title,
             submissionDate,
             type: upload_type,
             typeDisplay,
-            status, // Use the correctly determined status
+            status,
             isExpanded: false,
             attachments,
-            details: { ...details, patent_status: item.patent_status }, // Ensure all original details are passed
+            details: details,
         };
     });
 };
-
 
 // --- MAIN COMPONENT: Verification ---
 export default function Verification() {
@@ -392,23 +386,20 @@ export default function Verification() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("Awaiting");
-  
+ 
   useEffect(() => {
     const fetchSubmissions = async () => {
       setIsLoading(true);
       setError(null);
       try {
         const response = await axios.get(
-            'http://localhost:6001/api/studentrequests/varifications', 
+            'http://localhost:6001/api/studentrequests/varifications',
             { withCredentials: true }
         );
-        
-        if (!response.data) {
-            setError("No data received from the server.");
-            setAllSubmissions([]);
-        } else if (!Array.isArray(response.data)) {
+       
+        if (!response.data || !Array.isArray(response.data)) {
             console.warn("API did not return an array. Received:", response.data);
-            setError("Unexpected data format received from the server.");
+            setError("Unexpected data format from the server.");
             setAllSubmissions([]);
         } else {
             const transformedData = transformApiData(response.data);
@@ -416,7 +407,7 @@ export default function Verification() {
         }
       } catch (e) {
         console.error("Failed to fetch submissions:", e);
-        setError("Could not load verification requests. Please try again later.");
+        setError("Could not load verification requests. Please try again.");
       } finally {
         setIsLoading(false);
       }
@@ -428,11 +419,55 @@ export default function Verification() {
     setAllSubmissions(prev => prev.map(sub => sub.id === id ? { ...sub, isExpanded: !sub.isExpanded } : sub));
   };
 
-  const handleAction = (id, actionType) => {
-    // TODO: Add backend API call here to persist the change
-    console.log(`Action: ${actionType} on submission ID: ${id}`);
-    const newStatus = actionType === 'verify' ? 'Verified' : 'Rejected';
-    setAllSubmissions(prev => prev.map(s => s.id === id ? { ...s, status: newStatus, isExpanded: false } : s));
+  const handleAction = async (reactId, actionType) => {
+    const submission = allSubmissions.find(s => s.id === reactId);
+    if (!submission) {
+        console.error("Could not find the submission in state. ID:", reactId);
+        return;
+    }
+
+    const feedbackInput = document.getElementById(`feedback-${submission.id}`);
+    const feedback = feedbackInput ? feedbackInput.value : "";
+    const formData = new FormData();
+
+    formData.append('upload_type', submission.type);
+    formData.append('id', submission.details.id);
+    formData.append('feedback', feedback);
+    formData.append('verified', actionType === 'verify');
+    formData.append('rejected', actionType === 'reject');
+
+    if (submission.type === 'project') {
+        const complexityInput = document.getElementById(`complexity-${submission.id}`);
+        const tierValue = complexityInput ? complexityInput.value : null;
+        if (tierValue) {
+            formData.append('tier', tierValue);
+        }
+    }
+    
+    console.log("--- Sending Data to Backend ---");
+    for (let [key, value] of formData.entries()) {
+      console.log(`${key}:`, value);
+    }
+    console.log("-----------------------------");
+
+    try {
+        const response = await axios.post(
+            'http://localhost:6001/api/studentrequests/varifications', 
+            formData,
+            { withCredentials: true }
+        );
+
+        console.log("Backend API response:", response.data);
+
+        const newStatus = actionType === 'verify' ? 'Verified' : 'Rejected';
+        setAllSubmissions(prev =>
+            prev.map(s => (s.id === reactId ? { ...s, status: newStatus, isExpanded: false } : s))
+        );
+       
+    } catch (error) {
+        console.error("Error updating submission status:", error.response || error);
+        alert(`Failed to ${actionType} the submission. Check the console for details.`);
+    }
   };
 
   const handleSearchChange = (event) => setSearchTerm(event.target.value);
@@ -457,7 +492,6 @@ export default function Verification() {
     const filtered = allSubmissions.filter(submission => {
         const tabMatch = activeTab === "All" || submission.status === activeTab;
         if (!tabMatch) return false;
-
         const term = searchTerm.toLowerCase();
         return !term || submission.title.toLowerCase().includes(term) || submission.studentName.toLowerCase().includes(term);
     });
@@ -472,16 +506,10 @@ export default function Verification() {
     });
 
     return { tabsConfig: TABS_CONFIG, processedSubmissions: sorted };
-}, [allSubmissions, activeTab, searchTerm, sortBy]);
-
+  }, [allSubmissions, activeTab, searchTerm, sortBy]);
 
   const renderCard = (submission) => {
-    const cardProps = {
-        key: submission.id,
-        submission: submission,
-        onAction: handleAction
-    };
-
+    const cardProps = { key: submission.id, submission, onAction: handleAction };
     switch (submission.type) {
         case 'certificate': return <CertificateCard {...cardProps} />;
         case 'project': return <ProjectCard {...cardProps} />;
@@ -489,7 +517,7 @@ export default function Verification() {
         case 'paperpresentation': return <PaperPresentationCard {...cardProps} />;
         case 'internship': return <InternshipCard {...cardProps} />;
         case 'patents': return <PatentCard {...cardProps} />;
-        default: return <div className="p-4 text-center">Unsupported submission type: {submission.type}</div>;
+        default: return <div key={submission.id} className="p-4 text-center">Unsupported submission type: {submission.type}</div>;
     }
   };
 
@@ -513,8 +541,8 @@ export default function Verification() {
         <div className="text-center py-12 text-gray-500 bg-white rounded-lg shadow-sm">
             <h3 className="text-lg font-medium">No Submissions Found</h3>
             <p className="text-sm mt-1">
-              {searchTerm 
-                ? `No submissions match "${searchTerm}" in the "${activeTab}" filter.` 
+              {searchTerm
+                ? `No submissions match "${searchTerm}" in the "${activeTab}" filter.`
                 : `There are no submissions in the "${activeTab}" category.`}
             </p>
         </div>
