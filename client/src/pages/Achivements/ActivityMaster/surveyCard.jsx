@@ -26,9 +26,7 @@ const SurveyCard = ({ survey }) => {
         return null;
     }
   };
-
   const isButtonDisabled = survey.status === "Missed";
-
   const formattedStartDate = new Date(survey.startDate).toLocaleDateString('en-GB');
   const formattedEndDate = new Date(survey.endDate).toLocaleDateString('en-GB');
 

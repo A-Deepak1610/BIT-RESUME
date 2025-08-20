@@ -21,9 +21,9 @@ FROM (
         'Project' AS type,
         p.complexity,
         CASE
-            WHEN p.approval_status = 0 THEN 'Pending'
-            WHEN p.approval_status = 1 THEN 'Verified'
-            WHEN p.approval_status = 2 THEN 'Rejected'
+            WHEN p.approval_status = 'Pending' THEN 'Pending'
+            WHEN p.approval_status = 'Approved' THEN 'Verified'
+            WHEN p.approval_status = 'Rejected' THEN 'Rejected'
         END AS status,
         p.created_at AS uploaded_on,
         p.rollno
@@ -37,9 +37,9 @@ FROM (
         'Internship' AS type,
         NULL AS complexity,
         CASE
-            WHEN i.status = 0 THEN 'Pending'
-            WHEN i.status = 1 THEN 'Verified'
-            WHEN i.status = 2 THEN 'Rejected'
+            WHEN i.status = 'Pending' THEN 'Pending'
+            WHEN i.status = 'Approved' THEN 'Verified'
+            WHEN i.status = 'Rejected' THEN 'Rejected'
             ELSE i.status
         END AS status,
         i.submitted_on AS uploaded_on,
@@ -54,9 +54,9 @@ FROM (
         'Paper Presentation' AS type,
         NULL AS complexity,
         CASE
-            WHEN pp.approval_status = 0 THEN 'Pending'
-            WHEN pp.approval_status = 1 THEN 'Verified'
-            WHEN pp.approval_status = 2 THEN 'Rejected'
+            WHEN pp.approval_status = 'Pending' THEN 'Pending'
+            WHEN pp.approval_status = 'Approved' THEN 'Verified'
+            WHEN pp.approval_status = 'Not Approved' THEN 'Rejected'
             ELSE pp.approval_status
         END AS status,
         pp.submitted_on AS uploaded_on,
@@ -73,9 +73,9 @@ FROM (
         'Patent' AS type,
         NULL AS complexity,
         CASE
-            WHEN pat.patent_status = 0 THEN 'Pending'
-            WHEN pat.patent_status = 1 THEN 'Verified'
-            WHEN pat.patent_status = 2 THEN 'Rejected'
+            WHEN pat.patent_status = 'Pending' THEN 'Pending'
+            WHEN pat.patent_status = 'Approved' THEN 'Verified'
+            WHEN pat.patent_status = 'Rejected' THEN 'Rejected'
             ELSE pat.patent_status
         END AS status,
         pat.submission_date AS uploaded_on,
@@ -92,9 +92,9 @@ FROM (
         'Workshop' AS type,
         NULL AS complexity,
         CASE
-            WHEN w.status = 0 THEN 'Pending'
-            WHEN w.status = 1 THEN 'Verified'
-            WHEN w.status = 2 THEN 'Rejected'
+            WHEN w.status = 'Pending' THEN 'Pending'
+            WHEN w.status = 'Approved' THEN 'Verified'
+            WHEN w.status = 'Rejected' THEN 'Rejected'
             ELSE w.status
         END AS status,
         w.submitted_on AS uploaded_on,
@@ -111,9 +111,9 @@ FROM (
         'Certificate' AS type,
         NULL AS complexity,
         CASE
-            WHEN ct.status = 0 THEN 'Pending'
-            WHEN ct.status = 1 THEN 'Verified'
-            WHEN ct.status = 2 THEN 'Rejected'
+            WHEN ct.status = 'Pending' THEN 'Pending'
+            WHEN ct.status = 'Verified' THEN 'Verified'
+            WHEN ct.status = 'Rejected' THEN 'Rejected'
             ELSE ct.status
         END AS status,
         ct.created_at AS uploaded_on,
@@ -131,9 +131,9 @@ FROM (
         'Certificate' AS type,
         NULL AS complexity,
         CASE
-            WHEN ct.status = 0 THEN 'Pending'
-            WHEN ct.status = 1 THEN 'Verified'
-            WHEN ct.status = 2 THEN 'Rejected'
+           WHEN ct.status = 'Pending' THEN 'Pending'
+            WHEN ct.status = 'Verified' THEN 'Verified'
+            WHEN ct.status = 'Rejected' THEN 'Rejected'
             ELSE ct.status
         END AS status,
         ce.submission_date AS uploaded_on,
@@ -151,9 +151,9 @@ FROM (
         'Certificate' AS type,
         NULL AS complexity,
         CASE
-            WHEN ct.status = 0 THEN 'Pending'
-            WHEN ct.status = 1 THEN 'Verified'
-            WHEN ct.status = 2 THEN 'Rejected'
+            WHEN ct.status = 'Pending' THEN 'Pending'
+            WHEN ct.status = 'Verified' THEN 'Verified'
+            WHEN ct.status = 'Rejected' THEN 'Rejected'
             ELSE ct.status
         END AS status,
         cv.submission_date AS uploaded_on,
@@ -170,7 +170,6 @@ ORDER BY
         ELSE 4
     END,
     uploaded_on DESC;
-
 	`
 
 	rows, err := config.DB.Query(query, rollno, rollno, rollno, rollno, rollno, rollno, rollno, rollno)

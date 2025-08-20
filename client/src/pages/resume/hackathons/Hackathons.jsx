@@ -1,68 +1,107 @@
-import React from "react";
-import { Award,Medal  } from "lucide-react";
-import himg1 from "../../../../public/himg1.jpg";
-export default function Hackathons() {
-  const hackathonsData = [
-    {
-      title: "Innovators' Arena ",
-      imgpath:"../../../../public/himg1.jpg",
-      link: "https://example.com/hackathon1",
-    },
-    {
-      title: "Hack the Future ",
-      imgpath:"../../../../public/himg2.jpg",
-      link: "https://example.com/hackathon2",
-    },
-    {
-      title: "Code for Change ",
-      imgpath:"../../../../public/himg3.jpg",
-      link: "https://example.com/hackathon3",
-    },
-    {
-      title: "NextGen Hack",
-      imgpath:"../../../../public/himg4.jpg",
-      link: "https://example.com/hackathon4",
-    },
-    {
-      title: "NextGen Hack",
-      imgpath:"../../../../public/himg4.jpg",
-      link: "https://example.com/hackathon4",
-    },
-  ];
-  return (
-    <div>
-  <div className="p-2 lg:ml-2 bg-white shadow rounded-lg h-[30vh] flex flex-col">
-    <div className="flex items-center text-gray-800 font-medium flex-shrink-0">
-      <Award className="text-[#7371ff]" />
-      <span className="ml-1">Hackathon Wins</span>
-    </div>
+import React, { useEffect, useState } from 'react';
+import { Award, Loader2 } from "lucide-react";
+import useAuth from '../../../store/UseAuth';
 
-    {/* Scrollable List Container */}
-    <div className="mt-2 space-y-3 pr-1 overflow-y-auto" style={{ maxHeight: '22vh' }}>
-      {hackathonsData.map((hackathon, index) => (
-        <div key={index} className="mb-2 p-2">
-          <div className="flex items-start">
-            <div className="rounded-full">
+export default function Hackathons() {
+  const [hackathonsData, setHackathonsData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const { rollno } = useAuth();
+
+  useEffect(() => {
+    if (!rollno) {
+      return;
+    }
+
+    const fetchHackathons = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const response = await fetch(`http://localhost:6001/api/resume/gethackathondata/${rollno}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch hackathons. Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log("Hackathons Data:", data);
+
+        setHackathonsData(data);
+
+      } catch (err) {
+        console.error("Error fetching hackathons:", err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchHackathons();
+
+  }, [rollno]);
+
+  const renderContent = () => {
+    if (loading) {
+      return (
+        <div className="flex items-center justify-center h-full">
+          <Loader2 className="animate-spin text-[#7371ff]" />
+          <span className="ml-2">Loading...</span>
+        </div>
+      );
+    }
+
+    if (error) {
+      return <div className="text-red-500 p-4">{error}</div>;
+    }
+
+    if (!hackathonsData || hackathonsData.length === 0) {
+      return <div className="text-gray-500 p-4">No hackathon wins found.</div>;
+    }
+
+    return hackathonsData.map((hackathon, index) => (
+      <div key={index} className="mb-2 p-2">
+        <div className="flex items-start">
+          <div className="w-6 h-6 border flex items-center justify-center border-[#9b9aff] rounded-full flex-shrink-0 overflow-hidden bg-white">
+            {hackathon.img_url ? (
               <img
-                src={hackathon.imgpath}
-                className="w-6 h-6 rounded-full"
-                alt="icon"
+                src={hackathon.img_url}
+                alt={hackathon.title}
+                className="w-6 h-6 object-cover rounded-full"
               />
-            </div>
-            <a
-              href={hackathon.link}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[#01009E] text-[14px] font-semibold ml-2 hover:underline"
-            >
+            ) : (
+              <Award className="w-4 h-4 text-[#7371ff]" />
+            )}
+          </div>
+          <div className="ml-2">
+            <p className="text-[#01009E] text-[14px] font-semibold">
               {hackathon.title}
-            </a>
+            </p>
+            <p className="text-gray-500 text-[12px]">
+              {hackathon.place}
+            </p>
           </div>
         </div>
-      ))}
-    </div>
-  </div>
-</div>
+      </div>
+    ));
+  };
 
+  return (
+    <div className="p-2 lg:ml-2 bg-white shadow rounded-lg h-[30vh] flex flex-col">
+      <div className="flex items-center text-gray-800 font-medium flex-shrink-0">
+        <Award className="text-[#7371ff]" />
+        <span className="ml-1">Hackathon Wins</span>
+      </div>
+
+      <div className="mt-2 overflow-y-auto space-y-3 pr-1 flex-grow">
+        {renderContent()}
+      </div>
+    </div>
   );
 }

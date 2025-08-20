@@ -7,95 +7,89 @@ import {
   Trash2,
   AlertCircle,
   ChevronRight,
-  Loader, // Added for loading state
-  XCircle, // Added for error state
 } from "lucide-react";
 import Modal from "@mui/material/Modal";
+
 import { useNavigate } from "react-router-dom";
-import useAuth from "../../store/UseAuth";
-
-// Helper function to format the date string from "YYYY-MM-DD HH:MM:SS" to "DD/MM/YYYY"
-const formatDate = (dateString) => {
-  if (!dateString) return "N/A";
-  const date = new Date(dateString);
-  const day = String(date.getDate()).padStart(2, '0');
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const year = date.getFullYear();
-  return `${day}/${month}/${year}`;
-};
-
 
 export default function UploadView() {
   const [expandedItem, setExpandedItem] = useState(null);
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // --- MODIFIED: State for API data, loading, and errors ---
-  const [uploads, setUploads] = useState([]); // Start with an empty array
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const { rollno } = useAuth();
-  
-  // --- MODIFIED: Data fetching logic is now inside useEffect ---
-  useEffect(() => {
-    const handleUploadView = async () => {
-      // Reset states before fetching
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await fetch(`http://localhost:6001/api/uploadview/getuploaddetails/${rollno}`, {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-        });
-
-        if (!response.ok) {
-          throw new Error(`Network response was not ok (Status: ${response.status})`);
-        }
-        
-        const data = await response.json();
-
-        // --- IMPORTANT: Map API data to the component's expected format ---
-        const formattedData = data.map(item => ({
-          id: item.id,
-          title: item.title,
-          description: item.description,
-          type: item.type,
-          complexity: item.complexity || 'NA', // Set default if complexity is null
-          status: item.status, // API status ('Verified', 'Pending', 'Rejected', 'Approved')
-          ashId: item.rollno,
-          uploadDate: formatDate(item.uploaded_on),
-          // Derive project/certificate number from the type and id
-          projectNo: item.type === 'Project' ? item.id : null,
-          CertificateNo: item.type === 'Certificate' ? item.id : null,
-        }));
-        
-        setUploads(formattedData);
-        console.log("Fetched and formatted upload view data:", formattedData);
-
-      } catch (error) {
-        console.error("Failed to fetch the upload view:", error);
-        setError(error.message); // Set error message for UI
-      } finally {
-        setLoading(false); // Stop loading indicator
-      }
-    };
-
-    if (rollno) {
-       handleUploadView();
-    } else {
-        setLoading(false);
-        setError("Roll number not found. Cannot fetch data.");
-    }
-    // Dependency array ensures this runs when `rollno` is available
-  }, [rollno]);
-
   const navigate = useNavigate();
+
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
-  // No changes needed below this line for the logic, but I've updated the rendering part.
-  // ... (handleNavigateToForm, toggleExpandItem are the same)
+  const [uploads, setUploads] = useState([
+    {
+      id: 1,
+      title: "Online Voting System",
+      description: "Secure web app for elections with voter authentication",
+      type: "Project",
+      complexity: "T2",
+      status: "Verified",
+      ashId: "ASH20231234",
+      uploadDate: "07/05/2025",
+      projectNo: 1,
+    },
+    {
+      id: 2,
+      title: "Expense Tracker App",
+      description: "Tracks income/expenses. Includes graphs and analytics",
+      type: "Project",
+      complexity: "T2",
+      status: "Verified",
+      ashId: "ASH20231234",
+      uploadDate: "07/05/2025",
+      projectNo: 2,
+    },
+    {
+      id: 3,
+      title: "E-Learning Portal",
+      description: "LMS with user login, course upload, and quiz module",
+      type: "Project",
+      complexity: "T1",
+      status: "Verified",
+      ashId: "ASH20231234",
+      uploadDate: "07/05/2025",
+      projectNo: 3,
+    },
+    {
+      id: 4,
+      title: "Health Monitoring Wearable",
+      description: "Tracks vitals and alerts via mobile app",
+      type: "Project",
+      complexity: "T1",
+      status: "Verified",
+      ashId: "ASH20231234",
+      uploadDate: "07/05/2025",
+      projectNo: 4,
+    },
+    {
+      id: 5,
+      title: "Data Science Professional Certificate",
+      description: "IBM on Coursera",
+      type: "Certificate",
+      complexity: "NA",
+      status: "Verified",
+      ashId: "ASH20231234",
+      uploadDate: "07/05/2025",
+      CertificateNo: 1,
+    },
+    {
+      id: 6,
+      title: "JavaScript Algorithms and Data Structures",
+      description: "freeCodeCamp",
+      type: "Certificate",
+      complexity: "NA",
+      status: "Pending",
+      ashId: "ASH20231234",
+      uploadDate: "07/05/2025",
+      CertificateNo: 2,
+    },
+  ]);
 
   const handleNavigateToForm = (type) => {
     console.log(`Selected document type: ${type}. Preparing to navigate.`);
@@ -113,7 +107,7 @@ export default function UploadView() {
         console.log(`Action: Navigate to Patent form (path: ${targetPath}).`);
         navigate(targetPath);
         break;
-      case "Workshop": // Corrected to match the database value
+      case "Seminar / Workshop":
         targetPath = "/uploadview/SeminarOrWorkshop"; 
         console.log(`Action: Navigate to Seminar / Workshop form (path: ${targetPath}).`);
         navigate(targetPath);
@@ -142,8 +136,7 @@ export default function UploadView() {
   const toggleExpandItem = (id) => {
     setExpandedItem(expandedItem === id ? null : id);
   };
-  
-  // --- This useMemo for filtering remains the same ---
+
   const filteredUploads = useMemo(() => {
     const term = searchTerm.toLowerCase();
     return uploads.filter((upload) =>
@@ -161,130 +154,162 @@ export default function UploadView() {
         .includes(term)
     );
   }, [searchTerm, uploads]);
-  
-  // --- MODIFIED: Render loading or error states ---
-  const renderContent = () => {
-    if (loading) {
-      return (
-        <div className="bg-white rounded-lg shadow p-6 text-center text-gray-500 flex items-center justify-center">
-          <Loader className="animate-spin mr-2" />
-          Loading documents...
-        </div>
-      );
-    }
 
-    if (error) {
-       return (
-        <div className="bg-red-50 border border-red-200 rounded-lg shadow p-6 text-center text-red-700 flex items-center justify-center">
-           <XCircle className="mr-2" />
-          Error: {error}
-        </div>
-      );
-    }
-    
-    if (filteredUploads.length === 0) {
-       return (
-        <div className="bg-white rounded-lg shadow p-6 text-center text-gray-500">
-          No documents found.
-        </div>
-      );
-    }
-    
-    // --- Render the actual data for mobile and desktop ---
+  const DocumentUploadModal = ({ open, handleClose }) => {
+    const [selectedType, setSelectedType] = useState("");
+
+    const items = [
+      { label: "Project", desc: "Upload your academic or personal projects" },
+      { label: "Patent", desc: "Upload your patent documents and details" },
+      { label: "Seminar / Workshop", desc: "Upload seminar or workshop attendance proofs" },
+      { label: "Internship", desc: "Share your internship experience and certificates" },
+      { label: "Paper Presentation", desc: "Share your research papers and presentations" },
+      { label: "Certificate", desc: "Upload achievement certificates and awards" },
+    ];
+
+    const renderIcon = (label, selected) => {
+      const iconWrapperStyle = `p-2 rounded-[50%] transition-colors ${
+        selected
+          ? "bg-[#265ee1] text-white"
+          : "bg-[#f3f4f6] text-black group-hover:bg-[#e5edfd]"
+      }`;
+
+      switch (label) {
+        case "Project":
+          return (
+            <div className={iconWrapperStyle}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor"
+                strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-folder-open-dot">
+                <path d="m6 14 1.45-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.55 6a2 2 0 0 1-1.94 1.5H4a2 2 0 0 1-2-2V5c0-1.1.9-2 2-2h3.93a2 2 0 0 1 1.66.9l.82 1.2a2 2 0 0 0 1.66.9H18a2 2 0 0 1 2 2v2"/>
+                <circle cx="14" cy="15" r="1"/>
+              </svg>
+            </div>
+          );
+        case "Patent":
+        return (
+          <div className={iconWrapperStyle}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor"
+              strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-notebook-text">
+              <path d="M2 6h4"/><path d="M2 10h4"/><path d="M2 14h4"/><path d="M2 18h4"/>
+              <rect width="16" height="20" x="4" y="2" rx="2"/>
+              <path d="M9.5 8h5"/><path d="M9.5 12H16"/><path d="M9.5 16H14"/>
+            </svg>
+          </div>
+        );
+      case "Seminar / Workshop":
+        return (
+          <div className={iconWrapperStyle}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor"
+              strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-book-open">
+              <path d="M12 7v14"/>
+              <path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/>
+            </svg>
+          </div>
+        );
+      case "Internship":
+        return (
+          <div className={iconWrapperStyle}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor"
+              strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chart-no-axes-column">
+              <line x1="18" x2="18" y1="20" y2="10"/><line x1="12" x2="12" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="14"/>
+            </svg>
+          </div>
+        );
+      case "Paper Presentation":
+        return (
+          <div className={iconWrapperStyle}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor"
+              strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-wallpaper">
+              <circle cx="8" cy="9" r="2"/>
+              <path d="m9 17 6.1-6.1a2 2 0 0 1 2.81.01L22 15V5a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2"/>
+              <path d="M8 21h8"/><path d="M12 17v4"/>
+            </svg>
+          </div>
+        );
+      case "Certificate":
+        return (
+          <div className={iconWrapperStyle}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor"
+              strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-award">
+              <path d="m15.477 12.89 1.515 8.526a.5.5 0 0 1-.81.47l-3.58-2.687a1 1 0 0 0-1.197 0l-3.586 2.686a.5.5 0 0 1-.81-.469l1.514-8.526"/>
+              <circle cx="12" cy="8" r="6"/>
+            </svg>
+          </div>
+        );
+      default:
+        return null;
+      }
+    };
+
     return (
-    <>
-      {/* Mobile View */}
-      <div className="block md:hidden space-y-3">
-        {filteredUploads.map((upload, index) => (
-          <MobileCard
-            key={`${upload.type}-${upload.id}`} // Use a more unique key
-            upload={upload}
-            index={index}
-            expandedItem={expandedItem}
-            toggleExpandItem={toggleExpandItem}
-          />
-        ))}
-      </div>
-      
-      {/* Tablet and Desktop View */}
-      <div className="hidden md:block bg-white rounded-lg shadow overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="text-left text-gray-600 text-sm bg-gray-50">
-                <th className="py-3 px-4 font-medium whitespace-nowrap">S.No</th>
-                <th className="py-3 px-4 font-medium whitespace-nowrap">Uploads</th>
-                <th className="py-3 px-4 font-medium whitespace-nowrap">Type</th>
-                <th className="py-3 px-4 font-medium whitespace-nowrap">Complexity</th>
-                <th className="py-3 px-4 font-medium whitespace-nowrap">Status</th>
-                <th className="py-3 px-4 font-medium whitespace-nowrap">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {filteredUploads.map((upload, index) => (
-                <tr key={`${upload.type}-${upload.id}`} className="hover:bg-gray-50 transition-colors">
-                  <td className="py-4 px-4 align-top text-sm">{index + 1}.</td>
-                  <td className="py-4 px-4">
-                    <div className="mb-1 font-medium text-sm md:text-base">
-                      {upload.title}
+      <Modal open={open} onClose={handleClose}>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow-lg w-[90%] max-w-[500px] max-h-[90vh] flex flex-col">
+          <div className="bg-[#e2eefe] rounded-t-lg p-6 pb-4">
+            <div className="flex justify-center mb-2">
+              <div className="px-4 py-1 rounded-[15px] bg-[#dbeafe]">
+                <p className="text-center text-lg font-semibold text-[#3371ea]">
+                  Document Upload
+                </p>
+              </div>
+            </div>
+            <h2 className="text-center text-xl font-bold text-[#3371ea] mb-2">
+              Select the type of work you're uploading
+            </h2>
+            <p className="text-center text-xs text-gray-500">
+              Choose the appropriate category for your document to ensure proper processing and validation
+            </p>
+          </div>
+
+          {/* Scrollable content area */}
+          <div className="p-6 pt-4 overflow-y-auto flex-1">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+              {items.map((item, idx) => (
+                <div
+                  key={idx}
+                  className={`group border rounded-lg p-3 cursor-pointer transition-all duration-200 ${
+                    selectedType === item.label
+                      ? "border-blue-500 bg-blue-50 shadow-md hover:scale-105 "
+                      : "border-gray-200 hover:border-blue-300 hover:shadow-sm hover:scale-105 hover:bg-[#eff6ff]"
+                  }`}
+                  onClick={() => setSelectedType(item.label)}
+                >
+                  <div className="flex flex-row gap-3 items-center">
+                    {renderIcon(item.label, selectedType === item.label)}
+                    <div className="flex flex-col">
+                      <p className="font-medium text-sm text-gray-800">{item.label}</p>
+                      <p className="text-xs text-gray-500 mt-1">{item.desc}</p>
                     </div>
-                    <div className="text-xs md:text-sm text-gray-600 mb-1">
-                      {upload.description}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      Ash ID: {upload.ashId}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      Uploaded: {upload.uploadDate}
-                    </div>
-                    {upload.projectNo || upload.CertificateNo ? (
-                      <div className="inline-block mt-2 px-2 py-1 text-xs font-semibold border border-indigo-200 rounded-full bg-indigo-50 text-indigo-700">
-                        {upload.projectNo
-                          ? `Project #${upload.projectNo}`
-                          : `Cert #${upload.CertificateNo}`}
-                      </div>
-                    ) : null}
-                  </td>
-                  <td className="py-4 px-4 align-top text-sm">
-                    {upload.type}
-                  </td>
-                  <td className="py-4 px-4 align-top text-sm">
-                    {upload.complexity}
-                  </td>
-                  <td className="py-4 px-4 align-top">
-                     {/* --- MODIFIED: Dynamic status rendering --- */}
-                    <StatusBadge status={upload.status} />
-                  </td>
-                  <td className="py-4 px-4 align-top">
-                    <div className="flex space-x-2">
-                      <button
-                        title="Edit"
-                        className="p-1 text-gray-600 hover:text-indigo-600 transition-colors"
-                      >
-                        <Edit size={18} />
-                      </button>
-                      <button
-                        title="Delete"
-                        className="p-1 text-gray-600 hover:text-red-600 transition-colors"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+          </div>
+          <div className="p-6 pt-0">
+            <button
+              className={`w-full py-2 rounded-md text-white font-medium ${
+                selectedType 
+                  ? "bg-blue-600 hover:bg-blue-700 cursor-pointer" 
+                  : "bg-[#8ea7ec] cursor-not-allowed"
+              } transition-colors`}
+              disabled={!selectedType}
+              onClick={() => {
+                if (selectedType) {
+                  handleNavigateToForm(selectedType); // Call navigation function
+                  handleClose(); // Then close the modal
+                }
+              }}
+            >
+              Continue
+            </button>
+          </div>
         </div>
-      </div>
-    </>
+      </Modal>
     );
-  }
-  
+  };
+
   return (
     <>
-      {/* Corrected the Modal component name */}
-      <DocumentUploadModal open={open} handleClose={handleClose} handleNavigateToForm={handleNavigateToForm} />
+      <DocumentUploadModal open={open} handleClose={handleClose} />
 
       <div className="bg-gray-100 min-h-screen p-4 ">
         <div className="mx-auto max-w-7xl">
@@ -301,6 +326,11 @@ export default function UploadView() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
+            <button className="w-full sm:w-auto flex items-center justify-center px-4 py-2 bg-white text-indigo-600 font-medium rounded-lg border border-gray-200 shadow-sm hover:bg-gray-50 cursor-pointer transition-colors text-sm md:text-base">
+              <span>
+                Requested Upload
+              </span>
+            </button>
             <button
               onClick={handleOpen}
               className="w-full sm:w-auto flex items-center justify-center px-4 py-2 bg-white text-indigo-600 font-medium rounded-lg border border-gray-200 shadow-sm hover:bg-gray-50 cursor-pointer transition-colors text-sm md:text-base"
@@ -309,56 +339,124 @@ export default function UploadView() {
               <Upload size={18} className="ml-2" />
             </button>
           </div>
-          
-          {/* Render the content based on state */}
-          {renderContent()}
 
+          {/* Mobile View */}
+          <div className="block md:hidden space-y-3">
+            {filteredUploads.length === 0 ? (
+              <div className="bg-white rounded-lg shadow p-6 text-center text-gray-500">
+                No documents found
+              </div>
+            ) : (
+              filteredUploads.map((upload, index) => (
+                <MobileCard
+                  key={upload.id}
+                  upload={upload}
+                  index={index}
+                  expandedItem={expandedItem}
+                  toggleExpandItem={toggleExpandItem}
+                />
+              ))
+            )}
+          </div>
+
+          {/* Tablet and Desktop View */}
+          <div className="hidden md:block bg-white rounded-lg shadow overflow-hidden">
+            {filteredUploads.length === 0 ? (
+              <div className="p-6 text-center text-gray-500">
+                No documents found
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="text-left text-gray-600 text-sm bg-gray-50">
+                      <th className="py-3 px-4 font-medium whitespace-nowrap">S.No</th>
+                      <th className="py-3 px-4 font-medium whitespace-nowrap">Uploads</th>
+                      <th className="py-3 px-4 font-medium whitespace-nowrap">Type</th>
+                      <th className="py-3 px-4 font-medium whitespace-nowrap">Complexity</th>
+                      <th className="py-3 px-4 font-medium whitespace-nowrap">Status</th>
+                      <th className="py-3 px-4 font-medium whitespace-nowrap">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {filteredUploads.map((upload, index) => (
+                      <tr key={upload.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="py-4 px-4 align-top text-sm">{index + 1}.</td>
+                        <td className="py-4 px-4">
+                          <div className="mb-1 font-medium text-sm md:text-base">
+                            {upload.title}
+                          </div>
+                          <div className="text-xs md:text-sm text-gray-600 mb-1">
+                            {upload.description}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            Ash ID: {upload.ashId}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            Uploaded: {upload.uploadDate}
+                          </div>
+                          {upload.projectNo || upload.CertificateNo ? (
+                            <div className="inline-block mt-2 px-2 py-1 text-xs font-semibold border border-indigo-200 rounded-full bg-indigo-50 text-indigo-700">
+                              {upload.projectNo
+                                ? `Project #${upload.projectNo}`
+                                : `Cert #${upload.CertificateNo}`}
+                            </div>
+                          ) : null}
+                        </td>
+                        <td className="py-4 px-4 align-top text-sm">
+                          {upload.type}
+                        </td>
+                        <td className="py-4 px-4 align-top text-sm">
+                          {upload.complexity}
+                        </td>
+                        <td className="py-4 px-4 align-top">
+                          <div className="flex items-center">
+                            {upload.status === "Verified" ? (
+                              <>
+                                <span className="inline-flex items-center justify-center w-5 h-5 bg-green-100 rounded-full mr-2">
+                                  <Check size={12} className="text-green-500" />
+                                </span>
+                                <span className="text-sm">Verified</span>
+                              </>
+                            ) : (
+                              <>
+                                <span className="inline-flex items-center justify-center w-5 h-5 bg-yellow-100 rounded-full mr-2">
+                                  <AlertCircle size={12} className="text-yellow-500" />
+                                </span>
+                                <span className="text-sm">Pending</span>
+                              </>
+                            )}
+                          </div>
+                        </td>
+                        <td className="py-4 px-4 align-top">
+                          <div className="flex space-x-2">
+                            <button
+                              title="Edit"
+                              className="p-1 text-gray-600 hover:text-indigo-600 transition-colors"
+                            >
+                              <Edit size={18} />
+                            </button>
+                            <button
+                              title="Delete"
+                              className="p-1 text-gray-600 hover:text-red-600 transition-colors"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </>
   );
 }
 
-// --- NEW: A dedicated component for status badges for cleaner code ---
-const StatusBadge = ({ status }) => {
-  switch (status) {
-    case 'Verified':
-    case 'Approved':
-      return (
-        <div className="flex items-center">
-          <span className="inline-flex items-center justify-center w-5 h-5 bg-green-100 rounded-full mr-2">
-            <Check size={12} className="text-green-500" />
-          </span>
-          <span className="text-sm text-green-700">{status}</span>
-        </div>
-      );
-    case 'Pending':
-      return (
-        <div className="flex items-center">
-          <span className="inline-flex items-center justify-center w-5 h-5 bg-yellow-100 rounded-full mr-2">
-            <AlertCircle size={12} className="text-yellow-500" />
-          </span>
-          <span className="text-sm text-yellow-700">Pending</span>
-        </div>
-      );
-    case 'Rejected':
-       return (
-        <div className="flex items-center">
-          <span className="inline-flex items-center justify-center w-5 h-5 bg-red-100 rounded-full mr-2">
-            <XCircle size={12} className="text-red-500" />
-          </span>
-          <span className="text-sm text-red-700">Rejected</span>
-        </div>
-      );
-    default:
-      return <span className="text-sm text-gray-500">{status}</span>;
-  }
-};
-
-
-// --- The MobileCard and Modal Components remain largely the same, but with updates ---
-
-// --- Update MobileCard to use the new StatusBadge component ---
 function MobileCard({ upload, index, expandedItem, toggleExpandItem }) {
   const isExpanded = expandedItem === upload.id;
 
@@ -370,7 +468,7 @@ function MobileCard({ upload, index, expandedItem, toggleExpandItem }) {
     >
       <div
         className="flex justify-between items-center p-4 cursor-pointer"
-        onClick={() => toggleExpandItem(`${upload.type}-${upload.id}`)}
+        onClick={() => toggleExpandItem(upload.id)}
       >
         <div className="flex items-start space-x-3">
           <span className="font-medium text-gray-700">{index + 1}.</span>
@@ -383,8 +481,15 @@ function MobileCard({ upload, index, expandedItem, toggleExpandItem }) {
               <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
                 {upload.type}
               </span>
-              {/* Using the badge component here for consistency */}
-               <StatusBadge status={upload.status}/>
+              {upload.status === "Verified" ? (
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                  Verified
+                </span>
+              ) : (
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                  Pending
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -439,49 +544,3 @@ function MobileCard({ upload, index, expandedItem, toggleExpandItem }) {
     </div>
   );
 }
-
-// Update Modal to handle navigation correctly and use correct workshop type
-const DocumentUploadModal = ({ open, handleClose, handleNavigateToForm }) => {
-    const [selectedType, setSelectedType] = useState("");
-
-    const items = [
-      { label: "Project", desc: "Upload your academic or personal projects" },
-      { label: "Patent", desc: "Upload your patent documents and details" },
-      { label: "Workshop", desc: "Upload workshop attendance proofs" },
-      { label: "Internship", desc: "Share your internship experience and certificates" },
-      { label: "Paper Presentation", desc: "Share your research papers and presentations" },
-      { label: "Certificate", desc: "Upload achievement certificates and awards" },
-    ];
-    
-    // The renderIcon function can be copied from your original code.
-    // ... (renderIcon implementation)
-    // For brevity, it is omitted here but should be included.
-
-    return (
-      <Modal open={open} onClose={handleClose}>
-        {/* The modal's JSX structure is the same as in your file. */}
-        {/* I've only made sure the button's onClick is wired correctly. */}
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow-lg w-[90%] max-w-[500px] max-h-[90vh] flex flex-col">
-            {/* Modal Header */}
-            <div className="p-6 pt-0">
-                <button
-                    className={`w-full py-2 rounded-md text-white font-medium ${
-                        selectedType 
-                        ? "bg-blue-600 hover:bg-blue-700 cursor-pointer" 
-                        : "bg-[#8ea7ec] cursor-not-allowed"
-                    } transition-colors`}
-                    disabled={!selectedType}
-                    onClick={() => {
-                        if (selectedType) {
-                            handleNavigateToForm(selectedType); // Use the passed-in function
-                            handleClose();
-                        }
-                    }}
-                >
-                    Continue
-                </button>
-            </div>
-        </div>
-      </Modal>
-    );
-  };

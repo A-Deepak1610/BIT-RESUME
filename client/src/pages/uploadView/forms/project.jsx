@@ -8,10 +8,9 @@ import {
     Paperclip, Link as LinkIcon, Award, Video, HelpCircle, MessageSquare, Briefcase, Github,
     UploadCloud,
 } from 'lucide-react';
-
+import MemberTechStackInput from './MemberTechStackInput'; // Assuming the new component is in a file named MemberTechStackInput.js
 
 const DEBUG_MODE = true;
-
 
 const TECHNOLOGIES = [
     'React', 'Angular', 'Vue', 'Next.js', 'Node.js', 'Express', 'Django', 'Flask', 'Spring Boot', 'Ruby on Rails',
@@ -19,31 +18,27 @@ const TECHNOLOGIES = [
     'Go', 'Rust', 'MongoDB', 'PostgreSQL', 'MySQL', 'Firebase', 'AWS', 'Azure', 'GCP', 'Docker', 'Kubernetes'
 ];
 
-
 const DEPARTMENTS = [
     'Select Department', 'Computer Science & Engineering', 'Electronics & Communication Engineering', 'Mechanical Engineering',
     'Civil Engineering', 'Electrical & Electronics Engineering', 'Information Technology', 'Artificial Intelligence & Data Science', 'Other'
 ];
 
-
 const MAX_TEAM_MEMBERS = 7;
 const MIN_TEAM_MEMBERS = 1;
 
-
 const RequiredAst = () => <span className="text-red-500 ml-0.5">*</span>;
 
-
-// Validation functions (unchanged)
+// Validation functions
 const validateStep1 = (formData) => {
     const errors = {};
     if (!formData.projectTitle?.trim()) errors.projectTitle = 'Project title is required.';
-    if (!formData.projectAbstract?.trim()) errors.projectAbstract = 'Abstract/Summary is required.';
-    else if (formData.projectAbstract.trim().split(/\s+/).length < 100 || formData.projectAbstract.trim().split(/\s+/).length > 500) {
-        errors.projectAbstract = 'Abstract must be between 100 and 200 words.';
+    if (!formData.projectAbstract?.trim()) {
+        errors.projectAbstract = 'Abstract/Summary is required.';
+    } else if (formData.projectAbstract.trim().split(/\s+/).length < 10 || formData.projectAbstract.trim().split(/\s+/).length > 30) {
+        errors.projectAbstract = 'Abstract must be between 10 and 30 words.';
     }
     return errors;
 };
-
 
 const validateStep2 = (formData) => {
     const errors = {};
@@ -51,7 +46,6 @@ const validateStep2 = (formData) => {
     if (!formData.projectObjective?.trim()) errors.projectObjective = 'Project objective is required.';
     return errors;
 };
-
 
 const validateStep3 = (formData) => {
     const errors = {};
@@ -62,7 +56,6 @@ const validateStep3 = (formData) => {
     }
     return errors;
 };
-
 
 const validateStep4 = (formData) => {
     const errors = {};
@@ -75,11 +68,12 @@ const validateStep4 = (formData) => {
             if (!member.name?.trim()) errors[`teamMemberName_${index}`] = `Member ${index + 1} name is required.`;
             if (!member.rollNumber?.trim()) errors[`teamMemberRoll_${index}`] = `Member ${index + 1} roll number is required.`;
             if (!member.department || member.department === 'Select Department') errors[`teamMemberDept_${index}`] = `Member ${index + 1} department is required.`;
+            // Optional: Add validation for member's tech stack if needed
+            // if (member.techStack.length === 0) errors[`teamMemberTech_${index}`] = `Member ${index + 1} tech stack is required.`;
         });
     }
     return errors;
 };
-
 
 const validateStep5 = (formData) => {
     const errors = {};
@@ -101,17 +95,12 @@ const validateStep5 = (formData) => {
     return errors;
 };
 
-
-
-
-// --- Child Components (ProjectStep1_Overview, etc. remain unchanged) ---
-
+// --- Child Components ---
 
 const ProjectStep1_Overview = ({ formData, handleChange, errors }) => {
     const wordCount = useMemo(() => {
         return formData.projectAbstract?.trim().split(/\s+/).filter(word => word.length > 0).length || 0;
     }, [formData.projectAbstract]);
-
 
     return (
         <div className="space-y-6">
@@ -145,18 +134,17 @@ const ProjectStep1_Overview = ({ formData, handleChange, errors }) => {
                     value={formData.projectAbstract}
                     onChange={handleChange}
                     className={`mt-1 block w-full px-3 py-2 border ${errors.projectAbstract ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-                    placeholder="Provide a short overview of the project idea (100-500 words)"
+                    placeholder="Provide a short overview of the project idea (10-30 words)"
                 />
                 <div className="flex justify-between mt-1">
                     {errors.projectAbstract && <p className="text-sm text-red-600">{errors.projectAbstract}</p>}
                     <p className="text-xs text-gray-500 ml-auto">{wordCount} word{wordCount !== 1 ? 's' : ''}</p>
                 </div>
-                <p className="mt-1 text-xs text-gray-500">A concise summary of your project in 100-500 words.</p>
+                <p className="mt-1 text-xs text-gray-500">A concise summary of your project in 10-30 words.</p>
             </div>
         </div>
     );
 };
-
 
 const ProjectStep2_ProblemObjective = ({ formData, handleChange, errors }) => (
     <div className="space-y-6">
@@ -199,67 +187,16 @@ const ProjectStep2_ProblemObjective = ({ formData, handleChange, errors }) => (
     </div>
 );
 
-
-const ProjectStep3_TimelineTech = ({ formData, handleChange, setFormData, errors }) => {
-    const [techInput, setTechInput] = useState('');
-    const [showSuggestions, setShowSuggestions] = useState(false);
-    const techInputContainerRef = useRef(null);
-
-
-    const handleTechInputChange = (e) => {
-        const value = e.target.value;
-        setTechInput(value);
-        setShowSuggestions(value.length > 0);
-    };
-
-
-    const handleSelectTech = (tech) => {
-        if (!formData.techStack.includes(tech)) {
-            setFormData(prev => ({
-                ...prev,
-                techStack: [...prev.techStack, tech]
-            }));
-        }
-        setTechInput('');
-        setShowSuggestions(false);
-    };
-
-
-    const handleRemoveTech = (techToRemove) => {
-        setFormData(prev => ({
-            ...prev,
-            techStack: prev.techStack.filter(tech => tech !== techToRemove)
-        }));
-    };
-
-
-    const filteredSuggestions = TECHNOLOGIES.filter(
-        tech => !formData.techStack.includes(tech) &&
-            tech.toLowerCase().includes(techInput.toLowerCase())
-    ).slice(0, 7);
-
-
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (techInputContainerRef.current && !techInputContainerRef.current.contains(event.target)) {
-                setShowSuggestions(false);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, []);
-
-
+// MODIFIED: This component is now simplified to only handle the timeline.
+const ProjectStep3_TimelineTech = ({ formData, handleChange, errors }) => {
     return (
         <div className="space-y-6">
             <div className="flex items-center mb-4">
-                <CalendarDays className="h-6 w-6 text-indigo-600 mr-2" />
-                <Cpu className="h-6 w-6 text-indigo-600 mr-3" />
-                <h2 className="text-xl font-semibold text-gray-800">Timeline & Tech</h2>
+                <CalendarDays className="h-6 w-6 text-indigo-600 mr-3" />
+                <h2 className="text-xl font-semibold text-gray-800">Project Timeline</h2>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+             <p className="mt-1 text-sm text-gray-500 -my-2">Define the estimated start and end dates for the project.</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 pt-4">
                 <div>
                     <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-1">
                         Start Date <RequiredAst />
@@ -291,62 +228,11 @@ const ProjectStep3_TimelineTech = ({ formData, handleChange, setFormData, errors
                     {errors.endDate && <p className="mt-1 text-sm text-red-600">{errors.endDate}</p>}
                 </div>
             </div>
-            <div ref={techInputContainerRef}>
-                <label htmlFor="techStackInput" className="block text-sm font-medium text-gray-700 mb-1">
-                    Technology Stack 
-                </label>
-                {formData.techStack.length > 0 && (
-                    <div className="mb-2 flex flex-wrap gap-2 p-2 border border-gray-200 rounded-md bg-gray-50">
-                        {formData.techStack.map(tech => (
-                            <span
-                                key={tech}
-                                className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800"
-                            >
-                                {tech}
-                                <button
-                                    type="button"
-                                    onClick={() => handleRemoveTech(tech)}
-                                    className="ml-1.5 flex-shrink-0 text-indigo-500 hover:text-indigo-700 focus:outline-none"
-                                    aria-label={`Remove ${tech}`}
-                                >
-                                    <X size={14} />
-                                </button>
-                            </span>
-                        ))}
-                    </div>
-                )}
-                <div className="relative">
-                    <input
-                        type="text"
-                        id="techStackInput"
-                        value={techInput}
-                        onChange={handleTechInputChange}
-                        onFocus={() => techInput.length > 0 && setShowSuggestions(true)}
-                        placeholder="Type to search technologies..."
-                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                        autoComplete="off"
-                    />
-                    {showSuggestions && filteredSuggestions.length > 0 && (
-                        <ul className="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg mt-1 max-h-60 overflow-auto">
-                            {filteredSuggestions.map(tech => (
-                                <li
-                                    key={tech}
-                                    onClick={() => handleSelectTech(tech)}
-                                    className="px-3 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 cursor-pointer"
-                                >
-                                    {tech}
-                                </li>
-                            ))}
-                        </ul>
-                    )}
-                </div>
-                <p className="mt-1 text-xs text-gray-500">Select the technologies you plan to use. Type to search and click to add.</p>
-            </div>
         </div>
     );
 };
 
-
+// MODIFIED: This component now handles tech stack per member.
 const ProjectStep4_TeamInfo = ({ formData, setFormData, errors }) => {
     const handleProjectTypeChange = (e) => {
         const newType = e.target.value;
@@ -355,16 +241,15 @@ const ProjectStep4_TeamInfo = ({ formData, setFormData, errors }) => {
             if (newType === 'Individual') {
                 newTeamMembers = newTeamMembers.length > 0
                     ? [{ ...newTeamMembers[0] }]
-                    : [{ name: '', rollNumber: '', department: 'Select Department' }];
+                    : [{ name: '', rollNumber: '', department: 'Select Department', techStack: [] }];
             } else if (newType === 'Team') {
                 if (newTeamMembers.length === 0) {
-                    newTeamMembers = [{ name: '', rollNumber: '', department: 'Select Department' }];
+                    newTeamMembers = [{ name: '', rollNumber: '', department: 'Select Department', techStack: [] }];
                 }
             }
             return { ...prev, projectType: newType, teamMembers: newTeamMembers };
         });
     };
-
 
     const handleTeamMemberChange = (index, field, value) => {
         setFormData(prev => {
@@ -374,16 +259,22 @@ const ProjectStep4_TeamInfo = ({ formData, setFormData, errors }) => {
         });
     };
 
+    const handleMemberTechStackChange = (index, newTechStack) => {
+        setFormData(prev => {
+            const newTeamMembers = [...prev.teamMembers];
+            newTeamMembers[index] = { ...newTeamMembers[index], techStack: newTechStack };
+            return { ...prev, teamMembers: newTeamMembers };
+        });
+    };
 
     const addTeamMember = () => {
         if (formData.teamMembers.length < MAX_TEAM_MEMBERS) {
             setFormData(prev => ({
                 ...prev,
-                teamMembers: [...prev.teamMembers, { name: '', rollNumber: '', department: 'Select Department' }]
+                teamMembers: [...prev.teamMembers, { name: '', rollNumber: '', department: 'Select Department', techStack: [] }]
             }));
         }
     };
-
 
     const removeTeamMember = (index) => {
         if (formData.projectType === 'Team' && formData.teamMembers.length > MIN_TEAM_MEMBERS) {
@@ -396,15 +287,13 @@ const ProjectStep4_TeamInfo = ({ formData, setFormData, errors }) => {
         }
     };
 
-
     const canAddMember = formData.projectType === 'Team' && formData.teamMembers.length < MAX_TEAM_MEMBERS;
-
 
     return (
         <div className="space-y-6">
             <div className="flex items-center mb-4">
                 <Users className="h-6 w-6 text-indigo-600 mr-3" />
-                <h2 className="text-xl font-semibold text-gray-800">Team Info</h2>
+                <h2 className="text-xl font-semibold text-gray-800">Team Info & Skills</h2>
             </div>
             <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Individual or Team Project?<RequiredAst /></label>
@@ -441,57 +330,62 @@ const ProjectStep4_TeamInfo = ({ formData, setFormData, errors }) => {
                 )}
                 <p className="mb-3 text-xs text-gray-500">
                     {formData.projectType === 'Individual'
-                        ? "You have selected an Individual project. Specific member details are not required in this section."
-                        : `For Team projects, add between ${MIN_TEAM_MEMBERS} and ${MAX_TEAM_MEMBERS} members (including yourself if applicable).`}
+                        ? "You have selected an Individual project. Please fill out your details below."
+                        : `For Team projects, add between ${MIN_TEAM_MEMBERS} and ${MAX_TEAM_MEMBERS} members and their respective skills.`}
                 </p>
-                {formData.projectType === 'Team' && (
-                    <div className="space-y-4">
-                        {formData.teamMembers.map((member, index) => (
-                            <div key={index} className="p-3 md:p-4 border border-gray-200 rounded-md shadow-sm bg-gray-50 relative">
-                                <h4 className="text-sm font-semibold text-gray-800 mb-3">Member {index + 1}</h4>
-                                {formData.teamMembers.length > MIN_TEAM_MEMBERS && (
-                                    <button
-                                        type="button"
-                                        onClick={() => removeTeamMember(index)}
-                                        className="absolute top-3 right-3 text-red-500 hover:text-red-700"
-                                        aria-label="Remove member"
-                                    >
-                                        <Trash2 size={18} />
-                                    </button>
-                                )}
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
-                                    <div>
-                                        <label htmlFor={`memberName_${index}`} className="block text-xs font-medium text-gray-600 mb-0.5">Full Name</label>
-                                        <input type="text" id={`memberName_${index}`} value={member.name} onChange={e => handleTeamMemberChange(index, 'name', e.target.value)} placeholder="Full Name" className={`mt-0.5 block w-full px-2.5 py-1.5 border ${errors[`teamMemberName_${index}`] ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm sm:text-sm focus:ring-indigo-500 focus:border-indigo-500`} />
-                                        {errors[`teamMemberName_${index}`] && <p className="mt-0.5 text-xs text-red-600">{errors[`teamMemberName_${index}`]}</p>}
-                                    </div>
-                                    <div>
-                                        <label htmlFor={`memberRoll_${index}`} className="block text-xs font-medium text-gray-600 mb-0.5">Roll Number</label>
-                                        <input type="text" id={`memberRoll_${index}`} value={member.rollNumber} onChange={e => handleTeamMemberChange(index, 'rollNumber', e.target.value)} placeholder="Roll Number" className={`mt-0.5 block w-full px-2.5 py-1.5 border ${errors[`teamMemberRoll_${index}`] ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm sm:text-sm focus:ring-indigo-500 focus:border-indigo-500`} />
-                                        {errors[`teamMemberRoll_${index}`] && <p className="mt-0.5 text-xs text-red-600">{errors[`teamMemberRoll_${index}`]}</p>}
-                                    </div>
-                                    <div>
-                                        <label htmlFor={`memberDept_${index}`} className="block text-xs font-medium text-gray-600 mb-0.5">Department</label>
-                                        <select id={`memberDept_${index}`} value={member.department} onChange={e => handleTeamMemberChange(index, 'department', e.target.value)} className={`mt-0.5 block w-full px-2.5 py-1.5 border ${errors[`teamMemberDept_${index}`] ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm sm:text-sm focus:ring-indigo-500 focus:border-indigo-500`}>
-                                            {DEPARTMENTS.map(dept => <option key={dept} value={dept} disabled={dept === 'Select Department'}>{dept}</option>)}
-                                        </select>
-                                        {errors[`teamMemberDept_${index}`] && <p className="mt-0.5 text-xs text-red-600">{errors[`teamMemberDept_${index}`]}</p>}
-                                    </div>
+
+                <div className="space-y-4">
+                    {formData.teamMembers.map((member, index) => (
+                        <div key={index} className="p-3 md:p-4 border border-gray-200 rounded-md shadow-sm bg-gray-50 relative">
+                            <h4 className="text-sm font-semibold text-gray-800 mb-3">
+                                {formData.projectType === 'Individual' ? 'Participant Details & Skills' : `Member ${index + 1}`}
+                            </h4>
+                            {formData.projectType === 'Team' && formData.teamMembers.length > MIN_TEAM_MEMBERS && (
+                                <button
+                                    type="button"
+                                    onClick={() => removeTeamMember(index)}
+                                    className="absolute top-3 right-3 text-red-500 hover:text-red-700"
+                                    aria-label="Remove member"
+                                >
+                                    <Trash2 size={18} />
+                                </button>
+                            )}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
+                                <div>
+                                    <label htmlFor={`memberName_${index}`} className="block text-xs font-medium text-gray-600 mb-0.5">Full Name</label>
+                                    <input type="text" id={`memberName_${index}`} value={member.name} onChange={e => handleTeamMemberChange(index, 'name', e.target.value)} placeholder="Full Name" className={`mt-0.5 block w-full px-2.5 py-1.5 border ${errors[`teamMemberName_${index}`] ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm sm:text-sm focus:ring-indigo-500 focus:border-indigo-500`} />
+                                    {errors[`teamMemberName_${index}`] && <p className="mt-0.5 text-xs text-red-600">{errors[`teamMemberName_${index}`]}</p>}
                                 </div>
+                                <div>
+                                    <label htmlFor={`memberRoll_${index}`} className="block text-xs font-medium text-gray-600 mb-0.5">Roll Number</label>
+                                    <input type="text" id={`memberRoll_${index}`} value={member.rollNumber} onChange={e => handleTeamMemberChange(index, 'rollNumber', e.target.value)} placeholder="Roll Number" className={`mt-0.5 block w-full px-2.5 py-1.5 border ${errors[`teamMemberRoll_${index}`] ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm sm:text-sm focus:ring-indigo-500 focus:border-indigo-500`} />
+                                    {errors[`teamMemberRoll_${index}`] && <p className="mt-0.5 text-xs text-red-600">{errors[`teamMemberRoll_${index}`]}</p>}
+                                </div>
+                                <div>
+                                    <label htmlFor={`memberDept_${index}`} className="block text-xs font-medium text-gray-600 mb-0.5">Department</label>
+                                    <select id={`memberDept_${index}`} value={member.department} onChange={e => handleTeamMemberChange(index, 'department', e.target.value)} className={`mt-0.5 block w-full px-2.5 py-1.5 border ${errors[`teamMemberDept_${index}`] ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm sm:text-sm focus:ring-indigo-500 focus:border-indigo-500`}>
+                                        {DEPARTMENTS.map(dept => <option key={dept} value={dept} disabled={dept === 'Select Department'}>{dept}</option>)}
+                                    </select>
+                                    {errors[`teamMemberDept_${index}`] && <p className="mt-0.5 text-xs text-red-600">{errors[`teamMemberDept_${index}`]}</p>}
+                                </div>
+                                <MemberTechStackInput
+                                    memberIndex={index}
+                                    techStack={member.techStack || []}
+                                    onTechStackChange={handleMemberTechStackChange}
+                                    allTechOptions={TECHNOLOGIES}
+                                />
                             </div>
-                        ))}
-                    </div>
-                )}
+                        </div>
+                    ))}
+                </div>
             </div>
         </div>
     );
 };
 
-
 const ProjectStep5_SupportingInfo = ({ formData, handleChange, setFormData, errors, setErrors: setGlobalErrors }) => {
     const [demoVideoDragActive, setDemoVideoDragActive] = useState(false);
     const [reportPdfDragActive, setReportPdfDragActive] = useState(false);
-
 
     const handleFileSelectOrDrop = (file, fieldName) => {
         if (file) {
@@ -504,12 +398,10 @@ const ProjectStep5_SupportingInfo = ({ formData, handleChange, setFormData, erro
         }
     };
 
-
     const handleGenericFileChange = (e, fieldName) => {
         handleFileSelectOrDrop(e.target.files?.[0], fieldName);
         if (e.target) e.target.value = null;
     };
-
 
     const handleGenericDrag = (e, setActive) => {
         e.preventDefault();
@@ -521,7 +413,6 @@ const ProjectStep5_SupportingInfo = ({ formData, handleChange, setFormData, erro
         }
     };
 
-
     const handleGenericDrop = (e, fieldName, setActive) => {
         e.preventDefault();
         e.stopPropagation();
@@ -531,11 +422,9 @@ const ProjectStep5_SupportingInfo = ({ formData, handleChange, setFormData, erro
         }
     };
 
-
     const clearFile = (fieldName) => {
         setFormData(prev => ({ ...prev, [fieldName]: null }));
     };
-
 
     return (
         <div className="space-y-6">
@@ -708,7 +597,7 @@ const ProjectStep5_SupportingInfo = ({ formData, handleChange, setFormData, erro
     );
 };
 
-
+// MODIFIED: Review step now shows tech stack for each team member.
 const ProjectStep6_Review = ({ formData }) => {
     const DetailItem = ({ label, value, isBoolean = false, isFile = false }) => (
         <div>
@@ -720,7 +609,6 @@ const ProjectStep6_Review = ({ formData }) => {
             </p>
         </div>
     );
-
 
     return (
         <div className="space-y-8">
@@ -750,33 +638,30 @@ const ProjectStep6_Review = ({ formData }) => {
             </section>
             <section>
                 <h3 className="text-lg font-semibold text-gray-700 mb-3 pb-2 border-b border-gray-200 flex items-center">
-                    <CalendarDays size={20} className="mr-2 text-indigo-500" /> Timeline & Tech
+                    <CalendarDays size={20} className="mr-2 text-indigo-500" /> Timeline
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
                     <DetailItem label="Start Date" value={formData.startDate ? new Date(formData.startDate + 'T00:00:00').toLocaleDateString() : 'N/A'} />
                     <DetailItem label="End Date" value={formData.endDate ? new Date(formData.endDate + 'T00:00:00').toLocaleDateString() : 'N/A'} />
-                    <div className="md:col-span-2">
-                        <DetailItem label="Technology Stack" value={formData.techStack.length > 0 ? formData.techStack.join(', ') : 'N/A'} />
-                    </div>
                 </div>
             </section>
             <section>
                 <h3 className="text-lg font-semibold text-gray-700 mb-3 pb-2 border-b border-gray-200 flex items-center">
-                    <Users size={20} className="mr-2 text-indigo-500" /> Team Info
+                    <Users size={20} className="mr-2 text-indigo-500" /> Team Info & Skills
                 </h3>
                 <DetailItem label="Project Type" value={formData.projectType} />
-                {formData.projectType === 'Individual' && formData.teamMembers.length > 0 && (
-                    <p className="text-sm text-gray-500 mt-2">This is an individual project. Member details below reflect the sole participant (if any details were entered or preserved).</p>
-                )}
                 {formData.teamMembers.map((member, index) => (
                     <div key={index} className="mt-3 pt-3 border-t border-gray-100 first:border-t-0 first:pt-0">
                         <p className="text-sm font-medium text-gray-700 mb-1.5">
                             {formData.projectType === 'Individual' ? 'Participant Details' : `Member ${index + 1}:`}
                         </p>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-2 pl-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 pl-4">
                             <DetailItem label="Name" value={member.name} />
                             <DetailItem label="Roll Number" value={member.rollNumber} />
                             <DetailItem label="Department" value={member.department !== 'Select Department' ? member.department : 'N/A'} />
+                            <div className="md:col-span-2">
+                                <DetailItem label="Technology Stack" value={(member.techStack && member.techStack.length > 0) ? member.techStack.join(', ') : 'N/A'} />
+                            </div>
                         </div>
                     </div>
                 ))}
@@ -807,12 +692,11 @@ const ProjectStep6_Review = ({ formData }) => {
 const STEP_CONFIG = [
     { title: 'Overview', validate: validateStep1, icon: FileText },
     { title: 'Problem & Objective', validate: validateStep2, icon: Target },
-    { title: 'Timeline & Tech', validate: validateStep3, icon: CalendarDays },
     { title: 'Team Info', validate: validateStep4, icon: Users },
+    { title: 'Timeline', validate: validateStep3, icon: CalendarDays },
     { title: 'Supporting Info', validate: validateStep5, icon: Paperclip },
     { title: 'Review', icon: Info },
 ];
-
 
 const Project = ({ onBack, initialData = {} }) => {
     const [currentStep, setCurrentStep] = useState(0);
@@ -820,10 +704,7 @@ const Project = ({ onBack, initialData = {} }) => {
     const [submitSuccess, setSubmitSuccess] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-
-    // CORRECT: Call the hook inside the component and destructure the needed value.
     const { rollno } = useAuth();
-
 
     const [formData, setFormData] = useState({
         projectTitle: initialData.projectTitle || '',
@@ -832,11 +713,10 @@ const Project = ({ onBack, initialData = {} }) => {
         projectObjective: initialData.projectObjective || '',
         startDate: initialData.startDate || '',
         endDate: initialData.endDate || '',
-        techStack: initialData.techStack || [],
         projectType: initialData.projectType || 'Individual',
         teamMembers: initialData.teamMembers && initialData.teamMembers.length > 0
-            ? initialData.teamMembers
-            : [{ name: '', rollNumber: '', department: 'Select Department' }],
+            ? initialData.teamMembers.map(m => ({ ...m, techStack: m.techStack || [] }))
+            : [{ name: '', rollNumber: '', department: 'Select Department', techStack: [] }],
         consultedMentor: initialData.consultedMentor ?? false,
         githubLink: initialData.githubLink || '',
         reportPdfFile: initialData.reportPdfFile || null,
@@ -852,9 +732,9 @@ const Project = ({ onBack, initialData = {} }) => {
             let newTeamMembers = [...prev.teamMembers];
             if (prev.projectType === 'Individual') {
                 if (newTeamMembers.length > 1) newTeamMembers = [{ ...newTeamMembers[0] }];
-                else if (newTeamMembers.length === 0) newTeamMembers = [{ name: '', rollNumber: '', department: 'Select Department' }];
+                else if (newTeamMembers.length === 0) newTeamMembers = [{ name: '', rollNumber: '', department: 'Select Department', techStack: [] }];
             } else if (prev.projectType === 'Team') {
-                if (newTeamMembers.length === 0) newTeamMembers = [{ name: '', rollNumber: '', department: 'Select Department' }];
+                if (newTeamMembers.length === 0) newTeamMembers = [{ name: '', rollNumber: '', department: 'Select Department', techStack: [] }];
             }
             return {
                 ...prev,
@@ -875,7 +755,6 @@ const Project = ({ onBack, initialData = {} }) => {
             return newErrors;
         });
 
-
         let processedValue = value;
         if (type === 'radio') {
             if (value === 'true') processedValue = true;
@@ -883,7 +762,6 @@ const Project = ({ onBack, initialData = {} }) => {
         } else if (type === 'checkbox') {
             processedValue = checked;
         }
-
 
         setFormData(prev => ({ ...prev, [name]: processedValue }));
     }, []);
@@ -919,18 +797,15 @@ const Project = ({ onBack, initialData = {} }) => {
         setIsSubmitting(true);
         setErrors({});
 
-
         if (currentStep !== STEP_CONFIG.length - 1) {
             if (DEBUG_MODE) console.log("Attempted submit from non-review step. Current step:", currentStep);
             setIsSubmitting(false);
             return;
         }
 
-
         let allValid = true;
         let firstErrorStep = -1;
         let combinedErrors = {};
-
 
         for (let i = 0; i < STEP_CONFIG.length - 1; i++) {
             if (STEP_CONFIG[i].validate) {
@@ -943,7 +818,6 @@ const Project = ({ onBack, initialData = {} }) => {
             }
         }
 
-
         if (!allValid) {
             setErrors(combinedErrors);
             if (firstErrorStep !== -1) setCurrentStep(firstErrorStep);
@@ -952,18 +826,14 @@ const Project = ({ onBack, initialData = {} }) => {
             return;
         }
 
-
         const payload = new FormData();
 
-
-        // CORRECT: Use the variable from the hook call inside the component.
         payload.append('submitter_roll_no', rollno || '');
         payload.append('title_idea', formData.projectTitle.trim());
         payload.append('problem_statement', formData.problemStatement.trim());
         payload.append('objective', formData.projectObjective.trim());
         payload.append('start_time', formData.startDate);
         payload.append('end_time', formData.endDate);
-        payload.append('tech_stack', JSON.stringify(formData.techStack));
         payload.append('is_team_project', formData.projectType === 'Team' ? 'true' : 'false');
         payload.append('team_members', JSON.stringify(formData.teamMembers));
         payload.append('consulted_mentor', formData.consultedMentor ? 'true' : 'false');
@@ -973,7 +843,6 @@ const Project = ({ onBack, initialData = {} }) => {
         payload.append('changes_from_idea', formData.changesFromIdea.trim());
         payload.append('project_abstract', formData.projectAbstract.trim());
 
-
         if (formData.reportPdfFile instanceof File) {
             payload.append('report_pdf', formData.reportPdfFile, formData.reportPdfFile.name);
         }
@@ -981,14 +850,12 @@ const Project = ({ onBack, initialData = {} }) => {
             payload.append('demo_video', formData.demoVideoFile, formData.demoVideoFile.name);
         }
 
-
         if (DEBUG_MODE) {
             console.log('[DEBUG] Submitting payload (snake_case):');
             for (let [key, value] of payload.entries()) {
                 console.log(key, value instanceof File ? `${value.name} (File)` : value);
             }
         }
-
 
         try {
             const response = await axios.post('http://localhost:6001/api/projects', payload, {
@@ -1022,9 +889,9 @@ const Project = ({ onBack, initialData = {} }) => {
     const resetForm = () => {
         setFormData({
             projectTitle: '', projectAbstract: '', problemStatement: '', projectObjective: '',
-            startDate: '', endDate: '', techStack: [],
+            startDate: '', endDate: '',
             projectType: 'Individual',
-            teamMembers: [{ name: '', rollNumber: '', department: 'Select Department' }],
+            teamMembers: [{ name: '', rollNumber: '', department: 'Select Department', techStack: [] }],
             consultedMentor: false,
             githubLink: '',
             reportPdfFile: null,
@@ -1043,8 +910,8 @@ const Project = ({ onBack, initialData = {} }) => {
         switch (currentStep) {
             case 0: return <ProjectStep1_Overview formData={formData} handleChange={handleChange} errors={errors} />;
             case 1: return <ProjectStep2_ProblemObjective formData={formData} handleChange={handleChange} errors={errors} />;
-            case 2: return <ProjectStep3_TimelineTech formData={formData} handleChange={handleChange} setFormData={setFormData} errors={errors} />;
-            case 3: return <ProjectStep4_TeamInfo formData={formData} setFormData={setFormData} errors={errors} />;
+            case 2: return <ProjectStep4_TeamInfo formData={formData} setFormData={setFormData} errors={errors} />;
+            case 3: return <ProjectStep3_TimelineTech formData={formData} handleChange={handleChange} setFormData={setFormData} errors={errors} />;
             case 4: return <ProjectStep5_SupportingInfo formData={formData} handleChange={handleChange} setFormData={setFormData} errors={errors} setErrors={setErrors} />;
             case 5: return <ProjectStep6_Review formData={formData} />;
             default: return null;
@@ -1195,6 +1062,5 @@ const Project = ({ onBack, initialData = {} }) => {
         </div>
     );
 };
-
 
 export default Project;

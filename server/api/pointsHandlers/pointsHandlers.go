@@ -9,25 +9,13 @@ import (
 	"log"
 	"math"
 	"net/http"
-)
-
-func HandlePointlogs(c *gin.Context) { //This is for all other than ps
-	var data models.Points_Logs
-	if err := c.ShouldBindJSON(&data); err != nil {
-		c.JSON(500, err.Error())
-		return
-	}
-	rollno := data.RollNo
-	source := data.Source
-	points := data.Points
-	desc := data.Description
-	sem := data.Sem
-	currdate := data.Currdate
+) 
+//Main function for points if points is come by his activity
+func HandlePointlogs(rollno ,source string ,points int ,desc string,sem int,currdate string) error  { //This is for all other than ps 
 	var newpoints float64
 	rank, rankerr := activitygraph.FetchDataRank(rollno)
 	if rankerr != nil {
-		c.JSON(500, rankerr.Error())
-		return
+		return	rankerr
 	}
 	if source == "PS" {
 		// HandlePs(rollno)
@@ -61,22 +49,21 @@ func HandlePointlogs(c *gin.Context) { //This is for all other than ps
 	newpoints = math.Round(newpoints*100) / 100
 	stmp, reqerr := config.DB.Prepare("INSERT INTO points_logs(rollno,source,points,description,sem,currdate) values (?,?,?,?,?,?)")
 	if reqerr != nil {
-		c.JSON(500, reqerr.Error())
-		return
+		return reqerr
 	}
 	_, execErr := stmp.Exec(rollno, source, newpoints, desc, sem, currdate)
-
 	if execErr != nil {
-		c.JSON(500, execErr.Error())
+		return execErr
 	}
-	// this every thing i need to do in cron jobs
-	activitygraph.HandleActivityGraphPoints(rollno, sem, currdate)
 	if points > 0 {
-		achievementgraph.HandlePointlogs2(rollno, newpoints, sem, currdate)
+		achievementgraph.HandlePointlogs2(rollno, newpoints, sem, currdate) //to calculate the achievement points
+	}	
+	return nil
 	}
-	// achievementgraph.FetchLastPoints(rollno)
-	// achievementgraph.HandleAcheivemnetPoints(rollno, currdate, sem)
-}
+
+
+
+	
 func HandlePs(c *gin.Context) { //if attempted itself
 	var data models.Ps
 	if err := c.ShouldBindJSON(&data); err != nil {
@@ -84,7 +71,7 @@ func HandlePs(c *gin.Context) { //if attempted itself
 		return
 	}
 	rollno := data.RollNo
-	points := data.Points
+	points := data.Points //rewards points for that level
 	domain := data.SkillDomain
 	skillname := data.SkillName
 	skilllevel := data.SkillLevel
@@ -120,12 +107,12 @@ func HandlePs(c *gin.Context) { //if attempted itself
 			newpoints = -0.5
 		}
 	default:
-		if points > 0 {
+		if points > 0 {   //Silver
 			newpoints = float64(points) * 2 / 300.0
-		} else if points == 0 {
+		} else if points == 0 {   //Fail in that level
 			newpoints = 0
 		} else {
-			newpoints = -0.5
+			newpoints = -0.5 //Attempted but not went
 		}
 	}
 	newpoints = math.Round(newpoints*100) / 100
@@ -268,7 +255,7 @@ func HandleFetchPsAttempts(c *gin.Context){
 		records = append(records, r)
 	}
 	c.JSON(http.StatusAccepted, records)
-}
+}                                       
 func HandleFetchPsLevels(c *gin.Context) {
 	var records []models.PsLevels
 	// var r models.PsLevels

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import useAuth from '../../store/UseAuth';
 import { Award, Briefcase, ShieldCheck } from 'lucide-react';
 
-// The SubSection helper remains the same
+// The SubSection helper component remains the same
 const SubSection = ({ title, icon, children }) => (
   <div className="break-inside-avoid">
     <div className="flex items-center gap-2 mb-1.5">
@@ -15,31 +15,19 @@ const SubSection = ({ title, icon, children }) => (
   </div>
 );
 
-// --- DUMMY DATA ---
-// This data will be used as a fallback if the API fetch fails.
-const DUMMY_INTERNSHIPS = [
-  { name: "Tech Solutions Inc. - Software Engineer Intern" },
-  { name: "Innovate AI - Machine Learning Fellow" },
-];
-const DUMMY_CERTIFICATIONS = [
-  { title: "Certified Cloud Practitioner" },
-  { title: "React Professional Developer" },
-  { title: "Advanced Python for Data Science" },
-];
-const DUMMY_HACKATHONS = [
-  { title: "InnovateFest 2024 - 1st Place" },
-  { title: "Code for Change - Finalist" },
-];
-
 
 const AccomplishmentsForResume = () => {
   const { rollno } = useAuth();
   const API_URL = "http://localhost:6001";
   
+  // State for each data type
   const [internships, setInternships] = useState([]);
   const [certifications, setCertifications] = useState([]);
   const [hackathons, setHackathons] = useState([]);
+  
+  // States for loading and error handling
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     if (!rollno) {
@@ -47,39 +35,76 @@ const AccomplishmentsForResume = () => {
       return;
     }
 
-    // This function now accepts dummyData as a third argument for fallback purposes.
-    const fetchData = async (endpoint, setter, dummyData) => {
+    const fetchAccomplishments = async () => {
+      setIsLoading(true);
+      setError(null);
+
       try {
-        const response = await fetch(`${API_URL}/api/resume/${endpoint}/${rollno}`);
-        // If the response is OK, use the real data from the API.
-        // If the response is not OK (e.g., a 404 error), it means the user has no data, so we set an empty array.
-        setter(response.ok ? (await response.json()) : []);
-      } catch (error) {
-        // **FALLBACK LOGIC**: If the fetch itself fails (e.g., network error),
-        // we log the error and use the provided dummy data.
-        console.error(`API fetch error for ${endpoint}. Using dummy data as a fallback.`, error);
-        setter(dummyData);
+        // Define endpoints based on your Go backend routes
+        const endpoints = {
+          internships: `getinternshipdata`,
+          certificates: `getcertificates`,
+          hackathons: `gethackathondata`,
+        };
+        
+        // Create an array of fetch promises to run in parallel
+        const responses = await Promise.all([
+          fetch(`${API_URL}/api/resume/${endpoints.internships}/${rollno}` , {
+            credentials: 'include',
+          }),
+          fetch(`${API_URL}/api/resume/${endpoints.certificates}/${rollno}` , {
+            credentials:'include'
+          }),
+          fetch(`${API_URL}/api/resume/${endpoints.hackathons}/${rollno}` , {
+            credentials:'include'
+          }),
+        ]);
+
+        // Check if any of the network responses are not ok
+        for (const response of responses) {
+          if (!response.ok) {
+            throw new Error(`Failed to fetch data. Status: ${response.status}`);
+          }
+        }
+        
+        // Parse the JSON from each response
+        const [internshipData, certificateData, hackathonData] = await Promise.all(
+          responses.map(res => res.json())
+        );
+        
+        // Set the state with the fetched data
+        setInternships(internshipData || []);
+        setCertifications(certificateData || []);
+        setHackathons(hackathonData || []);
+
+      } catch (err) {
+        console.error("Error fetching accomplishments data:", err);
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    // We pass the dummy data arrays when calling fetchData for each section.
-    Promise.all([
-      fetchData('getinternships', setInternships, DUMMY_INTERNSHIPS),
-      fetchData('getcertificates', setCertifications, DUMMY_CERTIFICATIONS),
-      fetchData('gethackathons', setHackathons, DUMMY_HACKATHONS),
-    ]).finally(() => setIsLoading(false));
+    fetchAccomplishments();
+  }, [rollno]); // API_URL is a constant, so it's not needed in the dependency array
 
-  }, [rollno, API_URL]);
+  // Render loading state
+  if (isLoading) {
+    return <div className="text-xs text-gray-500">Loading accomplishments...</div>;
+  }
+  
+  // Render error state
+  if (error) {
+    return <div className="text-xs text-red-500">Error: {error}</div>;
+  }
 
-  // The rest of the component logic remains the same.
-  // It will now render with real data if available, or dummy data on error.
-
+  // Build an array of sections that have data
   const accomplishmentSections = [];
 
   if (internships.length > 0) {
     accomplishmentSections.push(
       <SubSection key="internships" title="Internship Experience" icon={<Briefcase className="h-4 w-4 text-blue-800" />}>
-        {internships.map((item, index) => <li key={index}>{item.name}</li>)}
+        {internships.map((item, index) => <li key={index}>{item.company_name}</li>)}
       </SubSection>
     );
   }
@@ -98,20 +123,19 @@ const AccomplishmentsForResume = () => {
     );
   }
 
-  if (isLoading) {
-    return <div className="text-xs text-gray-500">Loading accomplishments...</div>;
-  }
-  
+  // Render a message if no data is available after loading
   if (accomplishmentSections.length === 0) {
     return <div className="text-xs text-gray-500">No accomplishments data available.</div>;
   }
 
+  // Render a single section without the grid layout if only one has data
   if (accomplishmentSections.length === 1) {
     return accomplishmentSections[0];
   }
-
+  
+  // Render all available sections in a grid
   return (
-    <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+    <div className="grid grid-cols-3 gap-x-6 gap-y-4">
       {accomplishmentSections.map((section) => section)}
     </div>
   );

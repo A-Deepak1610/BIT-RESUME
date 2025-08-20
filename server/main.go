@@ -28,7 +28,8 @@ func main() {
 	r.Use(cors.New(corsConfig))
 	routes.RegisterRoutes(r)
 	c := cron.New(cron.WithSeconds())
-	_, errCron := c.AddFunc("0 41 9 * * *", jobs.DailyTask)
+	_, errCron := c.AddFunc("0 37 11 * * *", jobs.CallDailyTasksForAllDates)
+	// Schedule the job to run every day at 11:50 AM(seconds minute hour dayOfMonth month dayOfWeek)		
 	if errCron != nil {
 		panic("Failed to schedule cron job: " + errCron.Error())
 	}

@@ -35,7 +35,7 @@ func RegisterRoutes(r *gin.Engine) {
 	authGroup.GET("/logout", auth.Logout)
 	studentOnly.Use(middleware.AuthorizeRoles("student"))
 	{
-		studentOnly.POST("/points_logs/", pointshandlers.HandlePointlogs)
+		// studentOnly.POST("/points_logs/", pointshandlers.HandlePointlogs)
 		studentOnly.POST("/points_logs/ps/attempts", pointshandlers.HandlePs)
 		studentOnly.POST("/points_logs/ps/levels", pointshandlers.HandlePsLevelStatus)
 		// studentOnly.GET("/activity_graph/fetchData/:rollno", activitygraph.FetchActivityGraphData)
@@ -66,6 +66,8 @@ func RegisterRoutes(r *gin.Engine) {
 		studentOnly.GET("/activitymaster/getsurveydata/:rollno",activitymaster.GetSurveys)
 		studentOnly.GET("/activitymaster/getsessiondata/:rollno",activitymaster.GetSessionsByRollNo)
 		studentOnly.GET("/uploadview/getuploaddetails/:rollno",dashboard.UploadViewDashboard)
+		studentOnly.GET("/resume/gethackathondata/:rollno", resume.GetHackathonData)
+		studentOnly.GET("/resume/getinternshipdata/:rollno", resume.GetInternshipData)
 	}
 	facultyOnly := r.Group("/api")
 	facultyOnly.Use(middleware.AuthorizeRoles("faculty"))
@@ -82,7 +84,7 @@ func RegisterRoutes(r *gin.Engine) {
 		facultyOnly.GET("/studentdata/fetchmentees/:rollno", studentdata.HandleMenteesData)
 		facultyOnly.POST("/studentrequests/varifications",studentrequests.PostVarification)
 		
-	}
+	}	
 	adminOnly := r.Group("/api")
 	adminOnly.Use(middleware.AuthorizeRoles("Admin"))
 	{
@@ -100,5 +102,6 @@ func RegisterRoutes(r *gin.Engine) {
 	r.GET("/api/mentor/details/:rollno", pointshandlers.FetchMentorSkillStats)
 	r.GET("/api/mentor/institute_avg/fetchData", pointshandlers.FetchSkillWiseAvgMentees)
 	r.GET("/api/sem_wise_totaldays", pointshandlers.HandleSemDays)
-
+	r.GET("/api/handlesem",pointshandlers.HandleSem)
+	r.PUT("/api/updatesem", pointshandlers.HandleUpdateSem) 
 }

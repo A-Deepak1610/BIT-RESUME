@@ -95,7 +95,6 @@ func HandleActivityGraphPoints(rollno string, sem int, currdate string) {
 		log.Printf("Failed to fetch previous points for %s: %v", rollno, err)
 		return
 	}
-
 	var newpoints float64
 	var rank string
 	newpoints = float64(prevPoints.Current_point) + float64(r.Current_point)
@@ -135,7 +134,7 @@ func HandleInactivity(rollno string, currDate string, sem int) error {
     err := config.DB.QueryRow(query, rollno, currDate).Scan(&count)
     if err != nil {
         return fmt.Errorf("query error: %w", err)
-    }
+    }              
 	fmt.Print("Count: ", count)
     if count == 0 {
         rank, rankerr := FetchDataRank(rollno)

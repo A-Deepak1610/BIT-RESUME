@@ -10,7 +10,7 @@ func GetProjects() ([]facultymodel.Varification, error) {
 	var projects []facultymodel.Varification
 
 	query := `
-		SELECT 
+	SELECT
     p.id,
     p.upload_type,
     p.title_idea,
@@ -34,13 +34,13 @@ func GetProjects() ([]facultymodel.Varification, error) {
     GROUP_CONCAT(DISTINCT pts.tech_name ORDER BY pts.tech_name SEPARATOR ', ') AS tech_names,
     l.user_name
 FROM projects AS p
-INNER JOIN login AS l ON p.rollno = l.rollno
-INNER JOIN project_evaluation AS pe ON pe.project_id = p.id
-INNER JOIN project_files AS pf ON pf.project_id = p.id
-INNER JOIN project_presentations AS pp ON pp.project_id = p.id
-INNER JOIN project_team_members AS ptm ON ptm.project_id = p.id
-INNER JOIN project_tech_stack AS pts ON pts.project_id = p.id
-GROUP BY 
+LEFT JOIN login AS l ON p.rollno = l.rollno
+LEFT JOIN project_evaluation AS pe ON pe.project_id = p.id
+LEFT JOIN project_files AS pf ON pf.project_id = p.id
+LEFT JOIN project_presentations AS pp ON pp.project_id = p.id
+LEFT JOIN project_team_members AS ptm ON ptm.project_id = p.id
+LEFT JOIN project_tech_stack AS pts ON pts.project_id = p.id
+GROUP BY
     p.id,
     p.upload_type,
     p.title_idea,

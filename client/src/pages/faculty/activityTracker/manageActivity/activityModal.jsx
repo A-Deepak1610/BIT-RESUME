@@ -139,8 +139,6 @@ export default function CreateActivityModal({ open, handleClose }) {
         formData.append('publishingDepartment', publishingDepartment);
         formData.append('description', description.trim());
         formData.append('linkorlocation', linkorlocation.trim());
-
-
         // --- ✨ REFINED DATA HANDLING LOGIC ---
         if (activity_type === 'Sessions' || activity_type === 'Meeting') {
             // For meetings/sessions, send the single date and the separate times
@@ -150,7 +148,7 @@ export default function CreateActivityModal({ open, handleClose }) {
         } else {
             // For surveys/workshops, send the start and end dates
             formData.append('start_date', start_date);
-            formData.append('end_date', end_date);
+            formData.append('end_date', end_date);   
         }
 
 
