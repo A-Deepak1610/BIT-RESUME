@@ -59,7 +59,7 @@ func HandleMenteesData(c *gin.Context){
 	defer rows.Close()
 	var results []struct {
 		RollNo          string  `json:"rollno"`
-		Year 			int      `json:"year"`
+		Year 			string      `json:"year"`
 		Name            string  `json:"user_name"`
 		CurrentPoint    float32 `json:"current_point"`
 		CurrentRank     string  `json:"current_rank"`
@@ -68,7 +68,7 @@ func HandleMenteesData(c *gin.Context){
 	for rows.Next() {
 		var result struct {
 			RollNo          string  `json:"rollno"`
-			Year 			int      `json:"year"`
+			Year 			string      `json:"year"`
 			Name            string  `json:"user_name"`
 			CurrentPoint    float32 `json:"current_point"`
 			CurrentRank     string  `json:"current_rank"`
