@@ -209,9 +209,7 @@ const validateSpecificDetails = (formData) => {
 
     if (!formData.linkedinLink?.trim()) {
         errors.linkedinLink = 'LinkedIn Post URL is required.';
-    } else if (!/^(https?:\/\/)?(www\.)?linkedin\.com\/in\/[a-zA-Z0-9-]+\/?$/.test(formData.linkedinLink.trim())) {
-        errors.linkedinLink = 'Please enter a valid LinkedIn Post URL (e.g., https://linkedin.com/in/your-name)';
-    }
+    } 
 
 
     switch (formData.certificateType) {

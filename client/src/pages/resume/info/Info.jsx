@@ -23,13 +23,13 @@ export default function Info(props) {
   const Student_rollno=props.rollno||rollno;
   const navigate = useNavigate();
   const SkillSet = [
-    "Python", 
-    "React",  
+    "Java",     
+    "React",        
     "Go",     
-    "Pythrouch",
+    "Mysql",
     "JavaScript",
-    "Node.js",
-    "CSS3",   
+    "Node.js",   
+    "CSS3",       
   ];
   const [open, setOpen] = useState(false);
   const toggleDrawer = (newOpen) => () => {
@@ -114,9 +114,9 @@ export default function Info(props) {
           </div>
           {/* Values */}
           <div className="space-y-2 text-primary font-medium text-sm overflow-hidden">
-            <div className="truncate">+91 6380899737</div>
-            <div className="truncate">email@gmail.com</div>
-            <div className="truncate">github.com/selva</div>
+            <div className="truncate">+91 6380899736</div>
+            <div className="truncate">deepaka.ad24@bitsathy.ac.in</div>
+            <div className="truncate">github.com/A-Deepak1610</div>
             <div className="truncate">linkedin.com</div>
             <div className="truncate">portfolio.com</div>
           </div>

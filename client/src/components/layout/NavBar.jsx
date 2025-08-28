@@ -435,7 +435,7 @@ export default function NavBar() {
         <div className="md:flex flex-col sm:flex hidden items-start justify-center gap-1 cursor-pointer">
           <p className="font-semibold text-[17px] leading-none">{user?.name || "User"}</p>
           <p className="text-xs text-gray-600 leading-none font-medium">
-            {user?.id || "User ID"}
+            {user?.id || "7376242AD136"}
           </p>
         </div>
         <div className="w-9 h-9 bg-white border border-secondary rounded-full overflow-hidden shadow-md cursor-pointer hover:bg-gray-100 transition duration-300">

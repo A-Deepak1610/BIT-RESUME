@@ -5,7 +5,6 @@ import useAuth from "../../store/UseAuth";
 import { useNavigate } from "react-router-dom";
 export default function Login() {
   const { fetchUser } = useAuth();
-
   const handleGoogleLogin = () => {
     const width = 500;
     const height = 550;

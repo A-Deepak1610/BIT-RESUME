@@ -76,9 +76,9 @@ func Me(c *gin.Context) { // Decode the token and send to frontend
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"user": gin.H{
-			"email":  claims["email"],
+			"email":  claims["email"], 
 			"rollNo": claims["rollNo"],
-			"role":   claims["role"],
+			"role":   claims["role"],  
 			"user_name": claims["user_name"],
 		},
 	})

@@ -2,13 +2,48 @@ import React, { useEffect, useState } from "react";
 import { Github, Flower, Loader2 } from "lucide-react";
 import useAuth from "../../../store/UseAuth";
 
+
 export default function Projects() {
-  const [projects, setProjects] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // 2. Initialize state with dummy data and set loading to false
+  const [projects, setProjects] = useState([
+    {
+      title: "E-commerce Platform",
+      description: "Developed a full-stack e-commerce platform with user authentication, product listings, shopping cart, and secure payment gateway integration.",
+      github: "https://github.com/dummy/ecommerce",
+      stack: ["React", "Node.js", "Express", "MongoDB", "Stripe"]
+    },
+    {
+      title: "Task Management App",
+      description: "Created a responsive task management application allowing users to create, update, and delete tasks, with features like due dates and priority levels.",
+      github: "https://github.com/dummy/task-manager",
+      stack: ["Vue.js", "Firebase", "HTML", "CSS"]
+    },
+    {
+      title: "Personal Blog Site",
+      description: "Designed and built a personal blog site with a customizable theme, rich text editor for posts, and comment section.",
+      github: "https://github.com/dummy/blog-site",
+      stack: ["Next.js", "Strapi", "PostgreSQL", "Tailwind CSS"]
+    },
+    {
+      title: "Weather Dashboard",
+      description: "A web application that displays current weather conditions and forecasts for cities worldwide using a third-party weather API.",
+      github: "https://github.com/dummy/weather-app",
+      stack: ["JavaScript", "HTML", "CSS", "OpenWeather API"]
+    },
+    {
+      title: "Recipe Finder",
+      description: "An application that allows users to search for recipes based on ingredients, dietary restrictions, and cuisine type, fetching data from a public API.",
+      github: "https://github.com/dummy/recipe-finder",
+      stack: ["React", "Edamam API", "CSS Modules"]
+    }
+  ]);
+  const [loading, setLoading] = useState(false); // Set to false since we are not fetching
   const [error, setError] = useState(null);
   const [hoveredIndex, setHoveredIndex] = useState(null);
-  const { rollno } = useAuth();
+  const { rollno } = useAuth(); // Assuming useAuth provides a rollno, even if dummy, it won't trigger the fetch.
 
+  // The useEffect for fetching data is commented out or removed for dummy data
+  /*
   useEffect(() => {
     if (!rollno) {
       return;
@@ -28,7 +63,6 @@ export default function Projects() {
         });
 
         if (!response.ok) {
-          // This will now correctly report the reason for the error (e.g., 401, 500)
           throw new Error(`Failed to fetch projects. Status: ${response.status}`);
         }
 
@@ -45,8 +79,7 @@ export default function Projects() {
 
     fetchProjects();
   }, [rollno]);
-
-  // ... (the rest of your renderContent function is correct and doesn't need to change)
+  */
   const renderContent = () => {
     if (loading) {
       return (

@@ -61,23 +61,6 @@ export default function DownloadResume() {
   return (
     <div className="bg-gray-200 min-h-screen p-4 sm:p-8 flex flex-col items-center">
       <div className="w-full max-w-[794px] flex justify-end mb-4">
-        <button
-          onClick={handleDownloadPdf}
-          disabled={loading}
-          className="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 disabled:bg-gray-400 flex items-center"
-        >
-          {loading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Generating...
-            </>
-          ) : (
-            <>
-              <Download className="mr-2 h-4 w-4" />
-              Download PDF
-            </>
-          )}
-        </button>
       </div>
 
       <div ref={resumeRef}>

@@ -167,14 +167,6 @@ export default function PrintableResumeView() {
   return (
     <>
       <div className="print-hide bg-gray-100 py-6 text-center">
-        <button
-          onClick={handlePrint}
-          disabled={!isReady}
-          className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
-        >
-          <Printer className="mr-3 -ml-1 h-5 w-5" />
-          {isReady ? 'Print or Save as PDF' : 'Loading Preview...'}
-        </button>
       </div>
       <ResumePaginator onReady={() => setIsReady(true)}>
         <ResumeContent />
