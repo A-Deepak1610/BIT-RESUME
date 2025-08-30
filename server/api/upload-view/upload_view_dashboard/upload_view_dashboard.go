@@ -3,6 +3,7 @@ package dashboard
 import (
 	"bitresume/config"
 	"bitresume/models/uploadview"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -10,7 +11,8 @@ import (
 
 func UploadViewDashboard(c *gin.Context) {
 	rollno := c.Param("rollno")
-
+    fmt.Println(rollno)
+    fmt.Print("kalif")
 	query := `
 SELECT *
 FROM (
@@ -26,10 +28,13 @@ FROM (
             WHEN p.approval_status = 'Rejected' THEN 'Rejected'
         END AS status,
         p.created_at AS uploaded_on,
+        NULL AS subtype,
         p.rollno
     FROM projects p
     WHERE p.rollno = ?
+
     UNION ALL
+
     SELECT
         i.id,
         i.company_name AS title,
@@ -43,10 +48,13 @@ FROM (
             ELSE i.status
         END AS status,
         i.submitted_on AS uploaded_on,
+        NULL AS subtype,
         i.rollno
     FROM internships i
     WHERE i.rollno = ?
-	 UNION ALL
+
+    UNION ALL
+
     SELECT
         pp.id,
         pp.paper_title AS title,
@@ -60,6 +68,7 @@ FROM (
             ELSE pp.approval_status
         END AS status,
         pp.submitted_on AS uploaded_on,
+        NULL AS subtype,
         pp.rollno
     FROM paperpresentation pp
     WHERE pp.rollno = ?
@@ -79,6 +88,7 @@ FROM (
             ELSE pat.patent_status
         END AS status,
         pat.submission_date AS uploaded_on,
+        NULL AS subtype,
         pat.rollno
     FROM patents pat
     WHERE pat.rollno = ?
@@ -98,6 +108,7 @@ FROM (
             ELSE w.status
         END AS status,
         w.submitted_on AS uploaded_on,
+        NULL AS subtype,
         w.rollno
     FROM workshops w
     WHERE w.rollno = ?
@@ -117,6 +128,7 @@ FROM (
             ELSE ct.status
         END AS status,
         ct.created_at AS uploaded_on,
+        ct.certificate_type AS subtype,
         ct.rollno
     FROM certificates_type ct
     JOIN certificate_onlinecourses coc ON ct.id = coc.certiificate_id
@@ -137,6 +149,7 @@ FROM (
             ELSE ct.status
         END AS status,
         ce.submission_date AS uploaded_on,
+        ct.certificate_type AS subtype,
         ct.rollno
     FROM certificates_type ct
     JOIN certificates_events ce ON ct.id = ce.certificate_id
@@ -157,6 +170,7 @@ FROM (
             ELSE ct.status
         END AS status,
         cv.submission_date AS uploaded_on,
+        ct.certificate_type AS subtype,
         ct.rollno
     FROM certificates_type ct
     JOIN certificates_voluntree cv ON ct.id = cv.certificate_id
@@ -170,6 +184,7 @@ ORDER BY
         ELSE 4
     END,
     uploaded_on DESC;
+
 	`
 
 	rows, err := config.DB.Query(query, rollno, rollno, rollno, rollno, rollno, rollno, rollno, rollno)
@@ -191,6 +206,7 @@ ORDER BY
 			&u.Complexity,
 			&u.Status,
 			&u.UploadedOn,
+            &u.Subtype,
 			&u.RollNo,
 		)
 		if err != nil {

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -161,6 +162,8 @@ func PostVarification(c *gin.Context) {
 		})
 	}else if upload_type == "project"{
 		tier := c.PostForm("tier")
+		feedback := c.PostForm("feedback")
+		projectId := c.PostForm("id")
 
 		var status string
 		if verified == true {
@@ -186,8 +189,22 @@ func PostVarification(c *gin.Context) {
 			return
 		}
 
+		query = `
+			insert into project_evaluation(
+				project_id,
+				faculty_remarks,
+				upload_date
+			) values (?,?,?)
+		`
+
+		_,err = config.DB.Exec(query, projectId,feedback,time.Now().Format("2006-01-02"))
+		if err != nil {
+			fmt.Println("Error: ",err.Error())
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update project status"})
+		}
+
 		c.JSON(http.StatusOK, gin.H{
-			"message": "Patent status updated successfully",
+			"message": "Project status updated successfully",
 		})
 	}
 }

@@ -10,12 +10,12 @@ export default function StudentDashboardPage() {
   const [studentRoll, setStudentRoll] = useState("");
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const { rollno } = useAuth(); //this is mentor rollno
-
+  const { rollno ,role} = useAuth(); //this is mentor rollno
+  console.log(role)
   const handleStudentsData = async () => {
     if (!rollno) return;
     try {
-      const response = await fetch(`http://localhost:6001/api/studentdata/fetchmentees/${rollno}`, {
+      const response = await fetch(role=='faculty'?`http://localhost:6001/api/studentdata/fetchmentees/${rollno}`:`http://localhost:6001/api/studentdata/fetchstudentdata`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

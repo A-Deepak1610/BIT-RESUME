@@ -1,5 +1,4 @@
 package config
-
 import (
 	"fmt"
 	"log"
@@ -10,7 +9,6 @@ import (
 )
 
 var GoogleOauthConfig *oauth2.Config
-
 func InitOAuth() {
 	requiredVars := []string{"GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "GOOGLE_REDIRECT_URL"}
 	for _, v := range requiredVars {

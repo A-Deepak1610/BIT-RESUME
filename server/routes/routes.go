@@ -63,9 +63,9 @@ func RegisterRoutes(r *gin.Engine) {
 		studentOnly.GET("/checkapplied", addevents.CheckApplied)
 		studentOnly.GET("/resume/getprojects/:rollno", resume.GetProjectsData)
 		studentOnly.GET("/resume/getcertificates/:rollno", resume.GetCertificatesData)
-		studentOnly.GET("/activitymaster/getsurveydata/:rollno",activitymaster.GetSurveys)
-		studentOnly.GET("/activitymaster/getsessiondata/:rollno",activitymaster.GetSessionsByRollNo)
-		studentOnly.GET("/uploadview/getuploaddetails/:rollno",dashboard.UploadViewDashboard)
+		studentOnly.GET("/activitymaster/getsurveydata/:rollno", activitymaster.GetSurveys)
+		studentOnly.GET("/activitymaster/getsessiondata/:rollno", activitymaster.GetSessionsByRollNo)
+		studentOnly.GET("/uploadview/getuploaddetails/:rollno", dashboard.UploadViewDashboard)
 		studentOnly.GET("/resume/gethackathondata/:rollno", resume.GetHackathonData)
 		studentOnly.GET("/resume/getinternshipdata/:rollno", resume.GetInternshipData)
 	}
@@ -81,19 +81,20 @@ func RegisterRoutes(r *gin.Engine) {
 		facultyOnly.POST("/manageactivities/createActivity", manageactivities.ReceiveActivityData)
 		facultyOnly.GET("/manageactivities/receiveActivities", manageactivities.GetActivityData)
 		facultyOnly.GET("manageactivities/progressgrpah/:rollno", manageactivities.HandleProgressGraph)
-		facultyOnly.GET("/studentdata/fetchmentees/:rollno", studentdata.HandleMenteesData)
-		facultyOnly.POST("/studentrequests/varifications",studentrequests.PostVarification)
-		
-	}	
+		facultyOnly.POST("/studentrequests/varifications", studentrequests.PostVarification)
+
+	}
 	adminOnly := r.Group("/api")
 	adminOnly.Use(middleware.AuthorizeRoles("Admin"))
 	{
 		adminOnly.DELETE("/deleteevents/:id", addevents.DeleteEvent)
 		adminOnly.POST("/addevents/create", addevents.AddEvents)
 		adminOnly.GET("/events/fetchregisteredteams/:eventcode", registerevents.HandleRegisteredTeams)
+		adminOnly.GET("/studentdata/fetchstudentdata", studentdata.HandleStudentData)
 	}
 	r.GET("/api/activitymaster/fetch", addevents.FetchEvents)
-	//both student and faculty 
+	//both student and faculty
+	r.GET("/api/studentdata/fetchmentees/:rollno", studentdata.HandleMenteesData)
 	r.GET("/api/activity_graph/fetchData/:rollno", activitygraph.FetchActivityGraphData)
 	r.GET("/api/achievement_graph/fetchData/:rollno", achievementgraph.HandleFetchAchievementGraph)
 	r.GET("/api/achievement_graph/institute_avg/fetchData", achievementgraph.HandleFetchInstituteAvg)
@@ -102,6 +103,6 @@ func RegisterRoutes(r *gin.Engine) {
 	r.GET("/api/mentor/details/:rollno", pointshandlers.FetchMentorSkillStats)
 	r.GET("/api/mentor/institute_avg/fetchData", pointshandlers.FetchSkillWiseAvgMentees)
 	r.GET("/api/sem_wise_totaldays", pointshandlers.HandleSemDays)
-	r.GET("/api/handlesem",pointshandlers.HandleSem)
-	r.PUT("/api/updatesem", pointshandlers.HandleUpdateSem) 
+	r.GET("/api/handlesem", pointshandlers.HandleSem)
+	r.PUT("/api/updatesem", pointshandlers.HandleUpdateSem)
 }

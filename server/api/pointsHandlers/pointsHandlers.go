@@ -60,10 +60,6 @@ func HandlePointlogs(rollno ,source string ,points int ,desc string,sem int,curr
 	}	
 	return nil
 	}
-
-
-
-	
 func HandlePs(c *gin.Context) { //if attempted itself
 	var data models.Ps
 	if err := c.ShouldBindJSON(&data); err != nil {
@@ -72,14 +68,14 @@ func HandlePs(c *gin.Context) { //if attempted itself
 	}
 	rollno := data.RollNo
 	points := data.Points //rewards points for that level
-	domain := data.SkillDomain
+	domain := data.SkillDomain 
 	skillname := data.SkillName
 	skilllevel := data.SkillLevel
-	attempts := data.Attempts
-	sem := data.Sem
-	currdate := data.Currdate
-	source := "PS"
 	desc := skillname + " " + skilllevel
+	attempts := data.Attempts
+	currdate := data.Currdate
+	sem := data.Sem
+	source := "PS"
 	var newpoints float64
 	// Fetch current rank
 	rank, rankerr := activitygraph.FetchDataRank(rollno)

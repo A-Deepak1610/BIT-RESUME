@@ -202,13 +202,13 @@ const ActivenessGraph = (props) => {
   const gains = filtered.map((p) => p.gain);
   const last = y.length > 0 ? y[y.length - 1] : 0;
 
-  const color = last >= 90 ? "#4CAF50" : last >= 80 ? "#FFC107" : "#F44336";
+  const color = last >= 90 ? "#22C55E" : last >= 80 ? "#FFD700" : "#DC2626";
   const fill =
     last >= 90
-      ? "rgba(76, 175, 80, 0.15)"
+      ? "rgba(34, 197, 94, 0.15)"
       : last >= 80
-      ? "rgba(255, 193, 7, 0.15)"
-      : "rgba(244, 67, 54, 0.15)";
+      ? "rgba(255, 215, 0, 0.15)"
+      : "rgba(220, 38, 38, 0.15)";
 
   const handleViewModeChange = (mode) => {
     setViewMode(mode);
@@ -487,7 +487,7 @@ const ActivenessGraph = (props) => {
           </span>
 
           <div className="flex items-center gap-1">
-            <span className="w-3 h-3 rounded-full bg-[#4caf50]"></span>
+            <span className="w-3 h-3 rounded-full bg-[#22C55E]"></span>
             <span className="font-medium">Titanium</span>
             <span className="hidden sm:inline text-xs text-gray-500">
               (90–100)
@@ -495,7 +495,7 @@ const ActivenessGraph = (props) => {
           </div>
 
           <div className="flex items-center gap-1">
-            <span className="w-3 h-3 rounded-full bg-[#ffb300]"></span>
+            <span className="w-3 h-3 rounded-full bg-[#FFD700]"></span>
             <span className="font-medium">Gold</span>
             <span className="hidden sm:inline text-xs text-gray-500">
               (80–90)
@@ -503,9 +503,9 @@ const ActivenessGraph = (props) => {
           </div>
 
           <div className="flex items-center gap-1">
-            <span className="w-3 h-3 rounded-full bg-[#f44336]"></span>
+            <span className="w-3 h-3 rounded-full bg-[#DC2626]"></span>
             <span className="font-medium">Silver</span>
-            <span className="hidden sm:inline text-xs text-gray-500">(80)</span>
+            <span className="hidden sm:inline text-xs text-gray-500">(70-80)</span>
           </div>
         </div>
       </div>

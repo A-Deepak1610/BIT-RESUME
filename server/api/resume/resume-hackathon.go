@@ -2,7 +2,6 @@ package resume
 
 import (
     "bitresume/config"
-    "bitresume/models"
     "fmt"
     "net/http"
 
@@ -11,40 +10,57 @@ import (
 
 func GetHackathonData(c *gin.Context) {
     rollno := c.Param("rollno")
-    var hackathon []models.Hackathon
 
-    // Your SQL query selects three columns
-    rows, err := config.DB.Query("SELECT event_name, event_code, did_you_win FROM certificates_events WHERE rollno = ?", rollno)
+    query := `
+        SELECT e.image_url, e.event_name, ce.did_you_win
+        FROM certificates_events ce
+        JOIN events e ON ce.event_code = e.event_code
+        WHERE rollno = ?;
+    `
+
+    rows, err := config.DB.Query(query, rollno)
     if err != nil {
-        fmt.Print("error:", err.Error())
-        c.JSON(http.StatusBadRequest, gin.H{"message": "Could not fetch the data from certificates_events table"})
+        fmt.Println("error:", err.Error())
+        c.JSON(http.StatusBadRequest, gin.H{"message": "Could not execute query on hackathon table"})
         return
     }
     defer rows.Close()
 
-    for rows.Next() {
-        var p models.Hackathon
-        var eventCode string
+    // define slice
+    var results []struct {
+        ImgUrl    string `json:"img_url"`
+        EventName string `json:"event_name"`
+        DidYouWin string `json:"did_you_win"`
+    }
 
-        err = rows.Scan(&p.Title, &eventCode, &p.Place)
-        if err != nil {
-            fmt.Print("Error:", err.Error())
-            c.JSON(http.StatusBadRequest, gin.H{"message": "Could not scan the data from certificates_events table"})
+    for rows.Next() {
+        var result struct {
+            ImgUrl    string `json:"img_url"`
+            EventName string `json:"event_name"`
+            DidYouWin string `json:"did_you_win"`
+        }
+
+        var didYouWinInt int
+        if err := rows.Scan(&result.ImgUrl, &result.EventName, &didYouWinInt); err != nil {
+            c.JSON(500, gin.H{"error": "Failed to scan row", "details": err.Error()})
             return
         }
 
-        // Fetch image_url for this eventCode
-        var imageURL string
-        err = config.DB.QueryRow("SELECT image_url FROM events WHERE event_code = ?", eventCode).Scan(&imageURL)
-        if err == nil {
-            p.ImgUrl = imageURL // Make sure models.Hackathon has ImgUrl field
+        // convert int → string if needed
+        if didYouWinInt == 1 {
+            result.DidYouWin = "Yes"
         } else {
-            p.ImgUrl = "" // Set to empty if not found
+            result.DidYouWin = "No"
         }
 
-        hackathon = append(hackathon, p)
+        results = append(results, result)
     }
 
-    // Send response after processing all rows
-    c.JSON(http.StatusOK, hackathon)
+    // check if no rows found
+    if len(results) == 0 {
+        c.JSON(http.StatusNotFound, gin.H{"message": "No hackathon data found"})
+        return
+    }
+
+    c.JSON(http.StatusOK, results)
 }

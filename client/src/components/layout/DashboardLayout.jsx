@@ -6,10 +6,10 @@ export default function DashboardLayout() {
   return (
     <div className="flex flex-col h-screen dark:bg-gray-900 dark:text-white">
       <NavBar />
-      <div className="flex flex-1 overflow-hidden">
+      <div className="   flex flex-1 overflow-hidden">
         <SideBar />
         <main className="flex-1 bg-gray-100 overflow-y-auto ">
-          <Outlet />
+            <Outlet />
         </main>
       </div>
     </div>

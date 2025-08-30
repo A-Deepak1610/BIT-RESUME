@@ -40,6 +40,13 @@
 .js-plotly-plot .plotly .cursor-crosshair {
   cursor: default !important;
 }
+/* .app-container {
+  width: 100vw;
+  height: 100vh;
+  transform: scale(0.9);
+  transform-origin: top left;
+  overflow: hidden;
+} */
 @keyframes loadingSlide {
   0% {
     transform: translateX(-100%);

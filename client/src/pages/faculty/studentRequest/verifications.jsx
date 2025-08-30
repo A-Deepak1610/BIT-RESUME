@@ -289,7 +289,12 @@ const transformApiData = (apiData) => {
 
     return apiData.map((item) => {
         const { upload_type, user_name, ...details } = item;
-        const idForReact = `${upload_type}-${details.id}`;
+        
+        // --- FIX IS HERE ---
+        // Normalize the upload_type to lowercase to ensure consistency
+        const normalizedUploadType = upload_type.toLowerCase(); 
+        
+        const idForReact = `${normalizedUploadType}-${details.id}`;
         const typeDisplay = upload_type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
        
         const attachments = [];
@@ -303,7 +308,8 @@ const transformApiData = (apiData) => {
         let submissionDate = new Date().toISOString();
         let status = 'Awaiting';
 
-        if (upload_type === 'patents') {
+        // Use the normalized type for checking status as well
+        if (normalizedUploadType === 'patents') {
             const patentStatus = item.patent_status?.toLowerCase();
             if (patentStatus === 'approved') {
                 status = 'Verified';
@@ -323,14 +329,15 @@ const transformApiData = (apiData) => {
             }
         }
 
-        switch (upload_type) {
+        // Use the normalized type in the switch statement
+        switch (normalizedUploadType) {
             case 'certificate':
                 title = details.event_name || details.platform || details.activity_type || 'Certificate';
                 submissionDate = details.issue_date;
                 addAttachment('certificate', details.certificate_pdf);
                 break;
             case 'project':
-                title = details.title_idea;
+                title = details.title_idea || 'Project Submission';
                 submissionDate = details.start_time;
                 addAttachment('report', details.report_pdf);
                 addAttachment('demo', details.demo_video);
@@ -368,7 +375,7 @@ const transformApiData = (apiData) => {
             studentName: user_name,
             title,
             submissionDate,
-            type: upload_type,
+            type: normalizedUploadType, // Store the normalized type
             typeDisplay,
             status,
             isExpanded: false,
@@ -509,7 +516,7 @@ export default function Verification() {
   }, [allSubmissions, activeTab, searchTerm, sortBy]);
 
   const renderCard = (submission) => {
-    const cardProps = { key: submission.id, submission, onAction: handleAction };
+    const cardProps = { submission, onAction: handleAction }; 
     switch (submission.type) {
         case 'certificate': return <CertificateCard {...cardProps} />;
         case 'project': return <ProjectCard {...cardProps} />;
@@ -517,7 +524,7 @@ export default function Verification() {
         case 'paperpresentation': return <PaperPresentationCard {...cardProps} />;
         case 'internship': return <InternshipCard {...cardProps} />;
         case 'patents': return <PatentCard {...cardProps} />;
-        default: return <div key={submission.id} className="p-4 text-center">Unsupported submission type: {submission.type}</div>;
+        default: return <div className="p-4 text-center">Unsupported submission type: {submission.type}</div>;
     }
   };
 

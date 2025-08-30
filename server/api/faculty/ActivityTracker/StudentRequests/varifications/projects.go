@@ -22,7 +22,6 @@ func GetProjects() ([]facultymodel.Varification, error) {
     p.is_team_project,
     p.consulted_mentor,
     p.approval_status,
-    pe.changes_from_idea,
     pf.github_link,
     pf.report_pdf,
     pf.demo_video,
@@ -52,7 +51,6 @@ GROUP BY
     p.is_team_project,
     p.consulted_mentor,
     p.approval_status,
-    pe.changes_from_idea,
     pf.github_link,
     pf.report_pdf,
     pf.demo_video,
@@ -83,7 +81,6 @@ GROUP BY
 			&r.IsTeamProject,       // p.is_team_project
 			&r.ConsultedMentor,     // p.consulted_mentor
 			&r.Approval_status,     // p.approval_status
-			&r.ChangesFromIdea,     // pe.changes_from_idea
 			&r.GithubLink,          // pf.github_link
 			&r.ReportPdf,           // pf.report_pdf
 			&r.DemoVideo,           // pf.demo_video

@@ -433,9 +433,7 @@ func HandleRegisteredTeams(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to scan row: " + err.Error()})
 			return
 		}
-		// Convert from sql.NullString to string for the final JSON
 		t.LeaderName = leaderName.String
-
 		teams = append(teams, t)
 	}
 

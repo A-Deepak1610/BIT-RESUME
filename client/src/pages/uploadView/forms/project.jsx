@@ -10,7 +10,10 @@ import {
 } from 'lucide-react';
 import MemberTechStackInput from './MemberTechStackInput'; // Assuming the new component is in a file named MemberTechStackInput.js
 
+
+// Set to true to see detailed logs in the developer console, including the final payload for the backend.
 const DEBUG_MODE = true;
+
 
 const TECHNOLOGIES = [
     'React', 'Angular', 'Vue', 'Next.js', 'Node.js', 'Express', 'Django', 'Flask', 'Spring Boot', 'Ruby on Rails',
@@ -18,15 +21,19 @@ const TECHNOLOGIES = [
     'Go', 'Rust', 'MongoDB', 'PostgreSQL', 'MySQL', 'Firebase', 'AWS', 'Azure', 'GCP', 'Docker', 'Kubernetes'
 ];
 
+
 const DEPARTMENTS = [
     'Select Department', 'Computer Science & Engineering', 'Electronics & Communication Engineering', 'Mechanical Engineering',
     'Civil Engineering', 'Electrical & Electronics Engineering', 'Information Technology', 'Artificial Intelligence & Data Science', 'Other'
 ];
 
+
 const MAX_TEAM_MEMBERS = 7;
 const MIN_TEAM_MEMBERS = 1;
 
+
 const RequiredAst = () => <span className="text-red-500 ml-0.5">*</span>;
+
 
 // Validation functions
 const validateStep1 = (formData) => {
@@ -40,12 +47,14 @@ const validateStep1 = (formData) => {
     return errors;
 };
 
+
 const validateStep2 = (formData) => {
     const errors = {};
     if (!formData.problemStatement?.trim()) errors.problemStatement = 'Problem statement is required.';
     if (!formData.projectObjective?.trim()) errors.projectObjective = 'Project objective is required.';
     return errors;
 };
+
 
 const validateStep3 = (formData) => {
     const errors = {};
@@ -56,6 +65,7 @@ const validateStep3 = (formData) => {
     }
     return errors;
 };
+
 
 const validateStep4 = (formData) => {
     const errors = {};
@@ -75,15 +85,16 @@ const validateStep4 = (formData) => {
     return errors;
 };
 
+
 const validateStep5 = (formData) => {
     const errors = {};
     if (!formData.githubLink?.trim()) {
         errors.githubLink = 'GitHub link is required.';
     } else {
         try {
-            new URL(formData.githubLink);
-            if (!formData.githubLink.startsWith('http://') && !formData.githubLink.startsWith('https://')) {
-                errors.githubLink = 'GitHub link must start with http:// or https://.';
+            const url = new URL(formData.githubLink);
+            if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+                 errors.githubLink = 'GitHub link must start with http:// or https://.';
             }
         } catch (_) {
             errors.githubLink = 'Please enter a valid URL for GitHub link.';
@@ -95,12 +106,15 @@ const validateStep5 = (formData) => {
     return errors;
 };
 
+
 // --- Child Components ---
+
 
 const ProjectStep1_Overview = ({ formData, handleChange, errors }) => {
     const wordCount = useMemo(() => {
         return formData.projectAbstract?.trim().split(/\s+/).filter(word => word.length > 0).length || 0;
     }, [formData.projectAbstract]);
+
 
     return (
         <div className="space-y-6">
@@ -146,6 +160,7 @@ const ProjectStep1_Overview = ({ formData, handleChange, errors }) => {
     );
 };
 
+
 const ProjectStep2_ProblemObjective = ({ formData, handleChange, errors }) => (
     <div className="space-y-6">
         <div className="flex items-center mb-4">
@@ -187,7 +202,7 @@ const ProjectStep2_ProblemObjective = ({ formData, handleChange, errors }) => (
     </div>
 );
 
-// MODIFIED: This component is now simplified to only handle the timeline.
+
 const ProjectStep3_TimelineTech = ({ formData, handleChange, errors }) => {
     return (
         <div className="space-y-6">
@@ -232,17 +247,21 @@ const ProjectStep3_TimelineTech = ({ formData, handleChange, errors }) => {
     );
 };
 
-// MODIFIED: This component now handles tech stack per member.
+
+// MODIFIED: This component now conditionally shows fields based on project type.
 const ProjectStep4_TeamInfo = ({ formData, setFormData, errors }) => {
     const handleProjectTypeChange = (e) => {
         const newType = e.target.value;
         setFormData(prev => {
             let newTeamMembers = [...prev.teamMembers];
             if (newType === 'Individual') {
+                // For individual, ensure only one member object exists.
+                // We keep the object to store the techStack.
                 newTeamMembers = newTeamMembers.length > 0
                     ? [{ ...newTeamMembers[0] }]
                     : [{ name: '', rollNumber: '', department: 'Select Department', techStack: [] }];
             } else if (newType === 'Team') {
+                // For team, ensure at least one member is present.
                 if (newTeamMembers.length === 0) {
                     newTeamMembers = [{ name: '', rollNumber: '', department: 'Select Department', techStack: [] }];
                 }
@@ -250,6 +269,7 @@ const ProjectStep4_TeamInfo = ({ formData, setFormData, errors }) => {
             return { ...prev, projectType: newType, teamMembers: newTeamMembers };
         });
     };
+
 
     const handleTeamMemberChange = (index, field, value) => {
         setFormData(prev => {
@@ -259,6 +279,7 @@ const ProjectStep4_TeamInfo = ({ formData, setFormData, errors }) => {
         });
     };
 
+
     const handleMemberTechStackChange = (index, newTechStack) => {
         setFormData(prev => {
             const newTeamMembers = [...prev.teamMembers];
@@ -266,6 +287,7 @@ const ProjectStep4_TeamInfo = ({ formData, setFormData, errors }) => {
             return { ...prev, teamMembers: newTeamMembers };
         });
     };
+
 
     const addTeamMember = () => {
         if (formData.teamMembers.length < MAX_TEAM_MEMBERS) {
@@ -275,6 +297,7 @@ const ProjectStep4_TeamInfo = ({ formData, setFormData, errors }) => {
             }));
         }
     };
+
 
     const removeTeamMember = (index) => {
         if (formData.projectType === 'Team' && formData.teamMembers.length > MIN_TEAM_MEMBERS) {
@@ -287,7 +310,9 @@ const ProjectStep4_TeamInfo = ({ formData, setFormData, errors }) => {
         }
     };
 
+
     const canAddMember = formData.projectType === 'Team' && formData.teamMembers.length < MAX_TEAM_MEMBERS;
+
 
     return (
         <div className="space-y-6">
@@ -312,7 +337,7 @@ const ProjectStep4_TeamInfo = ({ formData, setFormData, errors }) => {
             <div>
                 <div className="flex justify-between items-center mb-2">
                     <label className="block text-sm font-medium text-gray-700">
-                        {formData.projectType === 'Individual' ? 'Individual Project Confirmation' : 'Team Members'} <RequiredAst />
+                        {formData.projectType === 'Individual' ? 'Your Skills' : 'Team Members'} <RequiredAst />
                     </label>
                     {formData.projectType === 'Team' && (
                         <button
@@ -330,16 +355,24 @@ const ProjectStep4_TeamInfo = ({ formData, setFormData, errors }) => {
                 )}
                 <p className="mb-3 text-xs text-gray-500">
                     {formData.projectType === 'Individual'
-                        ? "You have selected an Individual project. Please fill out your details below."
-                        : `For Team projects, add between ${MIN_TEAM_MEMBERS} and ${MAX_TEAM_MEMBERS} members and their respective skills.`}
+                        ? "For an individual project, please specify your technology stack."
+                        : `For Team projects, add between ${MIN_TEAM_MEMBERS} and ${MAX_TEAM_MEMBERS} members and their respective details.`}
                 </p>
 
+
                 <div className="space-y-4">
+                    {/* The map will run once for individual, multiple times for team */}
                     {formData.teamMembers.map((member, index) => (
                         <div key={index} className="p-3 md:p-4 border border-gray-200 rounded-md shadow-sm bg-gray-50 relative">
-                            <h4 className="text-sm font-semibold text-gray-800 mb-3">
-                                {formData.projectType === 'Individual' ? 'Participant Details & Skills' : `Member ${index + 1}`}
-                            </h4>
+                            {/* --- Conditional Header --- */}
+                            {formData.projectType === 'Team' && (
+                                <h4 className="text-sm font-semibold text-gray-800 mb-3">
+                                    Member {index + 1}
+                                </h4>
+                            )}
+
+
+                            {/* --- Conditional Remove Button for Team Mode --- */}
                             {formData.projectType === 'Team' && formData.teamMembers.length > MIN_TEAM_MEMBERS && (
                                 <button
                                     type="button"
@@ -350,24 +383,32 @@ const ProjectStep4_TeamInfo = ({ formData, setFormData, errors }) => {
                                     <Trash2 size={18} />
                                 </button>
                             )}
+                           
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
-                                <div>
-                                    <label htmlFor={`memberName_${index}`} className="block text-xs font-medium text-gray-600 mb-0.5">Full Name</label>
-                                    <input type="text" id={`memberName_${index}`} value={member.name} onChange={e => handleTeamMemberChange(index, 'name', e.target.value)} placeholder="Full Name" className={`mt-0.5 block w-full px-2.5 py-1.5 border ${errors[`teamMemberName_${index}`] ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm sm:text-sm focus:ring-indigo-500 focus:border-indigo-500`} />
-                                    {errors[`teamMemberName_${index}`] && <p className="mt-0.5 text-xs text-red-600">{errors[`teamMemberName_${index}`]}</p>}
-                                </div>
-                                <div>
-                                    <label htmlFor={`memberRoll_${index}`} className="block text-xs font-medium text-gray-600 mb-0.5">Roll Number</label>
-                                    <input type="text" id={`memberRoll_${index}`} value={member.rollNumber} onChange={e => handleTeamMemberChange(index, 'rollNumber', e.target.value)} placeholder="Roll Number" className={`mt-0.5 block w-full px-2.5 py-1.5 border ${errors[`teamMemberRoll_${index}`] ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm sm:text-sm focus:ring-indigo-500 focus:border-indigo-500`} />
-                                    {errors[`teamMemberRoll_${index}`] && <p className="mt-0.5 text-xs text-red-600">{errors[`teamMemberRoll_${index}`]}</p>}
-                                </div>
-                                <div>
-                                    <label htmlFor={`memberDept_${index}`} className="block text-xs font-medium text-gray-600 mb-0.5">Department</label>
-                                    <select id={`memberDept_${index}`} value={member.department} onChange={e => handleTeamMemberChange(index, 'department', e.target.value)} className={`mt-0.5 block w-full px-2.5 py-1.5 border ${errors[`teamMemberDept_${index}`] ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm sm:text-sm focus:ring-indigo-500 focus:border-indigo-500`}>
-                                        {DEPARTMENTS.map(dept => <option key={dept} value={dept} disabled={dept === 'Select Department'}>{dept}</option>)}
-                                    </select>
-                                    {errors[`teamMemberDept_${index}`] && <p className="mt-0.5 text-xs text-red-600">{errors[`teamMemberDept_${index}`]}</p>}
-                                </div>
+                                {/* --- Conditional Fields for Team Mode Only --- */}
+                                {formData.projectType === 'Team' && (
+                                    <>
+                                        <div>
+                                            <label htmlFor={`memberName_${index}`} className="block text-xs font-medium text-gray-600 mb-0.5">Full Name</label>
+                                            <input type="text" id={`memberName_${index}`} value={member.name} onChange={e => handleTeamMemberChange(index, 'name', e.target.value)} placeholder="Full Name" className={`mt-0.5 block w-full px-2.5 py-1.5 border ${errors[`teamMemberName_${index}`] ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm sm:text-sm focus:ring-indigo-500 focus:border-indigo-500`} />
+                                            {errors[`teamMemberName_${index}`] && <p className="mt-0.5 text-xs text-red-600">{errors[`teamMemberName_${index}`]}</p>}
+                                        </div>
+                                        <div>
+                                            <label htmlFor={`memberRoll_${index}`} className="block text-xs font-medium text-gray-600 mb-0.5">Roll Number</label>
+                                            <input type="text" id={`memberRoll_${index}`} value={member.rollNumber} onChange={e => handleTeamMemberChange(index, 'rollNumber', e.target.value)} placeholder="Roll Number" className={`mt-0.5 block w-full px-2.5 py-1.5 border ${errors[`teamMemberRoll_${index}`] ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm sm:text-sm focus:ring-indigo-500 focus:border-indigo-500`} />
+                                            {errors[`teamMemberRoll_${index}`] && <p className="mt-0.5 text-xs text-red-600">{errors[`teamMemberRoll_${index}`]}</p>}
+                                        </div>
+                                        <div>
+                                            <label htmlFor={`memberDept_${index}`} className="block text-xs font-medium text-gray-600 mb-0.5">Department</label>
+                                            <select id={`memberDept_${index}`} value={member.department} onChange={e => handleTeamMemberChange(index, 'department', e.target.value)} className={`mt-0.5 block w-full px-2.5 py-1.5 border ${errors[`teamMemberDept_${index}`] ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm sm:text-sm focus:ring-indigo-500 focus:border-indigo-500`}>
+                                                {DEPARTMENTS.map(dept => <option key={dept} value={dept} disabled={dept === 'Select Department'}>{dept}</option>)}
+                                            </select>
+                                            {errors[`teamMemberDept_${index}`] && <p className="mt-0.5 text-xs text-red-600">{errors[`teamMemberDept_${index}`]}</p>}
+                                        </div>
+                                    </>
+                                )}
+                               
+                                {/* --- Tech Stack Input (always visible) --- */}
                                 <MemberTechStackInput
                                     memberIndex={index}
                                     techStack={member.techStack || []}
@@ -383,9 +424,11 @@ const ProjectStep4_TeamInfo = ({ formData, setFormData, errors }) => {
     );
 };
 
+
 const ProjectStep5_SupportingInfo = ({ formData, handleChange, setFormData, errors, setErrors: setGlobalErrors }) => {
     const [demoVideoDragActive, setDemoVideoDragActive] = useState(false);
     const [reportPdfDragActive, setReportPdfDragActive] = useState(false);
+
 
     const handleFileSelectOrDrop = (file, fieldName) => {
         if (file) {
@@ -398,10 +441,12 @@ const ProjectStep5_SupportingInfo = ({ formData, handleChange, setFormData, erro
         }
     };
 
+
     const handleGenericFileChange = (e, fieldName) => {
         handleFileSelectOrDrop(e.target.files?.[0], fieldName);
         if (e.target) e.target.value = null;
     };
+
 
     const handleGenericDrag = (e, setActive) => {
         e.preventDefault();
@@ -413,6 +458,7 @@ const ProjectStep5_SupportingInfo = ({ formData, handleChange, setFormData, erro
         }
     };
 
+
     const handleGenericDrop = (e, fieldName, setActive) => {
         e.preventDefault();
         e.stopPropagation();
@@ -422,9 +468,11 @@ const ProjectStep5_SupportingInfo = ({ formData, handleChange, setFormData, erro
         }
     };
 
+
     const clearFile = (fieldName) => {
         setFormData(prev => ({ ...prev, [fieldName]: null }));
     };
+
 
     return (
         <div className="space-y-6">
@@ -551,20 +599,6 @@ const ProjectStep5_SupportingInfo = ({ formData, handleChange, setFormData, erro
                     placeholder="List any awards this project or its members have received."
                 />
             </div>
-            <div>
-                <label htmlFor="changesFromIdea" className="block text-sm font-medium text-gray-700 mb-1">
-                    Changes from Initial Idea (if any)
-                </label>
-                <textarea
-                    name="changesFromIdea"
-                    id="changesFromIdea"
-                    rows={3}
-                    value={formData.changesFromIdea}
-                    onChange={handleChange}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    placeholder="Describe any significant changes or pivots from the original project concept discussed."
-                />
-            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 pt-2">
                 <div>
                     <span className="block text-sm font-medium text-gray-700 mb-1">Consulted Mentor/Faculty?</span>
@@ -597,7 +631,7 @@ const ProjectStep5_SupportingInfo = ({ formData, handleChange, setFormData, erro
     );
 };
 
-// MODIFIED: Review step now shows tech stack for each team member.
+
 const ProjectStep6_Review = ({ formData }) => {
     const DetailItem = ({ label, value, isBoolean = false, isFile = false }) => (
         <div>
@@ -609,6 +643,7 @@ const ProjectStep6_Review = ({ formData }) => {
             </p>
         </div>
     );
+
 
     return (
         <div className="space-y-8">
@@ -679,14 +714,13 @@ const ProjectStep6_Review = ({ formData }) => {
                     <div className="md:col-span-2">
                         <DetailItem label="Awards Won" value={formData.awardsWon} />
                     </div>
-                    <div className="md:col-span-2">
-                        <DetailItem label="Changes from Initial Idea" value={formData.changesFromIdea} />
-                    </div>
                 </div>
             </section>
         </div>
     );
 };
+
+
 
 
 const STEP_CONFIG = [
@@ -698,13 +732,16 @@ const STEP_CONFIG = [
     { title: 'Review', icon: Info },
 ];
 
+
 const Project = ({ onBack, initialData = {} }) => {
     const [currentStep, setCurrentStep] = useState(0);
     const [errors, setErrors] = useState({});
     const [submitSuccess, setSubmitSuccess] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+
     const { rollno } = useAuth();
+
 
     const [formData, setFormData] = useState({
         projectTitle: initialData.projectTitle || '',
@@ -723,8 +760,9 @@ const Project = ({ onBack, initialData = {} }) => {
         demoVideoFile: initialData.demoVideoFile || null,
         presentedExternally: initialData.presentedExternally ?? false,
         awardsWon: initialData.awardsWon || '',
-        changesFromIdea: initialData.changesFromIdea || '',
     });
+
+
 
 
     useEffect(() => {
@@ -746,6 +784,8 @@ const Project = ({ onBack, initialData = {} }) => {
     }, [formData.projectType]);
 
 
+
+
     const handleChange = useCallback((e) => {
         const { name, value, type, checked } = e.target;
         setErrors(prev => {
@@ -755,6 +795,7 @@ const Project = ({ onBack, initialData = {} }) => {
             return newErrors;
         });
 
+
         let processedValue = value;
         if (type === 'radio') {
             if (value === 'true') processedValue = true;
@@ -763,8 +804,11 @@ const Project = ({ onBack, initialData = {} }) => {
             processedValue = checked;
         }
 
+
         setFormData(prev => ({ ...prev, [name]: processedValue }));
     }, []);
+
+
 
 
     const validateCurrentStep = useCallback(() => {
@@ -778,11 +822,15 @@ const Project = ({ onBack, initialData = {} }) => {
     }, [currentStep, formData]);
 
 
+
+
     const nextStep = useCallback(() => {
         if (!validateCurrentStep()) return;
         setCurrentStep(prev => Math.min(prev + 1, STEP_CONFIG.length - 1));
         window.scrollTo(0, 0);
     }, [validateCurrentStep]);
+
+
 
 
     const prevStep = useCallback(() => {
@@ -792,10 +840,13 @@ const Project = ({ onBack, initialData = {} }) => {
     }, []);
 
 
+
+
     const handleSubmit = async (event) => {
         event.preventDefault();
         setIsSubmitting(true);
         setErrors({});
+
 
         if (currentStep !== STEP_CONFIG.length - 1) {
             if (DEBUG_MODE) console.log("Attempted submit from non-review step. Current step:", currentStep);
@@ -803,9 +854,11 @@ const Project = ({ onBack, initialData = {} }) => {
             return;
         }
 
+
         let allValid = true;
         let firstErrorStep = -1;
         let combinedErrors = {};
+
 
         for (let i = 0; i < STEP_CONFIG.length - 1; i++) {
             if (STEP_CONFIG[i].validate) {
@@ -818,6 +871,7 @@ const Project = ({ onBack, initialData = {} }) => {
             }
         }
 
+
         if (!allValid) {
             setErrors(combinedErrors);
             if (firstErrorStep !== -1) setCurrentStep(firstErrorStep);
@@ -826,22 +880,25 @@ const Project = ({ onBack, initialData = {} }) => {
             return;
         }
 
+
         const payload = new FormData();
 
+
+        // Append all form data
         payload.append('submitter_roll_no', rollno || '');
         payload.append('title_idea', formData.projectTitle.trim());
+        payload.append('project_abstract', formData.projectAbstract.trim());
         payload.append('problem_statement', formData.problemStatement.trim());
         payload.append('objective', formData.projectObjective.trim());
         payload.append('start_time', formData.startDate);
         payload.append('end_time', formData.endDate);
-        payload.append('is_team_project', formData.projectType === 'Team' ? 'true' : 'false');
+        payload.append('is_team_project', formData.projectType === 'Team');
         payload.append('team_members', JSON.stringify(formData.teamMembers));
-        payload.append('consulted_mentor', formData.consultedMentor ? 'true' : 'false');
+        payload.append('consulted_mentor', formData.consultedMentor);
         payload.append('github_link', formData.githubLink.trim());
-        payload.append('presented_externally', formData.presentedExternally ? 'true' : 'false');
+        payload.append('presented_externally', formData.presentedExternally);
         payload.append('awards_won', formData.awardsWon.trim());
-        payload.append('changes_from_idea', formData.changesFromIdea.trim());
-        payload.append('project_abstract', formData.projectAbstract.trim());
+
 
         if (formData.reportPdfFile instanceof File) {
             payload.append('report_pdf', formData.reportPdfFile, formData.reportPdfFile.name);
@@ -850,15 +907,47 @@ const Project = ({ onBack, initialData = {} }) => {
             payload.append('demo_video', formData.demoVideoFile, formData.demoVideoFile.name);
         }
 
+
+        // <<< START: Enhanced logging for backend development >>>
         if (DEBUG_MODE) {
-            console.log('[DEBUG] Submitting payload (snake_case):');
-            for (let [key, value] of payload.entries()) {
-                console.log(key, value instanceof File ? `${value.name} (File)` : value);
+            const backendData = {};
+            for (const [key, value] of payload.entries()) {
+                if (value instanceof File) {
+                    backendData[key] = `File: ${value.name}, Size: ${value.size} bytes, Type: ${value.type}`;
+                } else {
+                    // Attempt to parse JSON strings and convert boolean strings
+                    try {
+                        backendData[key] = JSON.parse(value);
+                    } catch (e) {
+                         if (value === 'true') {
+                            backendData[key] = true;
+                        } else if (value === 'false') {
+                            backendData[key] = false;
+                        } else {
+                            backendData[key] = value;
+                        }
+                    }
+                }
             }
+   
+            console.log("==================================================");
+            console.log("======= BACKEND PAYLOAD PREVIEW (for dev) =======");
+            console.log("==================================================");
+            console.log("This is the data structure being sent to the backend.");
+            console.log("NOTE: Files are represented as strings for logging purposes only.");
+            console.log("The actual request will be 'multipart/form-data'.\n");
+            console.log(JSON.stringify(backendData, null, 2));
+            console.log("\n======= END BACKEND PAYLOAD PREVIEW =======");
+            console.log("==================================================");
         }
+        // <<< END: Enhanced logging for backend development >>>
+
 
         try {
             const response = await axios.post('http://localhost:6001/api/projects', payload, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
                 withCredentials: true,
             });
             if (DEBUG_MODE) console.log('Project submission successful:', response.data);
@@ -886,6 +975,8 @@ const Project = ({ onBack, initialData = {} }) => {
     };
 
 
+
+
     const resetForm = () => {
         setFormData({
             projectTitle: '', projectAbstract: '', problemStatement: '', projectObjective: '',
@@ -896,7 +987,7 @@ const Project = ({ onBack, initialData = {} }) => {
             githubLink: '',
             reportPdfFile: null,
             demoVideoFile: null,
-            presentedExternally: false, awardsWon: '', changesFromIdea: '',
+            presentedExternally: false, awardsWon: '',
         });
         setCurrentStep(0);
         setSubmitSuccess(false);
@@ -904,6 +995,8 @@ const Project = ({ onBack, initialData = {} }) => {
         setIsSubmitting(false);
         window.scrollTo(0, 0);
     };
+
+
 
 
     const renderStepContent = () => {
@@ -917,6 +1010,8 @@ const Project = ({ onBack, initialData = {} }) => {
             default: return null;
         }
     };
+
+
 
 
     if (submitSuccess) {
@@ -947,6 +1042,8 @@ const Project = ({ onBack, initialData = {} }) => {
             </div>
         );
     }
+
+
 
 
     return (
@@ -1062,5 +1159,6 @@ const Project = ({ onBack, initialData = {} }) => {
         </div>
     );
 };
+
 
 export default Project;
