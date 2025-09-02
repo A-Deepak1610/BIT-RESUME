@@ -12,7 +12,6 @@ type Varification struct {
 	Award              string `json:"award,omitempty"`
 	Approval_status    string `json:"approval_status,omitempty"`
 	User_name          string `json:"user_name,omitempty"`
-
 	// Internship-specific fields
 	CompanyName           string `json:"company_name,omitempty"`
 	Roll                  string `json:"roll,omitempty"`

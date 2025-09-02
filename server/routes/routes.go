@@ -46,7 +46,7 @@ func RegisterRoutes(r *gin.Engine) {
 		// studentOnly.GET("/mentor/details/:rollno", pointshandlers.FetchMentorSkillStats)
 		studentOnly.POST("/ps/mentor_mentee/", pointshandlers.HandleMentee)
 		studentOnly.POST("/mentee/add", pointshandlers.HandleMentee)
-		studentOnly.POST("/projects", projects.RecieveProjectData)
+		studentOnly.POST("/projects", projects.PostProjects)
 		studentOnly.POST("/patents", patents.ReceivePatentsData)
 		studentOnly.POST("/internships", internship.ReceiveInternshipData)
 		studentOnly.POST("/workshops", workshops.ReceiveWorkshopData)

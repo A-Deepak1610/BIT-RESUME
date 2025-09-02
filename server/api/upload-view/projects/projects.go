@@ -169,11 +169,13 @@ func PostProjects(c *gin.Context) {
     		awards_won
 		 )values(?,?,?)
 	`
+
 	_ , err = config.DB.Exec(PresentationUpload,projectID,PresentedExternally,awards_won)
 	if err != nil {
 		fmt.Println("Error: ", err.Error())
 		return
 	}
+
 	ProjectFilesUpload := `
 		insert into project_files(
 			project_id,
@@ -182,6 +184,7 @@ func PostProjects(c *gin.Context) {
    			demo_video
 		) values (?,?,?,?)
 	`
+
 	_ , err = config.DB.Exec(ProjectFilesUpload,projectID,github_link,savePDFPath,saveVIDEOPath)
 	if err != nil {
 		fmt.Println("Error: ", err.Error())

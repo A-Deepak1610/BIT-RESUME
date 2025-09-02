@@ -467,11 +467,11 @@ export default function UploadView() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <button className="w-full sm:w-auto flex items-center justify-center px-4 py-2 bg-white text-indigo-600 font-medium rounded-lg border border-gray-200 shadow-sm hover:bg-gray-50 cursor-pointer transition-colors text-sm md:text-base">
+            {/* <button className="w-full sm:w-auto flex items-center justify-center px-4 py-2 bg-white text-indigo-600 font-medium rounded-lg border border-gray-200 shadow-sm hover:bg-gray-50 cursor-pointer transition-colors text-sm md:text-base">
               <span>
                 Requested Upload
               </span>
-            </button>
+            </button> */}
             <button
               onClick={handleOpen}
               className="w-full sm:w-auto flex items-center justify-center px-4 py-2 bg-white text-indigo-600 font-medium rounded-lg border border-gray-200 shadow-sm hover:bg-gray-50 cursor-pointer transition-colors text-sm md:text-base"
