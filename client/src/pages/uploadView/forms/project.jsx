@@ -903,6 +903,9 @@ const Project = ({ onBack, initialData = {} }) => {
         if (formData.reportPdfFile instanceof File) {
             payload.append('report_pdf', formData.reportPdfFile, formData.reportPdfFile.name);
         }
+        else{
+            payload.append('report_pdf', '');
+        }
         if (formData.demoVideoFile instanceof File) {
             payload.append('demo_video', formData.demoVideoFile, formData.demoVideoFile.name);
         }
@@ -950,6 +953,7 @@ const Project = ({ onBack, initialData = {} }) => {
                 },
                 withCredentials: true,
             });
+            console.log(payload)
             if (DEBUG_MODE) console.log('Project submission successful:', response.data);
             setSubmitSuccess(true);
             window.scrollTo(0, 0);

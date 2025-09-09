@@ -37,7 +37,7 @@ export default function Info(props) {
   };
 
   const SidebarContent = () => (
-    <div className=" h-full font-sans font-semibold px-4 bg-white py-3 overflow-y-auto">
+    <div className="h-full font-sans font-semibold px-4 bg-white py-3 overflow-y-auto scrollbar-hide">
       {/* Header */}
       <div className="flex items-center text-primary mb-4">
         <ArrowBackIcon

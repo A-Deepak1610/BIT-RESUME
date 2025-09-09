@@ -4,11 +4,8 @@ import (
 	"bitresume/config"
 	"bitresume/models"
 	"fmt"
-
-	// "fmt"
 	"log"
 	"net/http"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -23,7 +20,6 @@ func FetchActivityGraphData(c *gin.Context) {
 		return
 	}
 	defer rows.Close()
-
 	for rows.Next() {
 		err := rows.Scan(&r.RollNo, &r.Current_point, &r.Current_rank, &r.Sem, &r.Currdate)
 		if err != nil {
@@ -44,19 +40,15 @@ func FetchDataRank(rollno string) (models.ActGph, error) {
 		return r, err
 	}
 	defer stmt.Close()
-
 	row := stmt.QueryRow(rollno)
 	err = row.Scan(&r.Current_rank)
 	if err != nil {
 		log.Printf("Failed to scan rank for rollno %s: %v", rollno, err)
 		return r, err
 	}
-
 	return r, nil
 }
-
 // FetchLastPoints fetches the most recent point total for a student
-
 func FetchLastPoints(rollno string) (models.ActGph, error) {
 	var r models.ActGph
 	stmt, err := config.DB.Prepare("SELECT current_point FROM activity_graph WHERE rollno = ? ORDER BY currdate DESC LIMIT 1")
@@ -74,13 +66,12 @@ func FetchLastPoints(rollno string) (models.ActGph, error) {
 	// fmt.Print("Last points: ", r.Current_point)
 	return r, nil
 }
-
 // HandleActivityGraphPoints calculates and updates current points and rank for a student called in cron job
 func HandleActivityGraphPoints(rollno string, sem int, currdate string) {
 	stmt, err := config.DB.Prepare("SELECT SUM(points) FROM points_logs WHERE rollno = ? AND currdate = ?")
 	if err != nil {
 		log.Printf("Failed to prepare points sum query: %v", err)
-		return
+		return     
 	}
 	defer stmt.Close()
 	var r models.ActGph
@@ -105,7 +96,6 @@ func HandleActivityGraphPoints(rollno string, sem int, currdate string) {
 	if newpoints < 70 {
 		newpoints = 70 //Need to add continuos inactivity table 
 	}
-
 	switch {
 	case newpoints >= 90:
 		rank = "TITANIUM"
@@ -114,14 +104,12 @@ func HandleActivityGraphPoints(rollno string, sem int, currdate string) {
 	default:
 		rank = "SILVER"
 	}
-
 	insertStmt, reqerr := config.DB.Prepare("INSERT INTO activity_graph(rollno, current_point, current_rank, sem, currdate) VALUES (?, ?, ?, ?, ?)")
 	if reqerr != nil {
 		log.Printf("Failed to prepare insert: %v", reqerr)
 		return
 	}
 	defer insertStmt.Close()
-
 	_, execErr := insertStmt.Exec(rollno, newpoints, rank, sem, currdate)
 	if execErr != nil {
 		log.Printf("Failed to insert activity graph data: %v", execErr)

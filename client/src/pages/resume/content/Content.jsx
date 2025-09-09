@@ -11,7 +11,7 @@ export default function Content(props) {
   const rollno=props.rollno;
   console.log("Content rollno:", rollno);
   return (
-    <div className="w-full flex flex-col items-center">
+    <div className="w-full flex flex-col items-center ">
       <div className="w-full max-w-[1800px] flex flex-col">
         {/* Top Container */}
         <div className="flex flex-col lg:flex-row items-center justify-center">

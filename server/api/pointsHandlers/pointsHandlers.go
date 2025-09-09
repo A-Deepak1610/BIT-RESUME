@@ -5,17 +5,20 @@ import (
 	activitygraph "bitresume/api/dashboard/activity_graph"
 	"bitresume/config"
 	"bitresume/models"
-	"github.com/gin-gonic/gin"
 	"log"
 	"math"
 	"net/http"
-) 
-//Main function for points if points is come by his activity
-func HandlePointlogs(rollno ,source string ,points int ,desc string,sem int,currdate string) error  { //This is for all other than ps 
+	"time"
+
+	"github.com/gin-gonic/gin"
+)
+
+// Main function for points if points is come by his activity
+func HandlePointlogs(rollno, source string, points int, desc string, sem int, currdate string) error { //This is for all other than ps
 	var newpoints float64
 	rank, rankerr := activitygraph.FetchDataRank(rollno)
 	if rankerr != nil {
-		return	rankerr
+		return rankerr
 	}
 	if source == "PS" {
 		// HandlePs(rollno)
@@ -57,9 +60,9 @@ func HandlePointlogs(rollno ,source string ,points int ,desc string,sem int,curr
 	}
 	if points > 0 {
 		achievementgraph.HandlePointlogs2(rollno, newpoints, sem, currdate) //to calculate the achievement points
-	}	
-	return nil
 	}
+	return nil
+}
 func HandlePs(c *gin.Context) { //if attempted itself
 	var data models.Ps
 	if err := c.ShouldBindJSON(&data); err != nil {
@@ -68,22 +71,21 @@ func HandlePs(c *gin.Context) { //if attempted itself
 	}
 	rollno := data.RollNo
 	points := data.Points //rewards points for that level
-	domain := data.SkillDomain 
+	domain := data.SkillDomain
 	skillname := data.SkillName
 	skilllevel := data.SkillLevel
 	desc := skillname + " " + skilllevel
 	attempts := data.Attempts
 	currdate := data.Currdate
-	sem := data.Sem
+	sem := data.Sem //fetch from student data
 	source := "PS"
+	now := time.Now().Format("2006-01-02")
 	var newpoints float64
-	// Fetch current rank
 	rank, rankerr := activitygraph.FetchDataRank(rollno)
-	if rankerr != nil { 
+	if rankerr != nil {
 		c.JSON(500, gin.H{"error": rankerr.Error()})
 		return
 	}
-
 	// Calculate new points based on rank
 	switch rank.Current_rank {
 	case "TITANIUM":
@@ -98,14 +100,14 @@ func HandlePs(c *gin.Context) { //if attempted itself
 		if points > 0 {
 			newpoints = float64(points) * 1 / 300.0
 		} else if points == 0 {
-			newpoints = 0
+			newpoints = 0       
 		} else {
 			newpoints = -0.5
 		}
 	default:
-		if points > 0 {   //Silver
+		if points > 0 { //Silver
 			newpoints = float64(points) * 2 / 300.0
-		} else if points == 0 {   //Fail in that level
+		} else if points == 0 { //Fail in that level
 			newpoints = 0
 		} else {
 			newpoints = -0.5 //Attempted but not went
@@ -125,9 +127,73 @@ func HandlePs(c *gin.Context) { //if attempted itself
 		c.JSON(500, gin.H{"error": execErr.Error()})
 		return
 	}
-	if points > 0 {
+	if newpoints > 0 {
 		achievementgraph.HandlePointlogs2(rollno, newpoints, sem, currdate)
 	}
+	if currdate != now {
+		delta := newpoints // amount to add for all subsequent dates
+		// 2. Get all rows from currdate to lastDate
+		rows, err := config.DB.Query(`
+			SELECT currdate, current_point 
+			FROM activity_graph 
+			WHERE rollno = ? AND currdate >= ? 
+			ORDER BY currdate ASC`, rollno, currdate)
+		if err != nil {
+			log.Println("Error fetching activity_graph rows:", err)
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var d string
+			var pts float64
+			if err := rows.Scan(&d, &pts); err != nil {
+				log.Println("Error scanning row:", err)
+				continue
+			}
+
+			// --- ACTIVITY_GRAPH update (your existing logic) ---
+			newPts := pts + delta
+			newPts, newRank := validateRank(newPts)
+
+			_, err = config.DB.Exec(`
+				UPDATE activity_graph 
+				SET current_point = ?, current_rank = ? 
+				WHERE rollno = ? AND currdate = ?`,
+				newPts, newRank, rollno, d)
+			if err != nil {
+				log.Println("Error updating activity_graph:", err)
+			}
+
+			// --- ACHIEVEMENT_GRAPH update (new) ---
+			if d == currdate {
+				// On the starting day → earned + cumulative
+				_, err = config.DB.Exec(`
+					UPDATE achievement_graph
+					SET points_earned = points_earned + ?, 
+						cummulative_points = cummulative_points + ?
+					WHERE rollno = ? AND currdate = ?`,
+					delta, delta, rollno, d)
+			} else {
+				// On later days → only cumulative
+				_, err = config.DB.Exec(`
+					UPDATE achievement_graph
+					SET cummulative_points = cummulative_points + ?
+					WHERE rollno = ? AND currdate = ?`,
+					delta, rollno, d)
+			}
+
+			if err != nil {
+				log.Println("Error updating achievement_graph:", err)
+			}
+		}
+
+		if err := rows.Err(); err != nil {
+			log.Println("Row iteration error:", err)
+		}
+	}
+
 	// Check if the skill-level already exists in ps_status
 	var exists bool
 	checkQuery := `SELECT EXISTS (SELECT 1 FROM ps_status WHERE rollno = ? AND skill_name = ? AND skill_level = ?)`
@@ -187,7 +253,7 @@ func HandlePs(c *gin.Context) { //if attempted itself
 	})
 }
 
-func HandlePsLevelStatus(c *gin.Context) { //If completed only
+func HandlePsLevelStatus(c *gin.Context) {
 	var data models.PsLevels
 	if err := c.ShouldBindJSON(&data); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -231,7 +297,7 @@ func HandlePsLevelStatus(c *gin.Context) { //If completed only
 		c.JSON(http.StatusOK, gin.H{"message": "New skill added"})
 	}
 }
-func HandleFetchPsAttempts(c *gin.Context){
+func HandleFetchPsAttempts(c *gin.Context) {
 	var records []models.Ps
 	// var r models.Ps
 	rollno := c.Param("rollno")
@@ -251,7 +317,7 @@ func HandleFetchPsAttempts(c *gin.Context){
 		records = append(records, r)
 	}
 	c.JSON(http.StatusAccepted, records)
-}                                       
+}
 func HandleFetchPsLevels(c *gin.Context) {
 	var records []models.PsLevels
 	// var r models.PsLevels
@@ -291,4 +357,28 @@ func HandleSemDays(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, results)
+}
+func validateRank(points float64) (float64, string) {
+	switch {
+	case points >= 90:
+		if points > 100 {
+			points = 100
+		}
+		return points, "TITANIUM"
+	case points >= 80:
+		if points > 89 {
+			points = 89
+		}
+		return points, "GOLD"
+	case points >= 70:
+		if points > 79 {
+			points = 79
+		}
+		return points, "SILVER"
+	default:
+		if points < 70 {
+			points = 70
+		}
+		return points, "BELOW"
+	}
 }

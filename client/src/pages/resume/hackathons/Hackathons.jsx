@@ -71,20 +71,26 @@ export default function Hackathons() {
           <div className="w-6 h-6 border flex items-center justify-center border-[#9b9aff] rounded-full flex-shrink-0 overflow-hidden bg-white">
             {hackathon.img_url ? (
               <img
-                src={hackathon.img_url}
-                alt={hackathon.title}
+                src={`http://localhost:6001/${hackathon.img_url}`} // Add base URL for image
+                alt={hackathon.event_name} // Changed from hackathon.title
                 className="w-6 h-6 object-cover rounded-full"
+                onError={(e) => {
+                  // Fallback to Award icon if image fails to load
+                  e.target.style.display = 'none';
+                  e.target.nextSibling.style.display = 'block';
+                }}
               />
             ) : (
               <Award className="w-4 h-4 text-[#7371ff]" />
             )}
+            <Award className="w-4 h-4 text-[#7371ff]" style={{ display: 'none' }} />
           </div>
           <div className="ml-2">
             <p className="text-[#01009E] text-[14px] font-semibold">
-              {hackathon.title}
+              {hackathon.event_name} {/* Changed from hackathon.title */}
             </p>
             <p className="text-gray-500 text-[12px]">
-              {hackathon.place}
+              {hackathon.did_you_win} {/* Changed from hackathon.place */}
             </p>
           </div>
         </div>

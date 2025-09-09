@@ -40,17 +40,9 @@ func GetHackathonData(c *gin.Context) {
             DidYouWin string `json:"did_you_win"`
         }
 
-        var didYouWinInt int
-        if err := rows.Scan(&result.ImgUrl, &result.EventName, &didYouWinInt); err != nil {
+        if err := rows.Scan(&result.ImgUrl, &result.EventName, &result.DidYouWin); err != nil {
             c.JSON(500, gin.H{"error": "Failed to scan row", "details": err.Error()})
             return
-        }
-
-        // convert int → string if needed
-        if didYouWinInt == 1 {
-            result.DidYouWin = "Yes"
-        } else {
-            result.DidYouWin = "No"
         }
 
         results = append(results, result)

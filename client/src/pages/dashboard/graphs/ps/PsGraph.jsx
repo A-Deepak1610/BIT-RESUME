@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import SkillCard from "./SkillCard";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
@@ -16,7 +15,7 @@ const PsSkillGraph = (props) => {
   const popoverAttemptsRef = useRef(null);
   const containerRef = useRef(null);
   const { fetchUser, rollno } = useAuth();
-  const student_rollno = props.rollno || rollno; // Use rollno from props or auth context
+  const student_rollno = props.rollno || rollno;
   useEffect(() => {
     fetchUser();
   }, []);
@@ -210,11 +209,11 @@ const PsSkillGraph = (props) => {
           <div
             className="relative"
             ref={mobileDomainPopoverRef}
-            onMouseEnter={() => setIsMobileDomainPopoverOpen(true)} // Consider onClick for touch devices
-            onMouseLeave={() => setIsMobileDomainPopoverOpen(false)} // Consider managing with click
+            onMouseEnter={() => setIsMobileDomainPopoverOpen(true)} 
+            onMouseLeave={() => setIsMobileDomainPopoverOpen(false)} 
           >
             <button
-              onClick={() => setIsMobileDomainPopoverOpen(prev => !prev)} // Toggle on click for mobile
+              onClick={() => setIsMobileDomainPopoverOpen(prev => !prev)} 
               className="flex items-center gap-1 px-3 py-1 rounded-md bg-[#2d4bff] text-white hover:bg-gray-200 transition-colors"
               aria-haspopup="true"
               aria-expanded={isMobileDomainPopoverOpen}
@@ -263,13 +262,11 @@ const PsSkillGraph = (props) => {
         ))}
       </div>
 
+      {/* --- MODIFICATION IS HERE --- */}
+      {/* The inline style attribute has been removed. */}
       <div
         ref={containerRef}
         className="mt-4 overflow-y-auto flex-grow"
-        style={{
-          minHeight: "150px", 
-          maxHeight: "calc(2 * (105px + 1rem))", 
-        }}
       >
         {filteredSkills.length > 0 ? (
           <div className="grid lg:grid-cols-3 xl:grid-cols-5 grid-cols-2 gap-4 justify-items-center">

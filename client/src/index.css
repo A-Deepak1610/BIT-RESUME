@@ -7,6 +7,15 @@
     /* sans: ['"DM Sans"', 'sans-serif'],   'dm': ['"DM Sans"', 'sans-serif'] */
   },
 }
+/* index.css or globals.css */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none; /* for IE and Edge */
+  scrollbar-width: none; /* for Firefox */
+}
+
 .dm{
   font-family: "DM Sans", sans-serif;
   font-optical-sizing: auto;
@@ -19,8 +28,6 @@
   font-weight:500;
   font-style: normal;
 }
-
-/* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -40,9 +47,20 @@
 .js-plotly-plot .plotly .cursor-crosshair {
   cursor: default !important;
 }
+/* body{
+  zoom: 0.9;
+  transform: scale(0.9);
+  transform-origin: 0 0;
+  -webkit-transform: scale(0.9);
+  -webkit-transform-origin: 0 0;
+  -moz-transform: scale(0.9);
+  -moz-transform-origin: 0 0;
+  -o-transform: scale(0.9);
+  -o-transform-origin: 0 0;
+} */
 /* .app-container {
-  width: 100vw;
-  height: 100vh;
+  width: 111%;
+  height: 100vh !important;
   transform: scale(0.9);
   transform-origin: top left;
   overflow: hidden;
@@ -55,3 +73,4 @@
     transform: translateX(300%);
   }
 }
+

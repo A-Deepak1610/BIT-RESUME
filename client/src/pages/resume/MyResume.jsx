@@ -100,6 +100,7 @@ const ResumeContent = () => (
 
 export default function PrintableResumeView() {
   const [isReady, setIsReady] = useState(false);
+  const [isPrinting, setIsPrinting] = useState(false);
 
 
   useEffect(() => {
@@ -109,27 +110,73 @@ export default function PrintableResumeView() {
     return () => clearTimeout(timer);
   }, []);
 
+  // Listen for print events to manage the printing state
+  useEffect(() => {
+    const handleBeforePrint = () => {
+      setIsPrinting(true);
+    };
 
-  const handlePrint = () => {
-    window.print();
+    const handleAfterPrint = () => {
+      setIsPrinting(false);
+    };
+
+    // Add event listeners for print events
+    window.addEventListener('beforeprint', handleBeforePrint);
+    window.addEventListener('afterprint', handleAfterPrint);
+
+    // Cleanup event listeners on component unmount
+    return () => {
+      window.removeEventListener('beforeprint', handleBeforePrint);
+      window.removeEventListener('afterprint', handleAfterPrint);
+    };
+  }, []);
+
+
+  const handlePrint = async () => {
+    if (!isReady || isPrinting) return;
+    
+    setIsPrinting(true);
+    
+    try {
+      // Small delay to ensure state update
+      await new Promise(resolve => setTimeout(resolve, 100));
+      window.print();
+    } catch (error) {
+      console.error('Print failed:', error);
+      setIsPrinting(false);
+    }
+    
+    // Note: setIsPrinting(false) will be handled by the afterprint event listener
   };
 
+  // Determine button state and text
+  const getButtonState = () => {
+    if (!isReady) {
+      return { disabled: true, text: 'Loading Preview...', className: 'disabled:bg-gray-400' };
+    }
+    if (isPrinting) {
+      return { disabled: true, text: 'Printing...', className: 'disabled:bg-gray-400' };
+    }
+    return { disabled: false, text: 'Print or Save as PDF', className: 'hover:bg-indigo-700' };
+  };
+
+  const buttonState = getButtonState();
 
   return (
     <>
       <div id="resume-content-to-print">
         <ResumeContent />
       </div>
-      <div className="print-hide bg-gray-100 py-6 text-center">
+      {/* <div className="print-hide bg-gray-100 py-6 text-center">
         <button
           onClick={handlePrint}
-          disabled={!isReady}
-          className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
+          disabled={buttonState.disabled}
+          className={`inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:cursor-not-allowed transition-colors duration-200 ${buttonState.className}`}
         >
-          <Printer className="mr-3 -ml-1 h-5 w-5" />
-          {isReady ? 'Print or Save as PDF' : 'Loading Preview...'}
+          <Printer className={`mr-3 -ml-1 h-5 w-5 ${isPrinting ? 'animate-pulse' : ''}`} />
+          {buttonState.text}
         </button>
-      </div>
+      </div> */}
     </>
   );
 }

@@ -57,7 +57,7 @@ export default function Accomplishments() {
   };
 
   return (
-    <div className="p-4 bg-white shadow rounded-lg h-full flex flex-col">
+    <div className="p-4 bg-white shadow rounded-lg h-[31vh] flex flex-col">
       <h3 className="text-md font-semibold text-gray-700 mb-4 flex-shrink-0">
         My Accomplishments
       </h3>

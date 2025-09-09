@@ -15,7 +15,6 @@ const SubSection = ({ title, icon, children }) => (
   </div>
 );
 
-
 const AccomplishmentsForResume = () => {
   const { rollno } = useAuth();
   const API_URL = "http://localhost:6001";
@@ -35,47 +34,59 @@ const AccomplishmentsForResume = () => {
       return;
     }
 
-    const fetchAccomplishments = async () => {
+    const fetchAllAccomplishments = async () => {
       setIsLoading(true);
       setError(null);
 
       try {
-        // Define endpoints based on your Go backend routes
-        const endpoints = {
-          internships: `getinternshipdata`,
-          certificates: `getcertificates`,
-          hackathons: `gethackathondata`,
-        };
-        
-        // Create an array of fetch promises to run in parallel
-        const responses = await Promise.all([
-          fetch(`${API_URL}/api/resume/${endpoints.internships}/${rollno}` , {
-            credentials: 'include',
-          }),
-          fetch(`${API_URL}/api/resume/${endpoints.certificates}/${rollno}` , {
-            credentials:'include'
-          }),
-          fetch(`${API_URL}/api/resume/${endpoints.hackathons}/${rollno}` , {
-            credentials:'include'
-          }),
+        // Create fetch requests
+        const fetchInternships = fetch(`${API_URL}/api/resume/getinternshipdata/${rollno}`, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          credentials: 'include',
+        });
+
+        const fetchCertifications = fetch(`${API_URL}/api/resume/getcertificates/${rollno}`, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          credentials: 'include',
+        });
+
+        const fetchHackathons = fetch(`${API_URL}/api/resume/gethackathondata/${rollno}`, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          credentials: 'include',
+        });
+
+        // Execute all requests in parallel
+        const [internshipsResponse, certificationsResponse, hackathonsResponse] = await Promise.all([
+          fetchInternships,
+          fetchCertifications,
+          fetchHackathons
         ]);
 
-        // Check if any of the network responses are not ok
-        for (const response of responses) {
-          if (!response.ok) {
-            throw new Error(`Failed to fetch data. Status: ${response.status}`);
-          }
+        // Check if all responses are ok
+        if (!internshipsResponse.ok) {
+          throw new Error(`Failed to fetch internships. Status: ${internshipsResponse.status}`);
+        }
+        if (!certificationsResponse.ok) {
+          throw new Error(`Failed to fetch certifications. Status: ${certificationsResponse.status}`);
+        }
+        if (!hackathonsResponse.ok) {
+          throw new Error(`Failed to fetch hackathons. Status: ${hackathonsResponse.status}`);
         }
         
-        // Parse the JSON from each response
-        const [internshipData, certificateData, hackathonData] = await Promise.all(
-          responses.map(res => res.json())
-        );
+        // Parse all JSON responses in parallel
+        const [internshipsData, certificationsData, hackathonsData] = await Promise.all([
+          internshipsResponse.json(),
+          certificationsResponse.json(),
+          hackathonsResponse.json()
+        ]);
         
-        // Set the state with the fetched data
-        setInternships(internshipData || []);
-        setCertifications(certificateData || []);
-        setHackathons(hackathonData || []);
+        // Set all state at once
+        setInternships(internshipsData || []);
+        setCertifications(certificationsData || []);
+        setHackathons(hackathonsData || []);
 
       } catch (err) {
         console.error("Error fetching accomplishments data:", err);
@@ -85,8 +96,8 @@ const AccomplishmentsForResume = () => {
       }
     };
 
-    fetchAccomplishments();
-  }, [rollno]); // API_URL is a constant, so it's not needed in the dependency array
+    fetchAllAccomplishments();
+  }, [rollno]);
 
   // Render loading state
   if (isLoading) {
@@ -104,21 +115,35 @@ const AccomplishmentsForResume = () => {
   if (internships.length > 0) {
     accomplishmentSections.push(
       <SubSection key="internships" title="Internship Experience" icon={<Briefcase className="h-4 w-4 text-blue-800" />}>
-        {internships.map((item, index) => <li key={index}>{item.company_name}</li>)}
+        {internships.map((item, index) => (
+          <li key={index}>
+            <span className="font-medium">{item.company_name}</span>
+            {item.domain && <span className="text-gray-500"> - {item.domain}</span>}
+          </li>
+        ))}
       </SubSection>
     );
   }
+
   if (certifications.length > 0) {
     accomplishmentSections.push(
       <SubSection key="certifications" title="Certifications" icon={<ShieldCheck className="h-4 w-4 text-blue-800" />}>
-        {certifications.map((item, index) => <li key={index}>{item.title}</li>)}
+        {certifications.map((item, index) => (
+          <li key={index}>{item.title}</li>
+        ))}
       </SubSection>
     );
   }
+
   if (hackathons.length > 0) {
     accomplishmentSections.push(
       <SubSection key="hackathons" title="Hackathon Wins" icon={<Award className="h-4 w-4 text-blue-800" />}>
-        {hackathons.map((item, index) => <li key={index}>{item.title}</li>)}
+        {hackathons.map((item, index) => (
+          <li key={index}>
+            <span className="font-medium">{item.event_name}</span> {/* Changed from item.title */}
+            {item.did_you_win && <span className="text-gray-500"> - {item.did_you_win}</span>} {/* Changed from item.place */}
+          </li>
+        ))}
       </SubSection>
     );
   }

@@ -5,10 +5,9 @@ import (
 	projectModal "bitresume/models/Project"
 	"encoding/json"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"net/http"
 	"path/filepath"
-
-	"github.com/gin-gonic/gin"
 )
 
 func PostProjects(c *gin.Context) {
@@ -37,16 +36,19 @@ func PostProjects(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save demo video", "details": err.Error()})
 		return
 	}
-
 	report_pdf, err := c.FormFile("report_pdf")
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Report PDF upload failed", "details": err.Error()})
-		return
-	}
-	savePDFPath := filepath.Join("uploads/projects/report_PDF", report_pdf.Filename)
-	if err := c.SaveUploadedFile(report_pdf, savePDFPath); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save report PDF", "details": err.Error()})
-		return
+	var savePDFPath string
+
+	if err == nil && report_pdf != nil {
+		// file exists → save it
+		savePDFPath = filepath.Join("uploads/projects/report_PDF", report_pdf.Filename)
+		if err := c.SaveUploadedFile(report_pdf, savePDFPath); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save report PDF", "details": err.Error()})
+			return
+		}
+	} else {
+		// no file uploaded → keep it empty or default
+		savePDFPath = "" // Or "NA", depending on your DB design
 	}
 
 	// Parse boolean flags
@@ -59,7 +61,7 @@ func PostProjects(c *gin.Context) {
 		ConsultedMentor = 1
 	}
 	PresentedExternally := 0
-	if presented_externally == "true"{
+	if presented_externally == "true" {
 		PresentedExternally = 1
 	}
 	// Parse team members JSON (sent as string in form-data)
@@ -170,7 +172,7 @@ func PostProjects(c *gin.Context) {
 		 )values(?,?,?)
 	`
 
-	_ , err = config.DB.Exec(PresentationUpload,projectID,PresentedExternally,awards_won)
+	_, err = config.DB.Exec(PresentationUpload, projectID, PresentedExternally, awards_won)
 	if err != nil {
 		fmt.Println("Error: ", err.Error())
 		return
@@ -185,7 +187,7 @@ func PostProjects(c *gin.Context) {
 		) values (?,?,?,?)
 	`
 
-	_ , err = config.DB.Exec(ProjectFilesUpload,projectID,github_link,savePDFPath,saveVIDEOPath)
+	_, err = config.DB.Exec(ProjectFilesUpload, projectID, github_link, savePDFPath, saveVIDEOPath)
 	if err != nil {
 		fmt.Println("Error: ", err.Error())
 		return
