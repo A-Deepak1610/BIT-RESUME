@@ -1,70 +1,52 @@
 package jobs
-
 import (
-	// "log"
 	achievementgraph "bitresume/api/dashboard/achievement_graph"
 	activitygraph "bitresume/api/dashboard/activity_graph"
+	"bitresume/config"
 	"log"
-	// activitygraph "bitresume/api/dashboard/activity_graph"
+	"time"
 )
-
-// CallDailyTasksForAllDates processes all historical dates
 func CallDailyTasksForAllDates() {
-	// All historical dates
-	dates := []string{
-		"2025-05-19", "2025-05-20", "2025-05-21", "2025-05-22", "2025-05-23",
-		"2025-05-24", "2025-05-25", "2025-05-26", "2025-05-27", "2025-05-28",
-		"2025-05-29", "2025-05-30", "2025-05-31", "2025-06-01", "2025-06-02",
-		"2025-06-03", "2025-06-04", "2025-06-05", "2025-06-06", "2025-06-07",
-		"2025-06-08", "2025-06-09", "2025-06-10", "2025-06-11", "2025-06-12",
-		"2025-06-13", "2025-06-14", "2025-06-15", "2025-06-16", "2025-06-17",
-		"2025-06-18", "2025-06-19", "2025-06-20", "2025-06-21", "2025-06-22",
-		"2025-06-23", "2025-06-24", "2025-06-25", "2025-06-26", "2025-06-27",
-		"2025-06-28", "2025-06-29", "2025-06-30", "2025-07-01", "2025-07-02",
-		"2025-07-03", "2025-07-04", "2025-07-05", "2025-07-06", "2025-07-07",
-		"2025-07-08", "2025-07-09", "2025-07-10", "2025-07-11", "2025-07-12",
-		"2025-07-13", "2025-07-14", "2025-07-15", "2025-07-16", "2025-07-17",
-		"2025-07-18", "2025-07-19", "2025-07-20", "2025-07-21", "2025-07-22",
-		"2025-07-23", "2025-07-24", "2025-07-25", "2025-07-26", "2025-07-27",
-		"2025-07-28", "2025-07-29", "2025-07-30", "2025-07-31", "2025-08-01",
-		"2025-08-02", "2025-08-03", "2025-08-04", "2025-08-05", "2025-08-06",
-		"2025-08-07", "2025-08-08", "2025-08-09", "2025-08-10", "2025-08-11",
-		"2025-08-12", "2025-08-13", "2025-08-14", "2025-08-15", "2025-08-16",
-		"2025-08-17", "2025-08-18", "2025-08-19", "2025-08-20", "2025-08-21",
-		"2025-08-22", "2025-08-23", "2025-08-24", "2025-08-25", "2025-08-26",
-		"2025-08-27", "2025-08-28", "2025-08-29", "2025-08-30", "2025-08-31",
-		"2025-09-01", "2025-09-02", "2025-09-03", "2025-09-04", "2025-09-05",
-		"2025-09-06", "2025-09-07", "2025-09-08", "2025-09-09", "2025-09-10",
-		"2025-09-11", "2025-09-12", "2025-09-13", "2025-09-14", "2025-09-15",
-		"2025-09-16", "2025-09-17", "2025-09-18", "2025-09-19", "2025-09-20",
-		"2025-09-21", "2025-09-22", "2025-09-23", "2025-09-24", "2025-09-25",
-		"2025-09-26", "2025-09-27", "2025-09-28", "2025-09-29", "2025-09-30",
-		"2025-10-01", "2025-10-02", "2025-10-03", "2025-10-04", "2025-10-05",
-		"2025-10-06", "2025-10-07", "2025-10-08", "2025-10-09", "2025-10-10",
-		"2025-10-11", "2025-10-12", "2025-10-13", "2025-10-14", "2025-10-15",
-	}
-
-	for i, date := range dates {
-		sem := 1 // semester 1 for first 70 dates
-		if i >= 70 {
-			sem = 2 // semester 2 for remaining dates
-		}
-
-		DailyTask(date, sem)
-	}
+	currentDate := time.Now().Format("2006-01-02")
+	DailyTask(currentDate) 
 }
- 
+type Student struct {
+	RollNo string
+	Sem    int
+}
+func GetStudentData() ([]Student, error) {
+	var students []Student
+	query := `SELECT rollno, sem FROM login WHERE role = 'student'`
+	rows, err := config.DB.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var s Student
+		if err := rows.Scan(&s.RollNo, &s.Sem); err != nil {
+			log.Printf("Error scanning student row: %v", err)
+			continue
+		}
+		students = append(students, s)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return students, nil
+}
 // DailyTask executes all daily tasks for a specific date and semester
-func DailyTask(date string, sem int) {
-	log.Printf("Processing date: %s, semester: %d", date, sem)
-	if err := activitygraph.HandleInactivity("STU001", date, sem); err != nil {
-		log.Printf("Error in HandleInactivity (point_log1): %v", err)
+func DailyTask(date string) {
+	students, err := GetStudentData()
+	if err != nil {
+		log.Fatal("Error fetching student data:", err)
 	}
-	if err := achievementgraph.HandleInactivity("STU001", date, sem); err != nil {
-		log.Printf("Error in HandleInactivity (point_log2): %v", err)
+	for _, s := range students {
+		log.Printf("RollNo: %s, Sem: %d\n", s.RollNo, s.Sem)
+		activitygraph.HandleInactivity(s.RollNo, date, s.Sem)
+		achievementgraph.HandleInactivity(s.RollNo, date, s.Sem)
+		activitygraph.HandleActivityGraphPoints(s.RollNo, s.Sem, date)
+		achievementgraph.HandleAcheivemnetPoints(s.RollNo, date, s.Sem)
 	}
-	activitygraph.HandleActivityGraphPoints("STU001", sem, date) //Dynamic rollno should come from the database
-	achievementgraph.HandleAcheivemnetPoints("STU001", date, sem)
-	achievementgraph.HandleInstituteAvg(1,"2025-10-15")
-
+	achievementgraph.HandleInstituteAvg(1, date)
 }

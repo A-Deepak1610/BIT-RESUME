@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import googleicon from "../../assets/googleicon.png";
-import logo from "../../../public/logo.png";
+import logo from "../../assets/logo.png";
 import useAuth from "../../store/UseAuth";
 import { useNavigate } from "react-router-dom";
 export default function Login() {

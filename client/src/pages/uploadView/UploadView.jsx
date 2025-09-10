@@ -6,10 +6,43 @@ import {
   Trash2,
   AlertCircle,
   ChevronRight,
+  ChevronDown,
 } from "lucide-react";
-import Modal from "@mui/material/Modal";
+import {
+  Modal,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Button,
+  Snackbar,
+  Alert,
+} from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import useAuth from "../../store/UseAuth"; 
+import useAuth from "../../store/UseAuth";
+
+// A reusable dropdown component for filtering
+const FilterDropdown = ({ value, onChange, options, label }) => (
+  <div className="relative w-full sm:w-auto">
+    <select
+      value={value}
+      onChange={onChange}
+      className="appearance-none block w-full bg-white border border-gray-200 text-gray-700 py-2 pl-3 pr-8 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm md:text-base"
+      aria-label={label}
+    >
+      <option value="All">{label}</option>
+      {options.map((option) => (
+        <option key={option} value={option}>
+          {option}
+        </option>
+      ))}
+    </select>
+    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+      <ChevronDown size={18} />
+    </div>
+  </div>
+);
 
 export default function UploadView() {
   const [expandedItem, setExpandedItem] = useState(null);
@@ -18,138 +51,156 @@ export default function UploadView() {
   const [uploads, setUploads] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
-  const { rollno } = useAuth(); 
+  const [filters, setFilters] = useState({ type: "All", status: "All" });
+
+  // State for MUI Delete Dialog and Snackbar
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
+  const [notification, setNotification] = useState({
+    open: false,
+    message: "",
+    severity: "info",
+  });
+
+  const { rollno } = useAuth();
   const navigate = useNavigate();
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
   useEffect(() => {
+    // Fetch logic remains the same
     const fetchUploads = async () => {
-      if (!rollno) {
-        setLoading(false);
-        return; 
-      }
-      
-      try {
-        setLoading(true);
-        setError(null);
-
-        const response = await fetch(
-          `http://localhost:6001/api/uploadview/getuploaddetails/${rollno}`,
-          {
-            credentials:'include'
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(`Error: ${response.status} ${response.statusText}`);
+        if (!rollno) {
+          setLoading(false);
+          return;
         }
-
-        const data = await response.json();
-
-        const typeCounters = {};
-        const formattedData = data.map((item) => {
-          typeCounters[item.type] = (typeCounters[item.type] || 0) + 1;
-          const date = new Date(item.uploaded_on);
-          const formattedDate = `${String(date.getDate()).padStart(
-            2,
-            "0"
-          )}/${String(date.getMonth() + 1).padStart(2, "0")}/${date.getFullYear()}`;
-          const newItem = {
-            ...item,
-            uniqueId: `${item.type}-${item.id}`,
-            ashId: item.rollno,
-            uploadDate: formattedDate,
-            complexity: item.complexity || "NA",
-            type: item.type === "Workshop" ? "Seminar / Workshop" : item.type,
-          };
-          if (item.type === "Project") {
-            newItem.projectNo = typeCounters[item.type];
+  
+        try {
+          setLoading(true);
+          setError(null);
+          const response = await fetch(
+            `http://localhost:6001/api/uploadview/getuploaddetails/${rollno}`,
+            { credentials: "include" }
+          );
+  
+          if (!response.ok) {
+            throw new Error(`Error: ${response.status} ${response.statusText}`);
           }
-          if (item.type === "Certificate") {
-            newItem.CertificateNo = typeCounters[item.type];
-          }
-          return newItem;
-        });
+          const data = await response.json();
+          const typeCounters = {};
+          const formattedData = data.map((item) => {
+            typeCounters[item.type] = (typeCounters[item.type] || 0) + 1;
+            const date = new Date(item.uploaded_on);
+            const formattedDate = `${String(date.getDate()).padStart(
+              2,
+              "0"
+            )}/${String(date.getMonth() + 1).padStart(2, "0")}/${date.getFullYear()}`;
+            const newItem = {
+              ...item,
+              uniqueId: `${item.type}-${item.id}`,
+              ashId: item.rollno,
+              uploadDate: formattedDate,
+              complexity: item.complexity || "NA",
+              type: item.type === "Workshop" ? "Seminar / Workshop" : item.type,
+            };
+            if (item.type === "Project") newItem.projectNo = typeCounters[item.type];
+            if (item.type === "Certificate") newItem.CertificateNo = typeCounters[item.type];
+            return newItem;
+          });
+          setUploads(formattedData);
+        } catch (err) {
+          setError(err.message);
+          console.error("Fetch error:", err);
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchUploads();
+  }, [rollno]);
 
-        setUploads(formattedData);
-      } catch (err) {
-        setError(err.message);
-        console.error("Fetch error:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const handleFilterChange = (e, filterName) => {
+    setFilters((prev) => ({ ...prev, [filterName]: e.target.value }));
+  };
 
-    fetchUploads();
-  }, [rollno]); 
+  // --- Delete Logic with Confirmation Dialog ---
 
-  const handleDelete = async (id, type, subType) => {
-    // Confirm with the user before deleting
-    if (!window.confirm("Are you sure you want to delete this item?")) {
-      return;
-    }
+  // Step 1: Open the confirmation dialog
+  const handleOpenDeleteDialog = (id, type, subType) => {
+    setItemToDelete({ id, type, subType });
+    setDeleteConfirmOpen(true);
+  };
 
-    const payload = {
-      id,
-      type,
-      // Conditionally set subType based on the type
-      subType: type === 'Certificate' ? subType : null
-    };
+  // Step 2: Close the confirmation dialog
+  const handleCloseDeleteDialog = () => {
+    setDeleteConfirmOpen(false);
+    setItemToDelete(null);
+  };
 
-    // *** ADDED CONSOLE LOG HERE ***
-    console.log("Sending delete request with payload:", payload);
+  // Step 3: Confirm deletion and make the API call
+  const handleConfirmDelete = async () => {
+    if (!itemToDelete) return;
+
+    const { id, type, subType } = itemToDelete;
+    const payload = { id, type, subType: type === 'Certificate' ? subType : undefined };
 
     try {
-      const response = await fetch('http://localhost:6001/api/uploadview/deleteupload', {
-        method: 'DELETE',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload)
-      });
+      const response = await fetch(
+        "http://localhost:6001/api/uploadview/deleteupload",
+        {
+          method: "DELETE",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
+      );
 
       if (!response.ok) {
-        throw new Error('Deletion failed on the server.');
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Deletion failed on the server.");
       }
-      
-      // On successful deletion, update the UI by removing the item from state
-      setUploads(prevUploads => prevUploads.filter(upload => upload.uniqueId !== `${type}-${id}`));
 
+      setUploads((prevUploads) =>
+        prevUploads.filter((upload) => upload.uniqueId !== `${type}-${id}`)
+      );
+      setNotification({
+        open: true,
+        message: "Item deleted successfully!",
+        severity: "success",
+      });
     } catch (error) {
       console.error("Failed to delete document:", error);
-      // Optionally, display an error message to the user
-      alert("Could not delete the document. Please try again later.");
+      setNotification({
+        open: true,
+        message: `Error: ${error.message}`,
+        severity: "error",
+      });
+    } finally {
+      handleCloseDeleteDialog(); // Close the dialog regardless of outcome
     }
   };
 
+  const handleCloseNotification = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setNotification({ ...notification, open: false });
+  };
+  
+  // --- End of Delete Logic ---
+
+
   const handleNavigateToForm = (type) => {
+    // Navigation logic remains the same
     let targetPath = "/";
     switch (type) {
-      case "Project":
-        targetPath = "/uploadview/project";
-        break;
-      case "Patent":
-        targetPath = "/uploadview/patent";
-        break;
-      case "Seminar / Workshop":
-        targetPath = "/uploadview/SeminarOrWorkshop";
-        break;
-      case "Internship":
-        targetPath = "/uploadview/internship";
-        break;
-      case "Paper Presentation":
-        targetPath = "/uploadview/paperpresentation";
-        break;
-      case "Certificate":
-        targetPath = "/uploadview/certificate";
-        break;
-      default:
-        console.warn(`No navigation action defined for type: ${type}`);
-        return;
+      case "Project": targetPath = "/uploadview/project"; break;
+      case "Patent": targetPath = "/uploadview/patent"; break;
+      case "Seminar / Workshop": targetPath = "/uploadview/SeminarOrWorkshop"; break;
+      case "Internship": targetPath = "/uploadview/internship"; break;
+      case "Paper Presentation": targetPath = "/uploadview/paperpresentation"; break;
+      case "Certificate": targetPath = "/uploadview/certificate"; break;
+      default: console.warn(`No navigation action defined for type: ${type}`); return;
     }
     navigate(targetPath);
   };
@@ -159,25 +210,27 @@ export default function UploadView() {
   };
 
   const filteredUploads = useMemo(() => {
+    // Filtering logic remains the same
     const term = searchTerm.toLowerCase();
-    if (!term) return uploads;
-    return uploads.filter((upload) =>
-      [
-        upload.title,
-        upload.description,
-        upload.type,
-        upload.complexity,
-        upload.status,
-        upload.ashId,
-        upload.uploadDate,
-      ]
-        .join(" ")
-        .toLowerCase()
-        .includes(term)
-    );
-  }, [searchTerm, uploads]);
+    
+    return uploads.filter(upload => {
+      const typeMatch = filters.type === 'All' || upload.type === filters.type;
+      const statusMatch = filters.status === 'All' || upload.status === filters.status;
+      const searchMatch = !term || 
+        [
+          upload.title, upload.description, upload.type,
+          upload.complexity, upload.status, upload.ashId, upload.uploadDate,
+        ].join(" ").toLowerCase().includes(term);
+        
+      return typeMatch && statusMatch && searchMatch;
+    });
+  }, [searchTerm, uploads, filters]);
+
+  const uniqueTypes = useMemo(() => [...new Set(uploads.map((u) => u.type))].sort(), [uploads]);
+  const statusOptions = ["Verified", "Pending", "Rejected"];
 
   const DocumentUploadModal = ({ open, handleClose }) => {
+    // Modal component remains the same
     const [selectedType, setSelectedType] = useState("");
     const items = [
       { label: "Project", desc: "Upload your academic or personal projects" },
@@ -329,149 +382,169 @@ export default function UploadView() {
 
   const renderContent = () => {
     if (loading) {
-        return <div className="text-center p-10 bg-white rounded-lg shadow">Loading documents...</div>;
+      return <div className="text-center p-10 bg-white rounded-lg shadow">Loading documents...</div>;
     }
-
     if (error) {
-        return <div className="text-center p-10 bg-white rounded-lg shadow text-red-600">Error: {error}</div>;
+      return <div className="text-center p-10 bg-white rounded-lg shadow text-red-600">Error: {error}</div>;
     }
-
     if (!loading && !error && filteredUploads.length === 0) {
-        return <div className="bg-white rounded-lg shadow p-6 text-center text-gray-500">No documents found.</div>;
+      return <div className="bg-white rounded-lg shadow p-6 text-center text-gray-500">No documents match your criteria.</div>;
     }
 
     return (
       <>
         {/* Mobile View */}
         <div className="block md:hidden space-y-3">
-            {filteredUploads.map((upload, index) => (
-              <MobileCard
-                key={upload.uniqueId}
-                upload={upload}
-                index={index}
-                expandedItem={expandedItem}
-                toggleExpandItem={toggleExpandItem}
-                handleDelete={handleDelete}
-              />
-            ))}
+          {filteredUploads.map((upload, index) => (
+            <MobileCard
+              key={upload.uniqueId}
+              upload={upload}
+              index={index}
+              expandedItem={expandedItem}
+              toggleExpandItem={toggleExpandItem}
+              handleDelete={handleOpenDeleteDialog} // Pass the dialog-opening function
+            />
+          ))}
         </div>
 
         {/* Tablet and Desktop View */}
         <div className="hidden md:block bg-white rounded-lg shadow overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="text-left text-gray-600 text-sm bg-gray-50">
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="text-left text-gray-600 text-sm bg-gray-50">
                     <th className="py-3 px-4 font-medium whitespace-nowrap">S.No</th>
                     <th className="py-3 px-4 font-medium whitespace-nowrap">Uploads</th>
                     <th className="py-3 px-4 font-medium whitespace-nowrap">Type</th>
                     <th className="py-3 px-4 font-medium whitespace-nowrap">Complexity</th>
                     <th className="py-3 px-4 font-medium whitespace-nowrap">Status</th>
                     <th className="py-3 px-4 font-medium whitespace-nowrap">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {filteredUploads.map((upload, index) => (
-                    <tr key={upload.uniqueId} className="hover:bg-gray-50 transition-colors">
-                      <td className="py-4 px-4 align-top text-sm">{index + 1}.</td>
-                      <td className="py-4 px-4">
-                        <div className="mb-1 font-medium text-sm md:text-base">
-                          {upload.title}
-                        </div>
-                        <div className="text-xs md:text-sm text-gray-600 mb-1">
-                          {upload.description}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          Ash ID: {upload.ashId}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          Uploaded: {upload.uploadDate}
-                        </div>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {filteredUploads.map((upload, index) => (
+                  <tr key={upload.uniqueId} className="hover:bg-gray-50 transition-colors">
+                    <td className="py-4 px-4 align-top text-sm">{index + 1}.</td>
+                    <td className="py-4 px-4">
+                        <div className="mb-1 font-medium text-sm md:text-base">{upload.title}</div>
+                        <div className="text-xs md:text-sm text-gray-600 mb-1">{upload.description}</div>
+                        <div className="text-xs text-gray-500">Ash ID: {upload.ashId}</div>
+                        <div className="text-xs text-gray-500">Uploaded: {upload.uploadDate}</div>
                         {upload.projectNo || upload.CertificateNo ? (
                           <div className="inline-block mt-2 px-2 py-1 text-xs font-semibold border border-indigo-200 rounded-full bg-indigo-50 text-indigo-700">
-                            {upload.projectNo
-                              ? `Project #${upload.projectNo}`
-                              : `Cert #${upload.CertificateNo}`}
+                            {upload.projectNo ? `Project #${upload.projectNo}` : `Cert #${upload.CertificateNo}`}
                           </div>
                         ) : null}
-                      </td>
-                      <td className="py-4 px-4 align-top text-sm">
-                        {upload.type}
-                      </td>
-                      <td className="py-4 px-4 align-top text-sm">
-                        {upload.complexity}
-                      </td>
-                      <td className="py-4 px-4 align-top">
+                    </td>
+                    <td className="py-4 px-4 align-top text-sm">{upload.type}</td>
+                    <td className="py-4 px-4 align-top text-sm">{upload.complexity}</td>
+                    <td className="py-4 px-4 align-top">
                         <div className="flex items-center">
                             {upload.status === "Verified" ? (
-                                <>
-                                  <span className="inline-flex items-center justify-center w-5 h-5 bg-green-100 rounded-full mr-2">
-                                    <Check size={12} className="text-green-500" />
-                                  </span>
-                                  <span className="text-sm">Verified</span>
-                                </>
+                                <><span className="inline-flex items-center justify-center w-5 h-5 bg-green-100 rounded-full mr-2"><Check size={12} className="text-green-500" /></span><span className="text-sm">Verified</span></>
                             ) : upload.status === 'Pending' ? (
-                                <>
-                                  <span className="inline-flex items-center justify-center w-5 h-5 bg-yellow-100 rounded-full mr-2">
-                                    <AlertCircle size={12} className="text-yellow-500" />
-                                  </span>
-                                  <span className="text-sm">Pending</span>
-                                </>
+                                <><span className="inline-flex items-center justify-center w-5 h-5 bg-yellow-100 rounded-full mr-2"><AlertCircle size={12} className="text-yellow-500" /></span><span className="text-sm">Pending</span></>
                             ) : (
-                                <>
-                                  <span className="inline-flex items-center justify-center w-5 h-5 bg-red-100 rounded-full mr-2">
-                                    <AlertCircle size={12} className="text-red-500" />
-                                  </span>
-                                  <span className="text-sm">Rejected</span>
-                                </>
+                                <><span className="inline-flex items-center justify-center w-5 h-5 bg-red-100 rounded-full mr-2"><AlertCircle size={12} className="text-red-500" /></span><span className="text-sm">Rejected</span></>
                             )}
                         </div>
-                      </td>
-                      <td className="py-4 px-4 align-top">
-                        <div className="flex space-x-2">
-                          <button
-                            onClick={() => handleDelete(upload.id, upload.type, upload['SUb-type'])}
-                            title="Delete"
-                            className="p-1 text-gray-600 hover:text-red-600 transition-colors"
-                          >
-                            <Trash2 size={18} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                    </td>
+                    <td className="py-4 px-4 align-top">
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => handleOpenDeleteDialog(upload.id, upload.type, upload["SUb-type"])}
+                          title="Delete"
+                          className="p-1 text-gray-600 hover:text-red-600 transition-colors"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </>
     );
   };
 
   return (
-    <>
+    <div className="p-5">
       <DocumentUploadModal open={open} handleClose={handleClose} />
+      
+      {/* --- Confirmation Dialog and Notification Snackbar --- */}
+      <Dialog
+        open={deleteConfirmOpen}
+        onClose={handleCloseDeleteDialog}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">
+          {"Confirm Deletion"}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            Are you sure you want to permanently delete this item? This action
+            cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDeleteDialog}>Cancel</Button>
+          <Button onClick={handleConfirmDelete} color="error" autoFocus>
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
 
-      <div className="bg-gray-100 min-h-screen p-4 ">
+      <Snackbar
+        open={notification.open}
+        autoHideDuration={6000}
+        onClose={handleCloseNotification}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={handleCloseNotification}
+          severity={notification.severity}
+          sx={{ width: "100%" }}
+        >
+          {notification.message}
+        </Alert>
+      </Snackbar>
+      {/* --- End of Dialog and Snackbar --- */}
+
+      <div className="bg-gray-100 min-h-screen p-4">
         <div className="mx-auto max-w-7xl">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
-            <div className="relative flex-1 w-full sm:w-auto">
+          <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between mb-6">
+            <div className="relative flex-1 min-w-[200px]">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <Search className="text-gray-400" size={18} />
               </div>
               <input
                 type="text"
-                className="block w-full sm:w-64 md:w-80 pl-10 pr-4 py-2 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm md:text-base"
+                className="block w-full pl-10 pr-4 py-2 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm md:text-base border border-gray-200 shadow-sm"
                 placeholder="Search documents..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            {/* <button className="w-full sm:w-auto flex items-center justify-center px-4 py-2 bg-white text-indigo-600 font-medium rounded-lg border border-gray-200 shadow-sm hover:bg-gray-50 cursor-pointer transition-colors text-sm md:text-base">
-              <span>
-                Requested Upload
-              </span>
-            </button> */}
+
+            <div className="flex-1 flex flex-col sm:flex-row gap-4 w-full sm:w-auto sm:flex-none">
+              <FilterDropdown
+                value={filters.type}
+                onChange={(e) => handleFilterChange(e, "type")}
+                options={uniqueTypes}
+                label="All Types"
+              />
+              <FilterDropdown
+                value={filters.status}
+                onChange={(e) => handleFilterChange(e, "status")}
+                options={statusOptions}
+                label="All Statuses"
+              />
+            </div>
+
             <button
               onClick={handleOpen}
               className="w-full sm:w-auto flex items-center justify-center px-4 py-2 bg-white text-indigo-600 font-medium rounded-lg border border-gray-200 shadow-sm hover:bg-gray-50 cursor-pointer transition-colors text-sm md:text-base"
@@ -480,97 +553,97 @@ export default function UploadView() {
               <Upload size={18} className="ml-2" />
             </button>
           </div>
-          
+
           {renderContent()}
-
         </div>
       </div>
-    </>
-  );
-}
-
-function MobileCard({ upload, index, expandedItem, toggleExpandItem, handleDelete }) {
-  const isExpanded = expandedItem === upload.uniqueId;
-
-  return (
-    <div
-      className={`bg-white rounded-lg shadow overflow-hidden transition-all ${
-        isExpanded ? "ring-1 ring-indigo-200" : ""
-      }`}
-    >
-      <div
-        className="flex justify-between items-center p-4 cursor-pointer"
-        onClick={() => toggleExpandItem(upload.uniqueId)}
-      >
-        <div className="flex items-start space-x-3">
-          <span className="font-medium text-gray-700">{index + 1}.</span>
-          <div className="flex-1">
-            <h3 className="font-medium text-gray-900">{upload.title}</h3>
-            <p className="text-sm text-gray-600 line-clamp-1">
-              {upload.description}
-            </p>
-            <div className="mt-1 flex flex-wrap gap-2">
-              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                {upload.type}
-              </span>
-                {upload.status === "Verified" ? (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                    Verified
-                    </span>
-                ) : upload.status === "Pending" ? (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
-                    Pending
-                    </span>
-                ) : (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
-                    Rejected
-                    </span>
-                )}
-            </div>
-          </div>
-        </div>
-        <ChevronRight
-          size={20}
-          className={`text-gray-400 transition-transform ${
-            isExpanded ? "rotate-90" : ""
-          }`}
-        />
-      </div>
-
-      {isExpanded && (
-        <div className="px-4 pb-4 pt-1 border-t border-gray-100">
-          <div className="grid grid-cols-2 gap-4 mb-3">
-            <div>
-              <p className="text-xs text-gray-500 mb-1">Complexity</p>
-              <p className="text-sm font-medium">{upload.complexity}</p>
-            </div>
-            <div>
-              <p className="text-xs text-gray-500 mb-1">Reference</p>
-              <p className="text-sm font-medium">
-                {upload.projectNo
-                  ? `Project #${upload.projectNo}`
-                  : upload.CertificateNo 
-                    ? `Cert #${upload.CertificateNo}`
-                    : 'N/A'}
-              </p>
-            </div>
-          </div>
-          <div className="text-xs text-gray-500 mb-1">Ash ID</div>
-          <div className="text-sm font-medium mb-3">{upload.ashId}</div>
-          <div className="text-xs text-gray-500 mb-1">Uploaded On</div>
-          <div className="text-sm font-medium mb-3">{upload.uploadDate}</div>
-          <div className="flex space-x-2 pt-2 border-t border-gray-100">
-            <button
-              onClick={() => handleDelete(upload.id, upload.type, upload['SUb-type'])}
-              title="Delete"
-              className="flex-1 flex items-center justify-center px-3 py-1.5 bg-red-50 text-red-600 rounded-md text-sm font-medium hover:bg-red-100 transition-colors"
-            >
-              <Trash2 size={16} className="mr-1.5" />
-              Delete
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
+
+// MobileCard remains unchanged but now receives the correct delete handler
+function MobileCard({ upload, index, expandedItem, toggleExpandItem, handleDelete }) {
+    const isExpanded = expandedItem === upload.uniqueId;
+  
+    return (
+      <div
+        className={`bg-white rounded-lg shadow overflow-hidden transition-all ${
+          isExpanded ? "ring-1 ring-indigo-200" : ""
+        }`}
+      >
+        <div
+          className="flex justify-between items-center p-4 cursor-pointer"
+          onClick={() => toggleExpandItem(upload.uniqueId)}
+        >
+          <div className="flex items-start space-x-3">
+            <span className="font-medium text-gray-700">{index + 1}.</span>
+            <div className="flex-1">
+              <h3 className="font-medium text-gray-900">{upload.title}</h3>
+              <p className="text-sm text-gray-600 line-clamp-1">
+                {upload.description}
+              </p>
+              <div className="mt-1 flex flex-wrap gap-2">
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                  {upload.type}
+                </span>
+                  {upload.status === "Verified" ? (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                      Verified
+                      </span>
+                  ) : upload.status === "Pending" ? (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                      Pending
+                      </span>
+                  ) : (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                      Rejected
+                      </span>
+                  )}
+              </div>
+            </div>
+          </div>
+          <ChevronRight
+            size={20}
+            className={`text-gray-400 transition-transform ${
+              isExpanded ? "rotate-90" : ""
+            }`}
+          />
+        </div>
+  
+        {isExpanded && (
+          <div className="px-4 pb-4 pt-1 border-t border-gray-100">
+            <div className="grid grid-cols-2 gap-4 mb-3">
+              <div>
+                <p className="text-xs text-gray-500 mb-1">Complexity</p>
+                <p className="text-sm font-medium">{upload.complexity}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 mb-1">Reference</p>
+                <p className="text-sm font-medium">
+                  {upload.projectNo
+                    ? `Project #${upload.projectNo}`
+                    : upload.CertificateNo 
+                      ? `Cert #${upload.CertificateNo}`
+                      : 'N/A'}
+                </p>
+              </div>
+            </div>
+            <div className="text-xs text-gray-500 mb-1">Ash ID</div>
+            <div className="text-sm font-medium mb-3">{upload.ashId}</div>
+            <div className="text-xs text-gray-500 mb-1">Uploaded On</div>
+            <div className="text-sm font-medium mb-3">{upload.uploadDate}</div>
+            <div className="flex space-x-2 pt-2 border-t border-gray-100">
+              <button
+                onClick={() => handleDelete(upload.id, upload.type, upload['SUb-type'])}
+                title="Delete"
+                className="flex-1 flex items-center justify-center px-3 py-1.5 bg-red-50 text-red-600 rounded-md text-sm font-medium hover:bg-red-100 transition-colors"
+              >
+                <Trash2 size={16} className="mr-1.5" />
+                Delete
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }

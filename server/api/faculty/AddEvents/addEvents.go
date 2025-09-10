@@ -3,8 +3,6 @@ package addevents
 import (
 	"bitresume/config"
 	"encoding/json"
-	"strconv"
-
 	// "bitresume/models"
 	facultymodel "bitresume/models/faculty"
 	"fmt"
@@ -115,19 +113,6 @@ func AddEvents(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Event added successfully"})
 }
 func FetchEvents(c *gin.Context) {
-	limitStr := c.Query("limit")
-	offsetStr := c.Query("offset")
-
-	limit, err := strconv.Atoi(limitStr)
-	if err != nil || limit <= 0 {
-		limit = 20
-	}
-
-	offset, err := strconv.Atoi(offsetStr)
-	if err != nil || offset < 0 {
-		offset = 0
-	}
-
 	query := `
 		SELECT e.id, e.event_name, e.event_code, e.type, e.deadline, e.min_team_size, e.max_team_size,
 			e.no_of_rounds, e.online_rounds, e.offline_rounds, e.location, e.apply_link,
@@ -137,11 +122,11 @@ func FetchEvents(c *gin.Context) {
 			r.year1_rp, r.year2_rp, r.year3_rp, r.year4_rp
 		FROM events AS e
 		LEFT JOIN event_rounds_dates AS r 
-			ON e.event_code = r.event_code
-		LIMIT ? OFFSET ?;
+			ON e.event_code = r.event_code order by  deadline desc
+		;
 `
 
-	rows, err := config.DB.Query(query, limit, offset)
+	rows, err := config.DB.Query(query)
 	if err != nil {
 		log.Println("Error executing query:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})

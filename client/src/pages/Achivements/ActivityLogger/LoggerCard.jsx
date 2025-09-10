@@ -9,7 +9,6 @@ import {
   XCircle,
   Clock,
   Tag,
-  Award,
 } from "lucide-react";
 import {
   Dialog,
@@ -21,7 +20,6 @@ import {
   Box,
   Chip,
 } from "@mui/material";
-import CertificateUpload from "../../uploadView/forms/certificate";
 
 // This component renders a single stage in the progress tracker
 const ProgressStage = ({ stage, status }) => {
@@ -67,19 +65,20 @@ const TeamDetailsModal = ({ open, onClose, data }) => {
     if (state === "faculty") return "warning";
     return "default";
   };
-  const navigate=useNavigate();
-  const certificationType='hackathon';
-  console.log(data)
-  const handleUpdateDetails=()=>{
-    navigate("/uploadview/certificate",{
-      state:{
+
+  const navigate = useNavigate();
+  const certificationType = "hackathon";
+
+  const handleUpdateDetails = () => {
+    navigate("/uploadview/certificate", {
+      state: {
         data,
-        certificationType:certificationType,
-      }
+        certificationType: certificationType,
+      },
     });
-  }
-  // Check if event is completed
-  const isEventCompleted = data.isCompleted || false;
+  };
+
+  const isEventCompleted = data.isCompleted || new Date() >= new Date(data.end_date);
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
@@ -124,11 +123,12 @@ const TeamDetailsModal = ({ open, onClose, data }) => {
             </Typography>
             {data.end_date && (
               <Typography variant="body2" color="text.secondary">
-                <strong>End:</strong> {new Date(data.end_date).toLocaleDateString('en-GB', {
-                  day: '2-digit',
-                  month: '2-digit',
-                  year: 'numeric'
-                }).replace(/\//g, '.')}
+                <strong>End:</strong>{" "}
+                {new Date(data.end_date).toLocaleDateString("en-GB", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                })}
               </Typography>
             )}
           </Box>
@@ -186,7 +186,8 @@ const TeamDetailsModal = ({ open, onClose, data }) => {
                   borderColor: "blue.200",
                 }}
               >
-                This event has been completed. Please update your participation status and share your experience.
+                This event has been completed. Please update your participation
+                status and share your experience.
               </Typography>
             </Box>
           )}
@@ -198,7 +199,11 @@ const TeamDetailsModal = ({ open, onClose, data }) => {
           Close
         </Button>
         {isEventCompleted && (
-          <Button onClick={handleUpdateDetails} variant="contained" color="primary">
+          <Button
+            onClick={handleUpdateDetails}
+            variant="contained"
+            color="primary"
+          >
             Update Status
           </Button>
         )}
@@ -210,19 +215,35 @@ const TeamDetailsModal = ({ open, onClose, data }) => {
 const LoggerCard = ({ data, onCardClick }) => {
   const [modalOpen, setModalOpen] = useState(false);
 
-
-  
   if (!data) {
     return null;
   }
 
-  // Enhanced progress logic with completed status
+  // --- Date Logic ---
+  const currentDate = new Date();
+  currentDate.setHours(0, 0, 0, 0); // Normalize to compare dates only
+
+  const startDate = new Date(data.start_date);
+  const endDate = new Date(data.end_date);
+
+  let buttonText = "View Details";
+  let buttonColor = "bg-[#0200e1] hover:bg-[#0100b3]"; // Default: Blue
+
+  if (currentDate >= endDate) {
+    buttonText = "Update Details";
+    buttonColor = "bg-green-600 hover:bg-green-700"; // Completed: Green
+  } else if (currentDate >= startDate) {
+    buttonText = "Ongoing";
+    buttonColor = "bg-orange-500 hover:bg-orange-600"; // Ongoing: Orange
+  }
+  // --- End of Date Logic ---
+
+  const isEventCompleted = data.isCompleted || currentDate >= endDate;
+
+  // Progress logic
   let facultyStatus = "pending";
   let onDutyStatus = "pending";
   let completedStatus = "pending";
-
-  // Check if event is completed
-  const isEventCompleted = data.isCompleted || false;
 
   if (data.verified === "rejected") {
     facultyStatus = "rejected";
@@ -231,12 +252,7 @@ const LoggerCard = ({ data, onCardClick }) => {
   } else if (data.verified === "accepted") {
     facultyStatus = "completed";
     onDutyStatus = "completed";
-    // Only mark as completed if event end date has passed
     completedStatus = isEventCompleted ? "completed" : "pending";
-  } else if (data.state === "faculty") {
-    facultyStatus = "pending";
-    onDutyStatus = "pending";
-    completedStatus = "pending";
   }
 
   const handleButtonClick = (e) => {
@@ -244,30 +260,15 @@ const LoggerCard = ({ data, onCardClick }) => {
     setModalOpen(true);
   };
 
-  const handleCardClick = (e) => {
-    if (onCardClick) {
-      onCardClick(data);
-    } else {
-      setModalOpen(true);
-    }
-  };
-
-  // Enhanced progress stages with completed status
   const progressStages = [
     { name: "Faculty", status: facultyStatus },
     { name: "On Duty", status: onDutyStatus },
-    { name: "Completed", status: completedStatus }
+    { name: "Completed", status: completedStatus },
   ];
-
-  // Dynamic button text based on completion status
-  const buttonText = isEventCompleted ? "Update Details" : "View Details";
 
   return (
     <>
-      <div
-        className="bg-white shadow-xl rounded-xl overflow-hidden flex flex-col w-full max-w-md h-[453px] "
-        // onClick={handleCardClick}
-      >
+      <div className="bg-white shadow-xl rounded-xl overflow-hidden flex flex-col w-full max-w-md h-[453px]">
         {/* Image Section */}
         <div className="relative h-[165px] flex-shrink-0">
           {data.imageUrl && (
@@ -277,7 +278,6 @@ const LoggerCard = ({ data, onCardClick }) => {
               className="w-full h-full object-cover"
             />
           )}
-          {/* Event Status Badge */}
           {isEventCompleted && (
             <div className="absolute top-2 right-2">
               <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">
@@ -287,8 +287,11 @@ const LoggerCard = ({ data, onCardClick }) => {
           )}
         </div>
 
-        {/* Content Section - Fixed height calculation */}
-        <div className="p-4 flex flex-col flex-1" style={{ height: 'calc(453px - 165px)' }}>
+        {/* Content Section */}
+        <div
+          className="p-4 flex flex-col flex-1"
+          style={{ height: "calc(453px - 165px)" }}
+        >
           {/* Date and Event Type */}
           <div className="flex justify-between items-center mb-2">
             <span className="text-sm text-gray-500 font-medium">
@@ -341,23 +344,21 @@ const LoggerCard = ({ data, onCardClick }) => {
             <div className="flex items-center gap-2">
               <Users size={14} className="text-gray-400 flex-shrink-0" />
               <span className="text-xs text-gray-600 truncate">
-                Members: {data.teamMembers ? data.teamMembers.join(", ") : "N/A"}
+                Members:{" "}
+                {data.teamMembers ? data.teamMembers.join(", ") : "N/A"}
               </span>
             </div>
           </div>
 
           {/* Dynamic Button */}
           <button
-            className={`w-full cursor-pointer font-semibold py-2 px-4 rounded-lg text-sm transition duration-150 ease-in-out mb-3 ${
-              isEventCompleted 
-                ? "bg-green-600 hover:bg-green-700 text-white"
-                : "bg-[#0200e1] hover:bg-[#0100b3] text-white"
-            }`}
+            className={`w-full cursor-pointer font-semibold py-2 px-4 rounded-lg text-sm transition duration-150 ease-in-out mb-3 ${buttonColor} text-white`}
             onClick={handleButtonClick}
           >
             {buttonText}
           </button>
-          {/* Enhanced Progress Tracker */}
+
+          {/* Progress Tracker */}
           <div className="flex-shrink-0">
             <div className="flex items-start justify-between">
               {progressStages.map((stage, index) => (
@@ -381,7 +382,6 @@ const LoggerCard = ({ data, onCardClick }) => {
         </div>
       </div>
 
-      {/* Enhanced Team Details Modal */}
       <TeamDetailsModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}

@@ -51,6 +51,7 @@ const RequestCard = ({ data, onApprove, onReject }) => {
       });
 
       const requestBody = {
+        rollno: rollno,
         event_code: eventCode,
         team_code: teamCode,
         action: action,
@@ -62,7 +63,7 @@ const RequestCard = ({ data, onApprove, onReject }) => {
       }
 
       const response = await fetch(
-        `http://localhost:6001/api/events/registered_events/approve_reject/${rollno}`,
+        `http://localhost:6001/api/events/registered_events/approve_reject`,
         {
           method: "PUT",
           headers: {

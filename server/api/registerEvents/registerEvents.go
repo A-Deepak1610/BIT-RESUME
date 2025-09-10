@@ -13,7 +13,7 @@ import (
 
 type RegisterEventRequest struct {
 	EventCode        string   `json:"eventCode"`
-	TeamName		string   `json:"teamName"`
+	TeamName         string   `json:"teamName"`
 	LeaderRollNo     string   `json:"leaderRollNo"`
 	Domain           string   `json:"domain"`
 	ProblemStatement string   `json:"problemStatement"`
@@ -46,7 +46,7 @@ func HandleRegisterEvents(c *gin.Context) {
 	leaderRollNo := req.LeaderRollNo
 	insertEvent := `INSERT INTO register_teams (event_code, team_code, leader_rollno, domain, problem_statement, state, verified)
 	                VALUES (?, ?, ?, ?, ?, ?, ?)`
-	_, err = config.DB.Exec(insertEvent, req.EventCode,teamCode, leaderRollNo, req.Domain, req.ProblemStatement, "faculty", "pending")
+	_, err = config.DB.Exec(insertEvent, req.EventCode, teamCode, leaderRollNo, req.Domain, req.ProblemStatement, "faculty", "pending")
 	if err != nil {
 		fmt.Println("Error inserting into register_teams:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to register event"})
@@ -268,7 +268,7 @@ WHERE
     AND user_re.status = 'accepted'
 
 ORDER BY 
-    e.event_code;
+    end_date DESC;
 `
 
 	rows, err := config.DB.Query(query, rollno)
@@ -419,7 +419,7 @@ func HandleRegisteredTeams(c *gin.Context) {
 	for rows.Next() {
 		var t models.RegisteredTeam
 		// Use sql.NullString for fields that might be NULL from LEFT JOINs
-		var leaderName sql.NullString 
+		var leaderName sql.NullString
 
 		if err := rows.Scan(
 			&t.TeamCode,

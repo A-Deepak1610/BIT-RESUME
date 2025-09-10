@@ -15,6 +15,7 @@ import (
 	registerevents "bitresume/api/registerEvents"
 	"bitresume/api/resume"
 	certificates "bitresume/api/upload-view/Certificates"
+	Uploadsdelete "bitresume/api/upload-view/delete"
 	"bitresume/api/upload-view/internship"
 	"bitresume/api/upload-view/paperpresentstion"
 	"bitresume/api/upload-view/patents"
@@ -68,6 +69,8 @@ func RegisterRoutes(r *gin.Engine) {
 		studentOnly.GET("/uploadview/getuploaddetails/:rollno", dashboard.UploadViewDashboard)
 		studentOnly.GET("/resume/gethackathondata/:rollno", resume.GetHackathonData)
 		studentOnly.GET("/resume/getinternshipdata/:rollno", resume.GetInternshipData)
+		studentOnly.PUT("/header/updateprofile/:rollno", headerdetails.UpdateProfile)
+		studentOnly.GET("/header/getprofile/:rollno", headerdetails.GetProfileDetails)
 	}
 	facultyOnly := r.Group("/api")
 	facultyOnly.Use(middleware.AuthorizeRoles("faculty"))
@@ -105,4 +108,5 @@ func RegisterRoutes(r *gin.Engine) {
 	r.GET("/api/sem_wise_totaldays", pointshandlers.HandleSemDays)
 	r.GET("/api/handlesem", pointshandlers.HandleSem)
 	r.PUT("/api/updatesem", pointshandlers.HandleUpdateSem)
+	r.DELETE("/api/uploadview/deleteupload",Uploadsdelete.Uploadsdelete)
 }
