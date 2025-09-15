@@ -83,6 +83,9 @@ func Me(c *gin.Context) { // Decode the token and send to frontend
 		},
 	})
 }
+func GetRollno(){
+	
+}
 func Logout(c *gin.Context) {
 	// Clear the cookie
 	c.SetCookie("BITRESUME", "", -1, "/", "localhost", false, true)

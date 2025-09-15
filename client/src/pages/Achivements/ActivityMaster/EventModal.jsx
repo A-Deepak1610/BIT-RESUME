@@ -35,10 +35,12 @@ const modalStyle = {
   maxWidth: "60rem",
 };
 
-const ApplyModal = ({ isOpen, onClose, eventName, eventCode }) => {
+// --- ApplyModal Component ---
+// Now accepts onRegistrationSuccess to signal a successful API call
+const ApplyModal = ({ isOpen, onClose, eventName, eventCode, onRegistrationSuccess }) => {
   // --- STATE MANAGEMENT ---
   const [participationType, setParticipationType] = useState("team");
-  const [teamName, setTeamName] = useState(""); // <-- ADDED: State for team name
+  const [teamName, setTeamName] = useState("");
   const [teamMates, setTeamMates] = useState([""]);
   const [domain, setDomain] = useState("");
   const [problemStatement, setProblemStatement] = useState("");
@@ -59,7 +61,7 @@ const ApplyModal = ({ isOpen, onClose, eventName, eventCode }) => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             eventCode: eventCode,
-            teamName: teamName, // <-- ADDED: Include teamName in the payload
+            teamName: teamName,
             domain: domain,
             problemStatement: problemStatement,
             leaderRollNo: rollno,
@@ -78,7 +80,9 @@ const ApplyModal = ({ isOpen, onClose, eventName, eventCode }) => {
       const data = await response.json();
       if (data.success) {
         alert(`✅ Registration Successful! Your Team Code: ${data.teamCode}`);
-        onClose();
+        // *** CHANGE HERE ***
+        // This function, passed from the parent, will trigger the closing of both modals.
+        onRegistrationSuccess();
       } else {
         alert(data.message || "Registration failed. Please check your details.");
       }
@@ -130,7 +134,7 @@ const ApplyModal = ({ isOpen, onClose, eventName, eventCode }) => {
               </div>
             </div>
 
-            {/* --- ADDED: Team Name Input --- */}
+            {/* Team Name Input */}
             <div>
                 <label htmlFor="team-name" className="block text-sm font-medium text-gray-700">
                     {participationType === 'team' ? 'Team Name' : 'Project Name'}
@@ -169,7 +173,6 @@ const ApplyModal = ({ isOpen, onClose, eventName, eventCode }) => {
               <label htmlFor="domain" className="block text-sm font-medium text-gray-700">Domain</label>
               <input id="domain" type="text" value={domain} onChange={(e) => setDomain(e.target.value)} className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="e.g., Web Development, AI/ML" required/>
             </div>
-
             <div>
               <label htmlFor="problem-statement" className="block text-sm font-medium text-gray-700">Problem Statement</label>
               <textarea id="problem-statement" rows={4} value={problemStatement} onChange={(e) => setProblemStatement(e.target.value)} className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Briefly describe your chosen problem statement or project idea." required/>
@@ -188,11 +191,11 @@ const ApplyModal = ({ isOpen, onClose, eventName, eventCode }) => {
 };
 
 
-// The EventDetailModal component remains the same. No changes are needed here.
+// --- EventDetailModal Component ---
 const EventDetailModal = ({ isOpen, onClose, eventData }) => {
   const [activeTab, setActiveTab] = useState("Description");
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isOpen) {
       setActiveTab("Description");
     }
@@ -231,6 +234,13 @@ const EventDetailModal = ({ isOpen, onClose, eventData }) => {
     setIsApplyModalOpen(false);
   };
 
+  // *** NEW FUNCTION ***
+  // This function will be passed to ApplyModal and called on success.
+  const handleRegistrationSuccess = () => {
+    handleCloseApplyModal(); // Close the apply modal
+    onClose(); // Close the main event detail modal
+  };
+
   const domainTags = domains
     ? String(domains)
         .split(/[,;]/)
@@ -245,8 +255,10 @@ const EventDetailModal = ({ isOpen, onClose, eventData }) => {
     Constraints: <AlertTriangle size={16} />,
     Rewards: <Award size={16} />,
   };
+  
   const { rollno } = useAuth();
   const [applied, setApplied] = useState(false);
+
   const handleApplied = async () => {
     try {
       const response = await fetch(
@@ -266,8 +278,11 @@ const EventDetailModal = ({ isOpen, onClose, eventData }) => {
   };
 
   useEffect(() => {
-    handleApplied();
-  }, [isOpen, onClose, rollno]);
+    if (isOpen) {
+      handleApplied();
+    }
+  }, [isOpen, rollno]);
+
   return (
     <>
       <Modal
@@ -301,49 +316,31 @@ const EventDetailModal = ({ isOpen, onClose, eventData }) => {
             </div>
 
             <div className="p-4 sm:p-5 overflow-y-auto flex-grow">
-              {/* --- Overview Section --- */}
+              {/* Overview Section */}
               <div className="mb-5 p-4 bg-gray-50 rounded-lg border border-gray-200">
                 <h3 className="text-base font-semibold text-gray-800 mb-3">
                   Event Overview
                 </h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                  {/* Team Size, Rounds, Domains etc. */}
                   <div>
-                    <h4 className="text-xs text-gray-500 font-semibold mb-1 flex items-center">
-                      <Users size={14} className="mr-1.5" />
-                      Team Size
-                    </h4>
-                    <p className="text-gray-700">
-                      {min_team_size} - {max_team_size} members
-                    </p>
+                    <h4 className="text-xs text-gray-500 font-semibold mb-1 flex items-center"><Users size={14} className="mr-1.5" />Team Size</h4>
+                    <p className="text-gray-700">{min_team_size} - {max_team_size} members</p>
                   </div>
                   <div>
-                    <h4 className="text-xs text-gray-500 font-semibold mb-1 flex items-center">
-                      <Laptop size={14} className="mr-1.5" />
-                      Online Rounds
-                    </h4>
+                    <h4 className="text-xs text-gray-500 font-semibold mb-1 flex items-center"><Laptop size={14} className="mr-1.5" />Online Rounds</h4>
                     <p className="text-gray-700">{online_rounds ?? "N/A"}</p>
                   </div>
                   <div>
-                    <h4 className="text-xs text-gray-500 font-semibold mb-1 flex items-center">
-                      <Users2 size={14} className="mr-1.5" />
-                      Offline Rounds
-                    </h4>
+                    <h4 className="text-xs text-gray-500 font-semibold mb-1 flex items-center"><Users2 size={14} className="mr-1.5" />Offline Rounds</h4>
                     <p className="text-gray-700">{offline_rounds ?? "N/A"}</p>
                   </div>
                   <div className="col-span-2 md:col-span-3">
-                    <h4 className="text-xs text-gray-500 font-semibold mb-1.5 flex items-center">
-                      <Tag size={14} className="mr-1.5" />
-                      Domains
-                    </h4>
+                    <h4 className="text-xs text-gray-500 font-semibold mb-1.5 flex items-center"><Tag size={14} className="mr-1.5" />Domains</h4>
                     <div className="flex flex-wrap gap-2">
                       {domainTags.length > 0 ? (
                         domainTags.map((tag, index) => (
-                          <span
-                            key={index}
-                            className="bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full text-xs font-medium"
-                          >
-                            {tag}
-                          </span>
+                          <span key={index} className="bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full text-xs font-medium">{tag}</span>
                         ))
                       ) : (
                         <span className="text-xs text-gray-500">N/A</span>
@@ -353,14 +350,14 @@ const EventDetailModal = ({ isOpen, onClose, eventData }) => {
                 </div>
               </div>
 
-              {/* --- Action Buttons --- */}
+              {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 mb-6">
                 <button 
                   disabled={applied}
                   onClick={handleOpenApplyModal}
-                  className={` w-full ${applied?" cursor-not-allowed":""} sm:w-auto flex-1 sm:flex-none bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-6 rounded-lg transition-colors duration-150 text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500`}
+                  className={`w-full sm:w-auto flex-1 sm:flex-none text-white font-semibold py-2.5 px-6 rounded-lg transition-colors duration-150 text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${applied ? "bg-gray-400 cursor-not-allowed" : "bg-indigo-600 hover:bg-indigo-700"}`}
                 >
-                  Apply Now
+                  {applied ? "Applied" : "Apply Now"}
                 </button>
                 <div className="w-full sm:w-auto flex items-center justify-center text-xs sm:text-sm font-medium text-red-600 bg-red-50 border border-red-200 px-4 py-2 rounded-lg">
                   <Clock size={16} className="mr-2" />
@@ -370,16 +367,14 @@ const EventDetailModal = ({ isOpen, onClose, eventData }) => {
                   href={apply_link || "#"}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`text-xs sm:text-sm text-indigo-600 hover:text-indigo-800 font-medium flex items-center ${
-                    !apply_link && "pointer-events-none opacity-50"
-                  }`}
+                  className={`text-xs sm:text-sm text-indigo-600 hover:text-indigo-800 font-medium flex items-center ${!apply_link && "pointer-events-none opacity-50"}`}
                 >
                   Official Website
                   <ExternalLinkIcon size={14} className="ml-1" />
                 </a>
               </div>
 
-              {/* --- Tab Navigation --- */}
+              {/* Tab Navigation & Content */}
               <div>
                 <div className="border-b border-gray-200 mb-4">
                   <nav className="flex space-x-2 sm:space-x-4 -mb-px overflow-x-auto">
@@ -387,40 +382,24 @@ const EventDetailModal = ({ isOpen, onClose, eventData }) => {
                       <button
                         key={tab}
                         onClick={() => setActiveTab(tab)}
-                        className={`flex items-center gap-2 whitespace-nowrap py-3 px-3 border-b-2 font-medium text-sm transition-colors focus:outline-none ${
-                          activeTab === tab
-                            ? "border-indigo-500 text-indigo-600"
-                            : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                        }`}
+                        className={`flex items-center gap-2 whitespace-nowrap py-3 px-3 border-b-2 font-medium text-sm transition-colors focus:outline-none ${activeTab === tab ? "border-indigo-500 text-indigo-600" : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"}`}
                       >
                         {icon} {tab}
                       </button>
                     ))}
                   </nav>
                 </div>
-
-                {/* --- Tab Content --- */}
                 <div className="text-sm text-gray-800 p-4 bg-gray-50 rounded-md min-h-[150px] prose prose-sm max-w-none prose-p:my-2 prose-ul:my-2 prose-li:my-1">
-                  {activeTab === "Description" && (
-                    <p>{description || "No description available."}</p>
-                  )}
-
+                  {/* Tab Content based on activeTab */}
+                  {activeTab === "Description" && <p>{description || "No description available."}</p>}
                   {activeTab === "Rounds" && (
                     <div className="space-y-4">
                       {rounds && rounds.length > 0 ? (
                         rounds.map((round) => (
                           <div key={round.round_number} className="not-prose">
-                            <p className="font-bold text-sm text-gray-900">
-                              Round {round.round_number}: {round.description}
-                            </p>
-                            <p className="text-xs text-gray-500 font-medium">
-                              {round.start_date} to {round.end_date}
-                            </p>
-                            <p className="text-xs mt-1 bg-gray-100 p-1.5 rounded-md">
-                              <strong>RPs:</strong> I: {round.year1_rp}, II:{" "}
-                              {round.year2_rp}, III: {round.year3_rp}, IV:{" "}
-                              {round.year4_rp}
-                            </p>
+                            <p className="font-bold text-sm text-gray-900">Round {round.round_number}: {round.description}</p>
+                            <p className="text-xs text-gray-500 font-medium">{round.start_date} to {round.end_date}</p>
+                            <p className="text-xs mt-1 bg-gray-100 p-1.5 rounded-md"><strong>RPs:</strong> I: {round.year1_rp}, II: {round.year2_rp}, III: {round.year3_rp}, IV: {round.year4_rp}</p>
                           </div>
                         ))
                       ) : (
@@ -428,56 +407,27 @@ const EventDetailModal = ({ isOpen, onClose, eventData }) => {
                       )}
                     </div>
                   )}
-
                   {activeTab === "Rules" && (
                     <div>
-                      {rules ? (
-                        rules
-                          .split(/[\r\n]+/)
-                          .map(
-                            (line, index) =>
-                              line.trim() && <p key={index}>{line.trim()}</p>
-                          )
-                      ) : (
-                        <p>Rules for {event_name} will be updated soon.</p>
-                      )}
+                      {rules ? rules.split(/[\r\n]+/).map((line, index) => line.trim() && <p key={index}>{line.trim()}</p>) : <p>Rules for {event_name} will be updated soon.</p>}
                     </div>
                   )}
-
                   {activeTab === "Constraints" && (
                     <div>
-                      {constraints &&
-                      constraints.trim().toLowerCase() !== "na" ? (
-                        constraints
-                          .split(/[\r\n]+/)
-                          .map(
-                            (line, index) =>
-                              line.trim() && <p key={index}>{line.trim()}</p>
-                          )
+                      {constraints && constraints.trim().toLowerCase() !== "na" ? (
+                        constraints.split(/[\r\n]+/).map((line, index) => line.trim() && <p key={index}>{line.trim()}</p>)
                       ) : (
                         <p>No specific constraints provided.</p>
                       )}
                     </div>
                   )}
-
                   {activeTab === "Rewards" && (
                     <div>
-                      <p>
-                        <strong>Prize Money & Rewards:</strong>
-                      </p>
+                      <p><strong>Prize Money & Rewards:</strong></p>
                       <ul>
-                        <li>
-                          <span className="font-semibold">Winner:</span>{" "}
-                          {final_prize1 || "N/A"}
-                        </li>
-                        <li>
-                          <span className="font-semibold">1st Runner-up:</span>{" "}
-                          {final_prize2 || "N/A"}
-                        </li>
-                        <li>
-                          <span className="font-semibold">2nd Runner-up:</span>{" "}
-                          {final_prize3 || "N/A"}
-                        </li>
+                        <li><span className="font-semibold">Winner:</span> {final_prize1 || "N/A"}</li>
+                        <li><span className="font-semibold">1st Runner-up:</span> {final_prize2 || "N/A"}</li>
+                        <li><span className="font-semibold">2nd Runner-up:</span> {final_prize3 || "N/A"}</li>
                       </ul>
                     </div>
                   )}
@@ -487,13 +437,18 @@ const EventDetailModal = ({ isOpen, onClose, eventData }) => {
           </div>
         </Box>
       </Modal>
+
+      {/* *** CHANGE HERE *** */}
+      {/* Pass the new handler function to the ApplyModal */}
       <ApplyModal
         isOpen={isApplyModalOpen}
         onClose={handleCloseApplyModal}
         eventName={event_name}
         eventCode={event_code}
+        onRegistrationSuccess={handleRegistrationSuccess} 
       />
     </>
   );
 };
+
 export default EventDetailModal;

@@ -11,6 +11,7 @@ import DehazeIcon from "@mui/icons-material/Dehaze";
 import Drawer from "@mui/material/Drawer";
 import { useNavigate, useLocation } from "react-router-dom";
 import logo from "../../assets/logo_bit.jpg";
+import logo_main from "../../assets/logo.png";
 import useAuth from "../../store/UseAuth";
 
 // Icons
@@ -533,7 +534,7 @@ export default function NavBar() {
   const DrawerList = (
     <>
       <div className="flex items-center text-2xl font-semibold text-primary justify-center mt-5">
-        <img src="dummy" alt="LOGO" className="w-7 h-7 rounded-full mr-2" />
+        <img src={logo_main} alt="LOGO" className="w-7 h-7 rounded-full mr-2" />
         <p>BIT RESUME</p>
       </div>
       <aside className="w-[220px] overflow-x-hidden bg-white shadow-md h-full flex flex-col mt-[-5px] justify-between p-4">
@@ -545,7 +546,7 @@ export default function NavBar() {
   const handleDarkMode = () => {
     document.documentElement.classList.toggle("dark");
   };
-
+  const {rollno,name}=useAuth();
   return (
     <>
       <header className="h-14 dark:bg-gray-100 bg-white shadow-md flex items-center justify-between ">
@@ -554,7 +555,7 @@ export default function NavBar() {
         </Drawer>
         <div className="flex items-center text-2xl font-semibold text-primary lg:w-55 h-full justify-center lg:shadow-md">
           <img
-            src="dummy"
+            src={logo_main}
             alt="LOGO"
             className="w-7 h-7 rounded-full mr-2 hidden lg:block"
           />
@@ -579,8 +580,8 @@ export default function NavBar() {
               onClick={() => setIsProfileCardOpen(prev => !prev)}
             >
                 <div className="md:flex flex-col sm:flex hidden items-end justify-center gap-1">
-                    <p className="font-semibold text-[17px] leading-none">{user?.name || "User"}</p>
-                    <p className="text-xs text-gray-600 leading-none font-medium">{user?.id || "User ID"}</p>
+                    <p className="font-semibold text-[17px] leading-none">{name || "User"}</p>
+                    <p className="text-xs text-gray-600 leading-none font-medium">{rollno || "User ID"}</p>
                 </div>
                 <div className="w-9 h-9 bg-white border border-secondary rounded-full overflow-hidden shadow-md">
                     <img src={logo} alt="profile" className="w-full h-full object-cover" />
