@@ -9,7 +9,7 @@ import (
 )
 
 func GetSessionsByRollNo(c *gin.Context) {
-	rollno := c.Param("rollno")
+	rollno := c.GetString("rollNo")
 
 	// -------------------- Fetch Sessions --------------------
 	sessionQuery := `

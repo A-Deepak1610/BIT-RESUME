@@ -59,7 +59,7 @@ const ActivityMaster = () => {
   const fetchSurveyData = async () => {
     try {
       const response = await fetch(
-        `http://localhost:6001/api/activitymaster/getsurveydata/${rollno}`,
+        `http://localhost:6001/api/activitymaster/getsurveydata`,
         { credentials: "include" }
       );
       if (!response.ok) throw new Error("Network response was not ok for survey data");
@@ -87,7 +87,7 @@ const ActivityMaster = () => {
   const fetchMeetingAndSessionData = async () => {
     try {
       const response = await fetch(
-        `http://localhost:6001/api/activitymaster/getsessiondata/${rollno}`,
+        `http://localhost:6001/api/activitymaster/getsessiondata`,
         { credentials: "include" }
       );
       if (!response.ok) throw new Error("Network response was not ok for meeting/session data");

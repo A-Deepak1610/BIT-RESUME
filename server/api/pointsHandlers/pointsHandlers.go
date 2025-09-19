@@ -5,11 +5,8 @@ import (
 	activitygraph "bitresume/api/dashboard/activity_graph"
 	"bitresume/config"
 	"bitresume/models"
-	"log"
 	"math"
 	"net/http"
-	"time"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -63,196 +60,6 @@ func HandlePointlogs(rollno, source string, points int, desc string, sem int, cu
 	}
 	return nil
 }
-func HandlePs(c *gin.Context) { //if attempted itself
-	var data models.Ps
-	if err := c.ShouldBindJSON(&data); err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
-		return
-	}
-	rollno := data.RollNo
-	points := data.Points //rewards points for that level
-	domain := data.SkillDomain
-	skillname := data.SkillName
-	skilllevel := data.SkillLevel
-	desc := skillname + " " + skilllevel
-	attempts := data.Attempts
-	currdate := data.Currdate
-	sem := data.Sem //fetch from student data
-	source := "PS"
-	now := time.Now().Format("2006-01-02")
-	var newpoints float64
-	rank, rankerr := activitygraph.FetchDataRank(rollno)
-	if rankerr != nil {
-		c.JSON(500, gin.H{"error": rankerr.Error()})
-		return
-	}
-	// Calculate new points based on rank
-	switch rank.Current_rank {
-	case "TITANIUM":
-		if points > 0 {
-			newpoints = float64(points) * 0.5 / 300.0
-		} else if points == 0 {
-			newpoints = 0
-		} else {
-			newpoints = -1
-		}
-	case "GOLD":
-		if points > 0 {
-			newpoints = float64(points) * 1 / 300.0
-		} else if points == 0 {
-			newpoints = 0       
-		} else {
-			newpoints = -0.5
-		}
-	default:
-		if points > 0 { //Silver
-			newpoints = float64(points) * 2 / 300.0
-		} else if points == 0 { //Fail in that level
-			newpoints = 0
-		} else {
-			newpoints = -0.5 //Attempted but not went
-		}
-	}
-	newpoints = math.Round(newpoints*100) / 100
-	// Insert into points_logs
-	stmp, reqerr := config.DB.Prepare(`INSERT INTO points_logs(rollno, source, points, description, sem, currdate) VALUES (?, ?, ?, ?, ?, ?)`)
-	if reqerr != nil {
-		log.Println("Error preparing points_logs insert:", reqerr)
-		c.JSON(500, gin.H{"error": reqerr.Error()})
-		return
-	}
-	_, execErr := stmp.Exec(rollno, source, newpoints, desc, sem, currdate)
-	if execErr != nil {
-		log.Println("Error executing points_logs insert:", execErr)
-		c.JSON(500, gin.H{"error": execErr.Error()})
-		return
-	}
-	if newpoints > 0 {
-		achievementgraph.HandlePointlogs2(rollno, newpoints, sem, currdate)
-	}
-	if currdate != now {
-		delta := newpoints // amount to add for all subsequent dates
-		// 2. Get all rows from currdate to lastDate
-		rows, err := config.DB.Query(`
-			SELECT currdate, current_point 
-			FROM activity_graph 
-			WHERE rollno = ? AND currdate >= ? 
-			ORDER BY currdate ASC`, rollno, currdate)
-		if err != nil {
-			log.Println("Error fetching activity_graph rows:", err)
-			c.JSON(500, gin.H{"error": err.Error()})
-			return
-		}
-		defer rows.Close()
-
-		for rows.Next() {
-			var d string
-			var pts float64
-			if err := rows.Scan(&d, &pts); err != nil {
-				log.Println("Error scanning row:", err)
-				continue
-			}
-
-			// --- ACTIVITY_GRAPH update (your existing logic) ---
-			newPts := pts + delta
-			newPts, newRank := validateRank(newPts)
-
-			_, err = config.DB.Exec(`
-				UPDATE activity_graph 
-				SET current_point = ?, current_rank = ? 
-				WHERE rollno = ? AND currdate = ?`,
-				newPts, newRank, rollno, d)
-			if err != nil {
-				log.Println("Error updating activity_graph:", err)
-			}
-
-			// --- ACHIEVEMENT_GRAPH update (new) ---
-			if d == currdate {
-				// On the starting day → earned + cumulative
-				_, err = config.DB.Exec(`
-					UPDATE achievement_graph
-					SET points_earned = points_earned + ?, 
-						cummulative_points = cummulative_points + ?
-					WHERE rollno = ? AND currdate = ?`,
-					delta, delta, rollno, d)
-			} else {
-				// On later days → only cumulative
-				_, err = config.DB.Exec(`
-					UPDATE achievement_graph
-					SET cummulative_points = cummulative_points + ?
-					WHERE rollno = ? AND currdate = ?`,
-					delta, rollno, d)
-			}
-
-			if err != nil {
-				log.Println("Error updating achievement_graph:", err)
-			}
-		}
-
-		if err := rows.Err(); err != nil {
-			log.Println("Row iteration error:", err)
-		}
-	}
-
-	// Check if the skill-level already exists in ps_status
-	var exists bool
-	checkQuery := `SELECT EXISTS (SELECT 1 FROM ps_status WHERE rollno = ? AND skill_name = ? AND skill_level = ?)`
-	err := config.DB.QueryRow(checkQuery, rollno, skillname, skilllevel).Scan(&exists)
-	if err != nil {
-		log.Println("Error checking existing skill:", err)
-		c.JSON(500, gin.H{"error": err.Error()})
-		return
-	}
-
-	if exists {
-		// Update attempts if record exists
-		updateStmt, err := config.DB.Prepare(`UPDATE ps_status SET attempts = ? WHERE rollno = ? AND skill_name = ? AND skill_level = ?`)
-		if err != nil {
-			log.Println("Error preparing update:", err)
-			c.JSON(500, gin.H{"error": err.Error()})
-			return
-		}
-		_, err = updateStmt.Exec(attempts, rollno, skillname, skilllevel)
-		if err != nil {
-			log.Println("Error executing update:", err)
-			c.JSON(500, gin.H{"error": err.Error()})
-			return
-		}
-		log.Println("Updated existing skill level record.")
-	} else {
-		// Insert new record if not exists
-		insertStmt, err := config.DB.Prepare(`INSERT INTO ps_status (rollno, skill_domain, skill_name, skill_level, attempts) VALUES (?, ?, ?, ?, ?)`)
-		if err != nil {
-			log.Println("Error preparing insert:", err)
-			c.JSON(500, gin.H{"error": err.Error()})
-			return
-		}
-		_, err = insertStmt.Exec(rollno, domain, skillname, skilllevel, attempts)
-		if err != nil {
-			log.Println("Error executing insert:", err)
-			c.JSON(500, gin.H{"error": err.Error()})
-			return
-		}
-		log.Println("Inserted new skill level record.")
-	}
-
-	// Return success message
-	log.Println("Successfully handled PS log for", rollno, "Skill:", skillname, "Level:", skilllevel)
-	c.JSON(200, gin.H{
-		"message": "PS data logged successfully",
-		"rollno":  rollno,
-		"skill":   skillname,
-		"level":   skilllevel,
-		"points":  newpoints,
-		"operation": func() string {
-			if exists {
-				return "updated"
-			}
-			return "inserted"
-		}(),
-	})
-}
-
 func HandlePsLevelStatus(c *gin.Context) {
 	var data models.PsLevels
 	if err := c.ShouldBindJSON(&data); err != nil {
@@ -319,25 +126,76 @@ func HandleFetchPsAttempts(c *gin.Context) {
 	c.JSON(http.StatusAccepted, records)
 }
 func HandleFetchPsLevels(c *gin.Context) {
-	var records []models.PsLevels
-	// var r models.PsLevels
-	rollno := c.Param("rollno")
-	rows, err := config.DB.Query("SELECT skilldomain, skillname, levels_completed, total_levels FROM ps_level_status WHERE rollno = ?", rollno)
+	// Assume you've already set rollno in middleware (e.g. from JWT)
+	rollno := c.GetString("rollNo")
+	if rollno == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "rollno not provided"})
+		return
+	}
+
+	// Inline model representing one PS status row
+	type PsStatus struct {
+		ID          int64   `json:"id" db:"id"`
+		RollNo      string  `json:"rollno" db:"rollno"`
+		SkillName   string  `json:"skill_name" db:"skill_name"`
+		SkillLevel  string  `json:"skill_level" db:"skill_level"`
+		Attempts    int     `json:"attempts" db:"attempts"`
+		Status      string  `json:"status" db:"status"`
+		TotalLevels int     `json:"total_levels" db:"total_levels"`
+		AttemptedAt string  `json:"attempted_at" db:"attempted_at"`
+	}
+
+	const query = `
+		SELECT t.*
+		FROM ps__status t
+		JOIN (
+			SELECT skill_name,
+			       skill_level,
+			       MAX(id) AS max_id
+			FROM ps__status
+			WHERE rollno = ?
+			GROUP BY skill_name, skill_level
+		) AS latest
+		ON t.id = latest.max_id
+		ORDER BY t.skill_name, t.skill_level
+	`
+
+	rows, err := config.DB.Query(query, rollno)
 	if err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "query failed: " + err.Error()})
 		return
 	}
 	defer rows.Close()
+
+	var results []PsStatus
 	for rows.Next() {
-		var r models.PsLevels
-		err := rows.Scan(&r.SkillDomain, &r.SkillName, &r.SkillLevel, &r.TotalLevels)
+		var r PsStatus
+		err := rows.Scan(
+			&r.ID,
+			&r.RollNo,
+			&r.SkillName,
+			&r.SkillLevel,
+			&r.Attempts,
+			&r.Status,
+			&r.TotalLevels,
+			&r.AttemptedAt,
+		)
 		if err != nil {
-			c.JSON(500, gin.H{"error": err.Error()})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "scan failed: " + err.Error()})
 			return
 		}
-		records = append(records, r)
+		results = append(results, r)
 	}
-	c.JSON(http.StatusAccepted, records)
+
+	if err := rows.Err(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "rows error: " + err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"rollno": rollno,
+		"data":   results,
+	})
 }
 func HandleSemDays(c *gin.Context) {
 	var results []models.SemCount

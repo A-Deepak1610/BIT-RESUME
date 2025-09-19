@@ -23,7 +23,7 @@ export default function Details() {
   const handleDetails = async () => {
     try {
       const response = await fetch(
-        `${API_URL}api/fetch/header_details/${rollno}`,
+        `${API_URL}api/fetch/header_details`,
         {
           method: "GET",
           headers: {

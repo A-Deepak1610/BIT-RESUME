@@ -11,7 +11,7 @@ import (
 )
 
 func GetCertificatesData(c *gin.Context) {
-	rollno := c.Param("rollno")
+	rollno := c.GetString("rollNo")
 	var certificates []models.Certificates
 	rows, err := config.DB.Query("select event_name from certificates_events where rollno = ?", rollno)
 	if err != nil {

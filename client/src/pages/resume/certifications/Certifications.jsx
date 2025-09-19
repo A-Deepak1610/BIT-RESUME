@@ -19,7 +19,7 @@ export default function Certifications() {
       setError(null);   // Reset errors
 
       try {
-        const response = await fetch(`http://localhost:6001/api/resume/getcertificates/${rollno}`, {
+        const response = await fetch(`http://localhost:6001/api/resume/getcertificates`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",

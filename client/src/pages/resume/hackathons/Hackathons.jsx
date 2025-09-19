@@ -18,7 +18,7 @@ export default function Hackathons() {
       setError(null);
 
       try {
-        const response = await fetch(`http://localhost:6001/api/resume/gethackathondata/${rollno}`, {
+        const response = await fetch(`http://localhost:6001/api/resume/gethackathondata`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",

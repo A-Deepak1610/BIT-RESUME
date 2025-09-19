@@ -113,8 +113,7 @@ func HandleRegisterEvents(c *gin.Context) {
 	})
 }
 func GetRequestedEvents(c *gin.Context) {
-	rollno := c.Param("rollno")
-
+	rollno := c.GetString("rollNo")
 	query := `SELECT DISTINCT
     e.event_code,
     e.event_name,
@@ -196,7 +195,7 @@ ORDER BY
 	})
 }
 func GetRegisteredEvents(c *gin.Context) {
-	rollno := c.Param("rollno")
+	rollno := c.GetString("rollNo")
 	if rollno == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "rollno is required"})
 		return

@@ -13,7 +13,7 @@ import (
 )
 
 func GetInternshipData(c *gin.Context) {
-	rollno := c.Param("rollno")
+	rollno := c.GetString("rollNo")
 	var internships []models.Internship
 
 	rows, err := config.DB.Query("SELECT company_name, domain, start_date, end_date, is_stipend, roll FROM internships WHERE rollno = ?", rollno)

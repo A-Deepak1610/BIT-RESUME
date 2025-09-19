@@ -11,7 +11,7 @@ import (
 )
 
 func GetSurveys(c *gin.Context) {
-	rollno := c.Param("rollno")
+	rollno := c.GetString("rollNo")
 	var surveys []activitymastermodels.SurveyDetail
 	fmt.Println("rollno:",rollno)
 

@@ -17,7 +17,7 @@ type ProfileUpdate struct {
 }
 
 func UpdateProfile(c *gin.Context) {
-	rollno := c.Param("rollno")
+	rollno := c.GetString("rollNo")
 	var profile ProfileUpdate
 	if err := c.ShouldBindJSON(&profile); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -69,7 +69,7 @@ func GetProfileDetails(c *gin.Context){
 		Email    string `json:"user_email"`
 		Batch    string `json:"batch"`
 	}
-	rollno:=c.Param("rollno")
+	rollno:=c.GetString("rollNo")
 	query:="SELECT s.domain,s.phone_no,s.github_url,s.linkedin_url,s.location,l.user_email,l.batch FROM student_info s join login l on s.rollno=l.rollno and s.rollno=?"
 	var profile ProfileDetails
 	err:=config.DB.QueryRow(query,rollno).Scan(&profile.Domain,&profile.Phone,&profile.Github,&profile.Linkedin,&profile.Location,&profile.Email,&profile.Batch)

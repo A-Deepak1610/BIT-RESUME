@@ -1,11 +1,16 @@
 package jobs
+
 import (
 	achievementgraph "bitresume/api/dashboard/achievement_graph"
 	activitygraph "bitresume/api/dashboard/activity_graph"
+	"bitresume/api/dataUploadPs"
 	"bitresume/config"
 	"log"
 	"time"
 )
+func UpdatePsData(){
+	dataUploadPs.UploadDataFromExcel();
+}
 func CallDailyTasksForAllDates() {
 	currentDate := time.Now().Format("2006-01-02")
 	DailyTask(currentDate) 

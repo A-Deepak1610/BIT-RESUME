@@ -20,7 +20,6 @@ func Uploadsdelete(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request", "error": err.Error()})
 		return
 	}
-
 	switch req.Type {
 	case "Paper Presentation":
 		_, err := config.DB.Exec("DELETE FROM paperpresentation WHERE id = ?", req.ID)
@@ -102,7 +101,6 @@ func Uploadsdelete(c *gin.Context) {
 				c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid type"})
 				return
 		}
-
 	default:
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid type"})
 		return

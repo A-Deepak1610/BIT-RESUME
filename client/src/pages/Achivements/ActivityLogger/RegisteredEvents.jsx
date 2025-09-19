@@ -131,7 +131,7 @@ const RegisteredEvents = () => {
     console.log("Fetching registered events for rollno:", rollno);
     try {
       const response = await fetch(
-        `http://localhost:6001/api/events/registered_events/${rollno}`,
+        `http://localhost:6001/api/events/registered_events`,
         {
           method: "GET",
           headers: {

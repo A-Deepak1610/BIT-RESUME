@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 
 // --- Icon Imports ---
-import { Search, User, GraduationCap } from 'lucide-react';
+import { Search, User, GraduationCap, Upload } from 'lucide-react';
 import { Modal, Box, Typography, Button as MuiButton, List, ListItem, ListItemText, Divider, IconButton, Paper, Chip } from '@mui/material';
 import { Close as CloseIcon, School as SchoolIcon, ChevronRight as ChevronRightIcon } from '@mui/icons-material';
 
@@ -10,13 +10,148 @@ import SelectedDetail from './selectedDetail';
 import AddUsersModal from './AddUsersModal';
 import axios from 'axios';
 
+// Bulk Upload Modal Component
+const BulkUploadModal = ({ open, onClose, userType, onUploadSuccess }) => {
+    const [file, setFile] = useState(null);
+    const [uploading, setUploading] = useState(false);
+
+    const handleFileChange = (event) => {
+        const selectedFile = event.target.files[0];
+        if (selectedFile && (selectedFile.type === 'application/vnd.ms-excel' || selectedFile.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')) {
+            setFile(selectedFile);
+        } else {
+            alert('Please select a valid Excel file (.xls or .xlsx)');
+        }
+    };
+
+    const handleUpload = async () => {
+        if (!file) {
+            alert('Please select a file first');
+            return;
+        }
+
+        setUploading(true);
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('userType', userType);
+
+        try {  
+            const response = await fetch('http://localhost:6001/api/bulkupload', {
+                method: 'POST',
+                body: formData,
+                credentials: 'include'
+            });
+            if (response.ok) {
+                const result = await response.json();
+                onUploadSuccess();
+                alert("Upload successful!");
+                handleClose();
+            } else {
+                const error = await response.json();
+                alert(`Upload failed: ${error.message || 'Unknown error'}`);
+            }
+        } catch (error) {
+            console.error('Upload error:', error);
+            alert('Upload failed. Please try again.');
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    const handleClose = () => {
+        setFile(null);
+        setUploading(false);
+        onClose();
+    };
+
+    const modalStyle = {
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: 500,
+        bgcolor: 'background.paper',
+        border: 'none',
+        borderRadius: '8px',
+        boxShadow: 24,
+        p: 4,
+        outline: 'none'
+    };
+
+    return (
+        <Modal open={open} onClose={handleClose}>
+            <Paper sx={modalStyle}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                    <Typography variant="h6" component="h2">
+                        Bulk Upload {userType === 'faculty' ? 'Faculty' : 'Students'}
+                    </Typography>
+                    <IconButton onClick={handleClose} disabled={uploading}>
+                        <CloseIcon />
+                    </IconButton>
+                </Box>
+                <Divider sx={{ mb: 2 }} />
+                
+                <Box sx={{ mb: 3 }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                        Upload an Excel file (.xls or .xlsx) containing {userType} data.
+                    </Typography>
+                    
+                    <input
+                        type="file"
+                        accept=".xlsx,.xls"
+                        onChange={handleFileChange}
+                        style={{ display: 'none' }}
+                        id="bulk-upload-file"
+                        disabled={uploading}
+                    />
+                    
+                    <label htmlFor="bulk-upload-file">
+                        <MuiButton
+                            variant="outlined"
+                            component="span"
+                            fullWidth
+                            startIcon={<Upload />}
+                            disabled={uploading}
+                            sx={{ mb: 2 }}
+                        >
+                            Choose Excel File
+                        </MuiButton>
+                    </label>
+                    
+                    {file && (
+                        <Typography variant="body2" sx={{ mb: 2 }}>
+                            Selected file: {file.name}
+                        </Typography>
+                    )}
+                </Box>
+
+                <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+                    <MuiButton 
+                        onClick={handleClose} 
+                        disabled={uploading}
+                        variant="outlined"
+                    >
+                        Cancel
+                    </MuiButton>
+                    <MuiButton
+                        onClick={handleUpload}
+                        disabled={!file || uploading}
+                        variant="contained"
+                        color="primary"
+                    >
+                        {uploading ? 'Uploading...' : 'Upload'}
+                    </MuiButton>
+                </Box>
+            </Paper>
+        </Modal>
+    );
+};
 
 const SemesterControlModal = () => {
     const [open, setOpen] = useState(false);
     const [semesterData, setSemesterData] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-
 
     const fetchSemesterData = async () => {
         setLoading(true);
@@ -35,7 +170,7 @@ const SemesterControlModal = () => {
     };
 
     const handleOpen = () => {
-        fetchSemesterData(); // Fetch data when the modal is opened
+        fetchSemesterData();
         setOpen(true);
     };
 
@@ -60,14 +195,12 @@ const SemesterControlModal = () => {
                 withCredentials: true,
             });
 
-            // Refresh the data after a successful update
             fetchSemesterData();
         } catch (err) {
             alert(`Error advancing semester for batch ${batch}.`);
             console.error("Error advancing semester:", err);
         }
     };
-
 
     const modalStyle = {
         position: 'absolute',
@@ -149,18 +282,17 @@ const SemesterControlModal = () => {
     );
 };
 
-
 // ===================================================================================
 //  Main Addusers Component
 // ===================================================================================
 export default function Addusers() {
-    // ... (The rest of your Addusers component remains the same) ...
     const [activeTab, setActiveTab] = useState("student");
     const [searchTerm, setSearchTerm] = useState("");
     const [users, setUsers] = useState([]);
     const [filteredUsers, setFilteredUsers] = useState([]);
     const [selectedUser, setSelectedUser] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isBulkUploadOpen, setIsBulkUploadOpen] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -212,6 +344,10 @@ export default function Addusers() {
         setIsModalOpen(true);
     };
 
+    const handleOpenBulkUpload = () => {
+        setIsBulkUploadOpen(true);
+    };
+
     const handleOpenEditModal = (user) => {
         setEditingUser(user);
         setIsModalOpen(true);
@@ -232,6 +368,14 @@ export default function Addusers() {
         setIsModalOpen(false);
         setEditingUser(null);
         if (shouldRefresh) fetchUsers();
+    };
+
+    const handleBulkUploadClose = () => {
+        setIsBulkUploadOpen(false);
+    };
+
+    const handleBulkUploadSuccess = () => {
+        fetchUsers();
     };
 
     const TabButton = ({ label, value, icon: Icon }) => (
@@ -257,17 +401,21 @@ export default function Addusers() {
             );
         }
         return (
-            <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden"><div className="p-4 sm:p-6"><ul className="space-y-3">
-                {filteredUsers.map((user) => (
-                    <li key={user.id} onClick={() => setSelectedUser(user)} className={`p-3 sm:p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md hover:border-indigo-300 transition-all duration-200 cursor-pointer ${selectedUser?.id === user.id ? 'border-indigo-500 shadow-md ring-2 ring-indigo-200' : ''}`} tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter') setSelectedUser(user); }}>
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                            <div className="flex items-center mb-1 sm:mb-0"><span className="font-medium text-gray-800">{user.user_name}</span></div>
-                            <div className="flex items-center text-sm text-gray-500"><span>ID: {user.rollno}</span></div>
-                        </div>
-                        <div className="mt-2 text-sm text-gray-600">{user.user_email}</div>
-                    </li>
-                ))}
-            </ul></div></div>
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+                <div className="p-4 sm:p-6">
+                    <ul className="space-y-3">
+                        {filteredUsers.map((user) => (
+                            <li key={user.id} onClick={() => setSelectedUser(user)} className={`p-3 sm:p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md hover:border-indigo-300 transition-all duration-200 cursor-pointer ${selectedUser?.id === user.id ? 'border-indigo-500 shadow-md ring-2 ring-indigo-200' : ''}`} tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter') setSelectedUser(user); }}>
+                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                                    <div className="flex items-center mb-1 sm:mb-0"><span className="font-medium text-gray-800">{user.user_name}</span></div>
+                                    <div className="flex items-center text-sm text-gray-500"><span>ID: {user.rollno}</span></div>
+                                </div>
+                                <div className="mt-2 text-sm text-gray-600">{user.user_email}</div>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            </div>
         );
     };
 
@@ -285,6 +433,13 @@ export default function Addusers() {
                         <div className="flex items-center space-x-2 mt-4 md:mt-0">
                             <SemesterControlModal />
                             <button
+                                onClick={handleOpenBulkUpload}
+                                className="bg-green-600 cursor-pointer outline-green-600 text-white py-2.5 px-6 rounded-md text-sm font-medium hover:opacity-90 transition-opacity duration-200 flex items-center justify-center space-x-2"
+                            >
+                                <Upload size={16} />
+                                <span>Ps Daily Status Upload</span>
+                            </button>
+                            <button
                                 onClick={handleOpenAddModal}
                                 className="bg-primary text-white py-2.5 px-6 rounded-md text-sm font-medium hover:opacity-90 transition-opacity duration-200 flex items-center justify-center space-x-2"
                             >
@@ -292,10 +447,14 @@ export default function Addusers() {
                             </button>
                         </div>
                     </div>
-                    <div className="mb-8"><div className="relative flex-grow w-full md:max-w-lg">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><Search className="text-gray-400" size={18} /></div>
-                        <input type="text" className="block w-full pl-10 pr-4 py-2.5 rounded-lg bg-white shadow-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary" placeholder={`Search ${activeTab}s...`} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-                    </div></div>
+                    <div className="mb-8">
+                        <div className="relative flex-grow w-full md:max-w-lg">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <Search className="text-gray-400" size={18} />
+                            </div>
+                            <input type="text" className="block w-full pl-10 pr-4 py-2.5 rounded-lg bg-white shadow-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary" placeholder={`Search ${activeTab}s...`} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                        </div>
+                    </div>
 
                     <div className="flex flex-col lg:flex-row gap-6">
                         <div className="lg:w-2/3">{renderContent()}</div>
@@ -306,6 +465,12 @@ export default function Addusers() {
                 </div>
             </div>
             <AddUsersModal open={isModalOpen} onClose={handleModalClose} userType={activeTab} initialData={editingUser} />
+            <BulkUploadModal 
+                open={isBulkUploadOpen} 
+                onClose={handleBulkUploadClose} 
+                userType={activeTab} 
+                onUploadSuccess={handleBulkUploadSuccess}
+            />
         </>
     );
 }

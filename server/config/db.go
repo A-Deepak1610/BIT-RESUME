@@ -5,18 +5,14 @@ import (
 	"fmt"
 	"log"
 	"os"
-
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
 )
-
-
 var DB *sql.DB
-
 func InitDB () {
 	er := godotenv.Load()
 	if er != nil {
-		log.Fatal("Error loading .env file")
+	log.Fatal("Error loading .env file")
 	}
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s",
 	os.Getenv("DB_USER"),

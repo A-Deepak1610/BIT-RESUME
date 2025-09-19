@@ -40,19 +40,19 @@ const AccomplishmentsForResume = () => {
 
       try {
         // Create fetch requests
-        const fetchInternships = fetch(`${API_URL}/api/resume/getinternshipdata/${rollno}`, {
+        const fetchInternships = fetch(`${API_URL}/api/resume/getinternshipdata`, {
           method: "GET",
           headers: { "Content-Type": "application/json" },
           credentials: 'include',
         });
 
-        const fetchCertifications = fetch(`${API_URL}/api/resume/getcertificates/${rollno}`, {
+        const fetchCertifications = fetch(`${API_URL}/api/resume/getcertificates`, {
           method: "GET",
           headers: { "Content-Type": "application/json" },
           credentials: 'include',
         });
 
-        const fetchHackathons = fetch(`${API_URL}/api/resume/gethackathondata/${rollno}`, {
+        const fetchHackathons = fetch(`${API_URL}/api/resume/gethackathondata`, {
           method: "GET",
           headers: { "Content-Type": "application/json" },
           credentials: 'include',

@@ -19,7 +19,7 @@ export default function InternshipExperience() {
       setError(null);
 
       try {
-        const response = await fetch(`http://localhost:6001/api/resume/getinternshipdata/${rollno}`, {
+        const response = await fetch(`http://localhost:6001/api/resume/getinternshipdata`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",

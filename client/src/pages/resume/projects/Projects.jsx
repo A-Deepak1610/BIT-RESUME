@@ -22,7 +22,7 @@ export default function Projects() {
       setError(null);
 
       try {
-        const response = await fetch(`http://localhost:6001/api/resume/getprojects/${rollno}`, {
+        const response = await fetch(`http://localhost:6001/api/resume/getprojects`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",

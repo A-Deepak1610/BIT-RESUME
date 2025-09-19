@@ -4,6 +4,50 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import useAuth from "../../../../store/UseAuth";
 
 const FIXED_DOMAINS_ORDER = ["CS", "Electrical", "Soft Skills", "Non-Technical"];
+const SKILL_CATEGORIZATION = {
+  // CS Domain
+  "c programming": "CS",
+  "python programming": "CS",
+  "java": "CS",
+  "javascript": "CS",
+  "DBMS": "CS",
+  "data structures": "CS",
+  "algorithms": "CS",
+  "web development": "CS",
+  "machine learning": "CS",
+  "artificial intelligence": "CS",
+  
+  // Electrical Domain
+  "circuit analysis": "Electrical",
+  "digital electronics": "Electrical",
+  "power systems": "Electrical",
+  "control systems": "Electrical",
+  "electronics": "Electrical",
+  "electrical machines": "Electrical",
+  
+  // Soft Skills Domain
+  "communication": "Soft Skills",
+  "leadership": "Soft Skills",
+  "teamwork": "Soft Skills",
+  "presentation": "Soft Skills",
+  "time management": "Soft Skills",
+  "problem solving": "Soft Skills",
+  
+  // Non-Technical Domain
+  "algebra": "Non-Technical",
+  "calculus": "Non-Technical",
+  "statistics": "Non-Technical",
+  "physics": "Non-Technical",
+  "chemistry": "Non-Technical",
+  "mathematics": "Non-Technical",
+  "geometry": "Non-Technical"
+};
+
+// Function to categorize skill based on skill name
+const categorizeSkill = (skillName) => {
+  const normalizedSkillName = skillName.toLowerCase().trim();
+  return SKILL_CATEGORIZATION[normalizedSkillName] || "CS"; // Default to CS if not found
+};
 
 const PsSkillGraph = (props) => {
   const [activeTab, setActiveTab] = useState(FIXED_DOMAINS_ORDER[0]);
@@ -16,11 +60,12 @@ const PsSkillGraph = (props) => {
   const containerRef = useRef(null);
   const { fetchUser, rollno } = useAuth();
   const student_rollno = props.rollno || rollno;
+  
   useEffect(() => {
     fetchUser();
   }, []);
-  const [skillCompletionData, setSkillCompletionData] = useState([]);
-  const [skillAttemptsData, setSkillAttemptsData] = useState([]);
+  
+  const [skillData, setSkillData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const API_URL = import.meta.env.VITE_API_URL;
 
@@ -33,31 +78,9 @@ const PsSkillGraph = (props) => {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  const fetchPsAttempts = async () => {
-    try {
-      const res = await fetch(`${API_URL}api/ps/attempts/${student_rollno}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-      });
-      if (!res.ok) {
-        throw new Error(`HTTP Error for attempts: ${res.status}`);
-      }
-      const data = await res.json();
-      setSkillAttemptsData(Array.isArray(data) ? data : []);
-      return data;
-    } catch (error) {
-      console.error("Fetch error for attempts:", error);
-      setSkillAttemptsData([]);
-      return [];
-    }
-  };
-
   const fetchPsCompletionData = async () => {
     try {
-      const res = await fetch(`${API_URL}api/ps/levels_status/${student_rollno}`, {
+      const res = await fetch(`${API_URL}api/ps/levels_status`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -67,19 +90,68 @@ const PsSkillGraph = (props) => {
       if (!res.ok) {
         throw new Error(`HTTP Error for levels status: ${res.status}`);
       }
-      const data = await res.json();
-      setSkillCompletionData(Array.isArray(data) ? data : []);
-      return data;
+      const response = await res.json();
+      
+      // Process and group data by skill to collect all level attempts
+      const skillsMap = new Map();
+      
+      response.data.forEach(skill => {
+        const skillKey = skill.skill_name.toLowerCase();
+        const domain = categorizeSkill(skill.skill_name);
+        
+        if (!skillsMap.has(skillKey)) {
+          skillsMap.set(skillKey, {
+            skilldomain: domain,
+            skillname: skill.skill_name,
+            totallevels: skill.total_levels,
+            levels: new Map(),
+            maxLevel: 0,
+            completed: 0
+          });
+        }
+        
+        const skillData = skillsMap.get(skillKey);
+        const level = parseInt(skill.skill_level);
+        
+        skillData.levels.set(level, {
+          attempts: skill.attempts,
+          status: skill.status,
+          attempted_at: skill.attempted_at
+        });
+        
+        skillData.maxLevel = Math.max(skillData.maxLevel, level);
+        
+        // Calculate completed levels - count all levels with "completed" status
+        let completedCount = 0;
+        for (let [levelNum, levelData] of skillData.levels.entries()) {
+          if (levelData.status === "completed") {
+            completedCount = Math.max(completedCount, levelNum);
+          }
+        }
+        skillData.completed = completedCount;
+      });
+      // Convert back to array format
+      const processedData = Array.from(skillsMap.values()).map(skill => ({
+        skilldomain: skill.skilldomain,
+        skillname: skill.skillname,
+        totallevels: skill.totallevels,
+        completed: skill.completed,
+        levels: skill.levels,
+        maxLevel: skill.maxLevel
+      }));
+      
+      setSkillData(processedData);
+      return processedData;
     } catch (error) {
       console.error("Fetch error for levels status:", error);
-      setSkillCompletionData([]);
+      setSkillData([]);
       return [];
     }
   };
 
   useEffect(() => {
     setIsLoading(true);
-    Promise.all([fetchPsCompletionData(), fetchPsAttempts()])
+    fetchPsCompletionData()
       .then(() => {
         setIsLoading(false);
       })
@@ -87,6 +159,7 @@ const PsSkillGraph = (props) => {
         setIsLoading(false);
       });
   }, [student_rollno]); 
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -145,7 +218,7 @@ const PsSkillGraph = (props) => {
     }
   }, [hoveredSkillInfo]);
 
-  const filteredSkills = skillCompletionData.filter(
+  const filteredSkills = skillData.filter(
     (skill) => skill.skilldomain === activeTab
   );
 
@@ -157,28 +230,26 @@ const PsSkillGraph = (props) => {
   };
 
   const handleSkillCardMouseEnter = (skillData, event) => {
-    const relevantAttemptsEntries = skillAttemptsData.filter(
-      (attempt) =>
-        attempt.skilldomain === skillData.skilldomain &&
-        attempt.skillname === skillData.skillname
-    );
-
-    const formattedAttempts = {};
-    if (relevantAttemptsEntries.length > 0) {
-      relevantAttemptsEntries.forEach((attemptEntry) => {
-        formattedAttempts[`level-${attemptEntry.skilllevel}`] =
-          attemptEntry.attempts;
-      });
-    }
-    const allLevelsAttempts = {};
+    // Create attempts info for ALL levels (1 to totallevels)
+    const attemptInfo = {};
+    
+    // Initialize all levels with 0 attempts
     for (let i = 1; i <= skillData.totallevels; i++) {
-      allLevelsAttempts[`level-${i}`] = formattedAttempts[`level-${i}`] || 0;
+      attemptInfo[i] = 0;
+    }
+    
+    // Update with actual attempts data if available
+    if (skillData.levels) {
+      for (let [level, levelData] of skillData.levels.entries()) {
+        attemptInfo[level] = levelData.attempts || 0;
+      }
     }
 
     setHoveredSkillInfo({
       skillName: skillData.skillname,
       domain: skillData.skilldomain,
-      attempts: allLevelsAttempts,
+      attempts: attemptInfo,
+      totalLevels: skillData.totallevels,
       cursorX: event.clientX,
       cursorY: event.clientY,
       finalX: event.clientX + 15,
@@ -262,8 +333,6 @@ const PsSkillGraph = (props) => {
         ))}
       </div>
 
-      {/* --- MODIFICATION IS HERE --- */}
-      {/* The inline style attribute has been removed. */}
       <div
         ref={containerRef}
         className="mt-4 overflow-y-auto flex-grow"
@@ -272,9 +341,9 @@ const PsSkillGraph = (props) => {
           <div className="grid lg:grid-cols-3 xl:grid-cols-5 grid-cols-2 gap-4 justify-items-center">
             {filteredSkills.map((skillItem) => (
               <SkillCard
-                key={`${skillItem.skilldomain}-${skillItem.skillname}`}
+                key={`${skillItem.skilldomain}-${skillItem.skillname}-${skillItem.id}`}
                 skillName={skillItem.skillname}
-                completed={parseInt(skillItem.skilllevel, 10) || 0}
+                completed={skillItem.completed}
                 totalLevels={skillItem.totallevels}
                 onMouseEnter={(e) => handleSkillCardMouseEnter(skillItem, e)}
                 onMouseLeave={handleSkillCardMouseLeave}
@@ -287,7 +356,6 @@ const PsSkillGraph = (props) => {
           </div>
         )}
       </div>
-
       {hoveredSkillInfo && (
         <div
           ref={popoverAttemptsRef}
@@ -300,24 +368,20 @@ const PsSkillGraph = (props) => {
             transition: "opacity 0.1s ease-in-out",
           }}
         >
-          <h4 className="font-semibold mb-1">
+          <h4 className="font-semibold mb-2">
             {hoveredSkillInfo.skillName} ({hoveredSkillInfo.domain}) - Attempts
           </h4>
           {hoveredSkillInfo.attempts &&
           Object.keys(hoveredSkillInfo.attempts).length > 0 ? (
-            <ul>
+            <div>
               {Object.entries(hoveredSkillInfo.attempts)
-                .sort(
-                  ([levelA], [levelB]) =>
-                    parseInt(levelA.split("-")[1]) -
-                    parseInt(levelB.split("-")[1])
-                )
-                .map(([level, count]) => (
-                  <li key={level}>
-                    {level.replace("-", " ")} : {count}
-                  </li>
+                .sort(([levelA], [levelB]) => parseInt(levelA) - parseInt(levelB))
+                .map(([level, attempts]) => (
+                  <div key={level}>
+                    level {level} : {attempts}
+                  </div>
                 ))}
-            </ul>
+            </div>
           ) : (
             <p>No attempt data available.</p>
           )}
@@ -326,5 +390,4 @@ const PsSkillGraph = (props) => {
     </div>
   );
 };
-
 export default PsSkillGraph;

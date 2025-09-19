@@ -66,13 +66,13 @@ const ResumeContent = () => (
             </a>
           </div>
         </div>
-        {/* <div className="mt-2 p-1 bg-white"> 
+        <div className="mt-2 p-1 bg-white"> 
             <QRCode
               value="https://myresume.com/resume/selva"
               size={80}
               viewBox={`0 0 256 256`} 
             />
-          </div> */}
+          </div>
         <div className="flex flex-col items-center ml-4">
           <img
             src={logo}

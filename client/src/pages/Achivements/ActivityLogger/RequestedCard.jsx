@@ -47,7 +47,7 @@ const RequestCard = ({ data, onApprove, onReject }) => {
         teamCode,
         action,
         reason,
-        url: `http://localhost:6001/api/events/registered_events/approve_reject/${rollno}`
+        url: `http://localhost:6001/api/events/registered_events/approve_reject/`
       });
 
       const requestBody = {

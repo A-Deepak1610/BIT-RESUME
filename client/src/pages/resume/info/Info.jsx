@@ -42,7 +42,7 @@ export default function Info(props) {
       if (!Student_rollno) return;
       try {
         const response = await fetch(
-          `http://localhost:6001/api/header/getprofile/${Student_rollno}`,
+          `http://localhost:6001/api/header/getprofile`,
           {
             method: "GET",
             headers: { "Content-Type": "application/json" },

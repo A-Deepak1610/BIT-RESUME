@@ -11,7 +11,7 @@ import DehazeIcon from "@mui/icons-material/Dehaze";
 import Drawer from "@mui/material/Drawer";
 import { useNavigate, useLocation } from "react-router-dom";
 import logo from "../../assets/logo_bit.jpg";
-import logo_main from "../../assets/logo.png";
+import logo_main from "../../assets/bit_logo.png";
 import useAuth from "../../store/UseAuth";
 
 // Icons
@@ -83,7 +83,7 @@ const ProfileUpdateCard = ({ user, onClose, onLogout }) => {
         const getProfileInfo = async () => {
             if (!rollno) return;
             try {
-                const response = await fetch(`http://localhost:6001/api/header/getprofile/${rollno}`, {
+                const response = await fetch(`http://localhost:6001/api/header/getprofile`, {
                     method: 'GET',
                     headers: { 'Content-Type': 'application/json' },
                     credentials: 'include'
@@ -120,7 +120,7 @@ const ProfileUpdateCard = ({ user, onClose, onLogout }) => {
         if (!validate()) return; // Stop if form is not valid
         setIsSaving(true);
         try {
-            const response = await fetch(`http://localhost:6001/api/header/updateprofile/${rollno}`, {
+            const response = await fetch(`http://localhost:6001/api/header/updateprofile`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData),
@@ -557,7 +557,7 @@ export default function NavBar() {
           <img
             src={logo_main}
             alt="LOGO"
-            className="w-7 h-7 rounded-full mr-2 hidden lg:block"
+            className="w-12 h-15 rounded-full mr-2 mt-5 hidden lg:block"
           />
           <div className="block lg:hidden mb-1 ml-2 cursor-pointer">
             <DehazeIcon onClick={toggleDrawer(true)} />

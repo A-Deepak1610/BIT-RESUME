@@ -3,16 +3,13 @@ package dashboard
 import (
 	"bitresume/config"
 	"bitresume/models/uploadview"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
 func UploadViewDashboard(c *gin.Context) {
-	rollno := c.Param("rollno")
-    fmt.Println(rollno)
-    fmt.Print("kalif")
+	rollno:=c.GetString("rollNo")
 	query := `
 SELECT *
 FROM (

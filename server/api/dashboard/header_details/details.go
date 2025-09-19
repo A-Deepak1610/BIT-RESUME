@@ -9,7 +9,7 @@ import (
 )
 
 func FetchDataRank(c *gin.Context) {
-	rollno := c.Param("rollno")
+	rollno := c.GetString("rollNo")
 	type Response struct {
 		CurrentRank        string `json:"current_rank"`
 		TotalPoints        float64 `json:"total_points"`

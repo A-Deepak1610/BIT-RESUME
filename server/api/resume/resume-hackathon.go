@@ -9,8 +9,7 @@ import (
 )
 
 func GetHackathonData(c *gin.Context) {
-    rollno := c.Param("rollno")
-
+    rollno := c.GetString("rollNo")
     query := `
         SELECT e.image_url, e.event_name, ce.did_you_win
         FROM certificates_events ce

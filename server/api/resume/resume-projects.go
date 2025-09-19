@@ -12,7 +12,7 @@ import (
 
 // GetProjectsData fetches and combines project data from multiple tables.
 func GetProjectsData(c *gin.Context) {
-	rollno := c.Param("rollno")
+	rollno := c.GetString("rollNo")
 	var allProjects []models.Project
 
 	// Step 1: Fetch all base projects for the given rollno from the main 'projects' table.

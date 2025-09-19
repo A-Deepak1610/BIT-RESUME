@@ -80,7 +80,7 @@ export default function UploadView() {
           setLoading(true);
           setError(null);
           const response = await fetch(
-            `http://localhost:6001/api/uploadview/getuploaddetails/${rollno}`,
+            `http://localhost:6001/api/uploadview/getuploaddetails`,
             { credentials: "include" }
           );
   
@@ -529,7 +529,6 @@ export default function UploadView() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-
             <div className="flex-1 flex flex-col sm:flex-row gap-4 w-full sm:w-auto sm:flex-none">
               <FilterDropdown
                 value={filters.type}
@@ -547,13 +546,12 @@ export default function UploadView() {
 
             <button
               onClick={handleOpen}
-              className="w-full sm:w-auto flex items-center justify-center px-4 py-2 bg-white text-indigo-600 font-medium rounded-lg border border-gray-200 shadow-sm hover:bg-gray-50 cursor-pointer transition-colors text-sm md:text-base"
+              className="w-full sm:w-auto flex items-center justify-center px-4 py-2 bg-white outline-indigo-600 text-indigo-600 font-medium rounded-lg border border-gray-200 shadow-sm hover:bg-gray-50 cursor-pointer transition-colors text-sm md:text-base"
             >
               <span>Upload Document</span>
               <Upload size={18} className="ml-2" />
             </button>
           </div>
-
           {renderContent()}
         </div>
       </div>

@@ -34,7 +34,7 @@ const PsDataForResume = () => {
     }
     const fetchPsCompletionData = async () => {
       try {
-        const res = await fetch(`${API_URL}api/ps/levels_status/${rollno}`, { credentials: "include" });
+        const res = await fetch(`${API_URL}api/ps/levels_status`, { credentials: "include" });
         if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
         const data = await res.json();
         setSkillCompletionData(Array.isArray(data) ? data : []);

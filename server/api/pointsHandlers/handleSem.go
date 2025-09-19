@@ -52,13 +52,11 @@ func HandleUpdateSem(c *gin.Context) {
 		Batch string `json:"batch"`
 		Sem   int    `json:"sem"`
 	}
-
 	var req UpdateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body", "details": err.Error()})
 		return
 	}
-
 	query := `UPDATE bitresume.login SET sem = ? WHERE batch = ?`
 	result, err := config.DB.Exec(query, req.Sem, req.Batch)
 	if err != nil {
@@ -77,4 +75,14 @@ func HandleUpdateSem(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Semester updated successfully for batch " + req.Batch, "rows_affected": rowsAffected})
+}
+func GetCurrentSem(rollno string) int{
+	query:="SELECT sem FROM bitresume.login WHERE rollno = ?"
+	row := config.DB.QueryRow(query, rollno)
+	var sem int
+	err := row.Scan(&sem)
+	if err != nil {
+		return 0
+	}
+	return sem
 }
