@@ -1,11 +1,13 @@
 package dataUploadPs
+
 import (
 	"bitresume/config"
 	"fmt"
 	"log"
 	"strconv"
 	"strings"
-	"time"  
+	"time"
+	"github.com/gin-gonic/gin"
 	"github.com/xuri/excelize/v2"
 )
 func UpdateMentorShips() error {
@@ -81,4 +83,56 @@ func UpdateMentorShips() error {
 
 	log.Printf("UpdateMentorShips completed: inserted %d rows\n", inserted)
 	return nil
+}
+
+func GetMentorShips(c *gin.Context) {
+	rollno := c.GetString("rollNo")
+	query := `SELECT
+		mentor_rollno,
+		skill_name,
+		skill_level,
+		COUNT(*) AS mentee_count
+	FROM mentorships
+	WHERE mentor_rollno = ?
+	GROUP BY
+		mentor_rollno,
+		skill_name,
+		skill_level
+	ORDER BY
+		skill_name,
+		skill_level;`
+
+	rows, err := config.DB.Query(query, rollno)
+	if err != nil {
+		c.JSON(500, gin.H{"error": "Database query error: " + err.Error()})
+		return
+	}
+	defer rows.Close()
+
+	type MentorShip struct {
+		MentorRollNo string `json:"mentor_rollno"`
+		SkillName    string `json:"skill_name"`
+		SkillLevel   string `json:"skill_level"`
+		MenteeCount  int    `json:"mentee_count"`
+	}
+
+	var mentorShips []MentorShip
+
+	for rows.Next() {
+		var m MentorShip
+		err := rows.Scan(&m.MentorRollNo, &m.SkillName, &m.SkillLevel, &m.MenteeCount)
+		if err != nil {
+			c.JSON(500, gin.H{"error": "Row scan error: " + err.Error()})
+			return
+		}
+		mentorShips = append(mentorShips, m)
+	}
+
+	// Check for errors after iterating
+	if err = rows.Err(); err != nil {
+		c.JSON(500, gin.H{"error": "Rows iteration error: " + err.Error()})
+		return
+	}
+
+	c.JSON(200, gin.H{"mentorships": mentorShips})
 }

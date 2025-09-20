@@ -65,6 +65,7 @@ func RegisterRoutes(r *gin.Engine) {
 		studentOnly.PUT("/header/updateprofile", headerdetails.UpdateProfile)
 		studentOnly.GET("/header/getprofile", headerdetails.GetProfileDetails)
 		studentOnly.GET("/ps/levels_status", pointshandlers.HandleFetchPsLevels)
+		studentOnly.GET("/ps/metorships",dataUploadPs.GetMentorShips)
 	}
 	facultyOnly := r.Group("/api")
 	facultyOnly.Use(middleware.AuthorizeRoles("faculty"))
