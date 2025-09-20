@@ -31,14 +31,17 @@ func main() {
 	r.Use(cors.New(corsConfig))
 	routes.RegisterRoutes(r)
 	c := cron.New(cron.WithSeconds())
-	_, errCron := c.AddFunc("0 58 15 * * *", jobs.UpdatePsData)
+	_, errCron := c.AddFunc("0 58 15 * * *", jobs.UpdatePsData) //PS
 	if errCron != nil {
-		panic("Failed to schedule cron job: " + errCron.Error())
+		panic("Failed to schedule cron job for Update Ps Data: " + errCron.Error())
 	}
-	_, errCron = c.AddFunc("0 57 23 * * *", jobs.CallDailyTasksForAllDates)
-	// Schedule the job to run every day at 11:50 pm(seconds minute hour dayOfMonth month dayOfWeek)		
+	_, errCron = c.AddFunc("0 50 9 * * *", jobs.UpdateMentorShipsData) //Mentorships
 	if errCron != nil {
-		panic("Failed to schedule cron job: " + errCron.Error())
+		panic("Failed to schedule cron job for mentorships: " + errCron.Error())
+	}
+	_, errCron = c.AddFunc("0 57 23 * * *", jobs.CallDailyTasksForAllDates) //Daily Task
+	if errCron != nil {
+		panic("Failed to schedule cron job for Daily Activity: " + errCron.Error())
 	}
 	c.Start()
 	r.Run(":6001")

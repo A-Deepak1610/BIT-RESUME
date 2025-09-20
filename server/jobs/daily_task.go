@@ -11,6 +11,9 @@ import (
 func UpdatePsData(){
 	dataUploadPs.UploadDataFromExcel();
 }
+func UpdateMentorShipsData(){
+	dataUploadPs.UpdateMentorShips();
+}
 func CallDailyTasksForAllDates() {
 	currentDate := time.Now().Format("2006-01-02")
 	DailyTask(currentDate) 
