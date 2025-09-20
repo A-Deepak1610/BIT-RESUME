@@ -88,6 +88,7 @@ func RegisterRoutes(r *gin.Engine) {
 		adminOnly.POST("/addevents/create", addevents.AddEvents)
 		adminOnly.GET("/events/fetchregisteredteams/:eventcode", registerevents.HandleRegisteredTeams)
 		adminOnly.GET("/studentdata/fetchstudentdata", studentdata.HandleStudentData)
+		adminOnly.POST("/mentor-mentee-upload",dataUploadPs.UploadMentorMentee)
 	}
 	r.GET("/api/activitymaster/fetch", addevents.FetchEvents)
 	//both student and faculty

@@ -147,6 +147,142 @@ const BulkUploadModal = ({ open, onClose, userType, onUploadSuccess }) => {
     );
 };
 
+// Mentor-Mentee Upload Modal Component
+const MentorMenteeUploadModal = ({ open, onClose, onUploadSuccess }) => {
+    const [file, setFile] = useState(null);
+    const [uploading, setUploading] = useState(false);
+
+    const handleFileChange = (event) => {
+        const selectedFile = event.target.files[0];
+        if (selectedFile && (selectedFile.type === 'application/vnd.ms-excel' || selectedFile.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')) {
+            setFile(selectedFile);
+        } else {
+            alert('Please select a valid Excel file (.xls or .xlsx)');
+        }
+    };
+
+    const handleUpload = async () => {
+        if (!file) {
+            alert('Please select a file first');
+            return;
+        }
+
+        setUploading(true);
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {  
+            const response = await fetch('http://localhost:6001/api/mentor-mentee-upload', {
+                method: 'POST',
+                body: formData,
+                credentials: 'include'
+            });
+            if (response.ok) {
+                const result = await response.json();
+                onUploadSuccess();
+                alert("Mentor-Mentee status upload successful!");
+                handleClose();
+            } else {
+                const error = await response.json();
+                alert(`Upload failed: ${error.message || 'Unknown error'}`);
+            }
+        } catch (error) {
+            console.error('Upload error:', error);
+            alert('Upload failed. Please try again.');
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    const handleClose = () => {
+        setFile(null);
+        setUploading(false);
+        onClose();
+    };
+
+    const modalStyle = {
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: 500,
+        bgcolor: 'background.paper',
+        border: 'none',
+        borderRadius: '8px',
+        boxShadow: 24,
+        p: 4,
+        outline: 'none'
+    };
+
+    return (
+        <Modal open={open} onClose={handleClose}>
+            <Paper sx={modalStyle}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                    <Typography variant="h6" component="h2">
+                        Upload Mentor-Mentee Status
+                    </Typography>
+                    <IconButton onClick={handleClose} disabled={uploading}>
+                        <CloseIcon />
+                    </IconButton>
+                </Box>
+                <Divider sx={{ mb: 2 }} />
+                
+                <Box sx={{ mb: 3 }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                        Upload an Excel file (.xls or .xlsx) containing mentor-mentee relationship data.
+                    </Typography>
+                    
+                    <input
+                        type="file"
+                        accept=".xlsx,.xls"
+                        onChange={handleFileChange}
+                        style={{ display: 'none' }}
+                        id="mentor-mentee-upload-file"
+                        disabled={uploading}
+                    />
+                    
+                    <label htmlFor="mentor-mentee-upload-file">
+                        <MuiButton
+                            variant="outlined"
+                            component="span"
+                            fullWidth
+                            startIcon={<Upload />}
+                            disabled={uploading}
+                            sx={{ mb: 2 }}
+                        >
+                            Choose Excel File
+                        </MuiButton>
+                    </label>
+                    
+                    {file && (
+                        <Typography variant="body2" sx={{ mb: 2 }}>
+                            Selected file: {file.name}
+                        </Typography>
+                    )}
+                </Box>
+
+                <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+                    <MuiButton 
+                        onClick={handleClose} 
+                        disabled={uploading}
+                        variant="outlined"
+                    >
+                        Cancel
+                    </MuiButton>
+                    <MuiButton
+                        onClick={handleUpload}
+                        disabled={!file || uploading}
+                        variant="contained"
+                        color="primary"
+                    >
+                        {uploading ? 'Uploading...' : 'Upload'}
+                    </MuiButton>
+                </Box>
+            </Paper>
+        </Modal>
+    );
+};
+
 const SemesterControlModal = () => {
     const [open, setOpen] = useState(false);
     const [semesterData, setSemesterData] = useState([]);
@@ -293,6 +429,7 @@ export default function Addusers() {
     const [selectedUser, setSelectedUser] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isBulkUploadOpen, setIsBulkUploadOpen] = useState(false);
+    const [isMentorMenteeUploadOpen, setIsMentorMenteeUploadOpen] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -348,6 +485,10 @@ export default function Addusers() {
         setIsBulkUploadOpen(true);
     };
 
+    const handleOpenMentorMenteeUpload = () => {
+        setIsMentorMenteeUploadOpen(true);
+    };
+
     const handleOpenEditModal = (user) => {
         setEditingUser(user);
         setIsModalOpen(true);
@@ -374,8 +515,17 @@ export default function Addusers() {
         setIsBulkUploadOpen(false);
     };
 
+    const handleMentorMenteeUploadClose = () => {
+        setIsMentorMenteeUploadOpen(false);
+    };
+
     const handleBulkUploadSuccess = () => {
         fetchUsers();
+    };
+
+    const handleMentorMenteeUploadSuccess = () => {
+        // You can add any specific actions needed after mentor-mentee upload success
+        console.log("Mentor-Mentee upload successful");
     };
 
     const TabButton = ({ label, value, icon: Icon }) => (
@@ -437,7 +587,14 @@ export default function Addusers() {
                                 className="bg-green-600 cursor-pointer outline-green-600 text-white py-2.5 px-6 rounded-md text-sm font-medium hover:opacity-90 transition-opacity duration-200 flex items-center justify-center space-x-2"
                             >
                                 <Upload size={16} />
-                                <span>Ps Daily Status Upload</span>
+                                <span>PS Daily Status Upload</span>
+                            </button>
+                            <button
+                                onClick={handleOpenMentorMenteeUpload}
+                                className="bg-blue-600 cursor-pointer outline-blue-600 text-white py-2.5 px-6 rounded-md text-sm font-medium hover:opacity-90 transition-opacity duration-200 flex items-center justify-center space-x-2"
+                            >
+                                <Upload size={16} />
+                                <span>Upload Mentor-Mentee Status</span>
                             </button>
                             <button
                                 onClick={handleOpenAddModal}
@@ -470,6 +627,11 @@ export default function Addusers() {
                 onClose={handleBulkUploadClose} 
                 userType={activeTab} 
                 onUploadSuccess={handleBulkUploadSuccess}
+            />
+            <MentorMenteeUploadModal 
+                open={isMentorMenteeUploadOpen} 
+                onClose={handleMentorMenteeUploadClose} 
+                onUploadSuccess={handleMentorMenteeUploadSuccess}
             />
         </>
     );
