@@ -5,23 +5,20 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-
 	"github.com/gin-gonic/gin"
 )
 
 func UploadMentorMentee(c *gin.Context) {
 	file, err := c.FormFile("file")
 	if err != nil {
-		fmt.Errorf("The file could not be received")
+		fmt.Print("The file could not be received")
 		return
 	}
-	
 	const saveDir = "data/MENTOR-MENTEE.xlsx"
 	if err := os.MkdirAll(filepath.Dir(saveDir), os.ModePerm); err != nil{
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create data directory: " + err.Error()})
 		return
 	}
-
 	if _, err := os.Stat(saveDir); err == nil {
 		if err := os.Remove(saveDir); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to remove old file: " + err.Error()})

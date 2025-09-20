@@ -1,5 +1,4 @@
 package dataUploadPs
-
 import (
 	"bitresume/config"
 	"fmt"

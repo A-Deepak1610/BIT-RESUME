@@ -17,8 +17,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/xuri/excelize/v2"
-)
-
+)                                  
 func UploadDataFromExcel() error {
 	const excelPath = "data/PS SKILL STATUS.xlsx"
 	f, err := excelize.OpenFile(excelPath)
