@@ -1,21 +1,15 @@
 package dataUploadPs
-
 import (
 	"bitresume/config"
 	"fmt"
 	"log"
 	"strconv"
 	"strings"
-	"time"
-
+	"time"  
 	"github.com/xuri/excelize/v2"
 )
-
-// UpdateMentorShips reads mentorships_sample.xlsx and inserts rows into
-// the mentorships table, logging each inserted row to the terminal.
 func UpdateMentorShips() error {
-	const excelPath = "data/mentorships_sample.xlsx"
-
+	const excelPath = "data/MENTOR-MENTEE.xlsx"
 	f, err := excelize.OpenFile(excelPath)
 	if err != nil {
 		return fmt.Errorf("failed to open Excel file %s: %w", excelPath, err)
@@ -75,8 +69,6 @@ func UpdateMentorShips() error {
 		} else {
 			updated = time.Now()
 		}
-
-		// **Detailed row logging before insertion**
 		log.Printf("Inserting -> Mentor:%s | Mentee:%s | Skill:%s | Level:%s | Date:%s",
 			mentor, mentee, skill, level, updated.Format("2006-01-02"))
 

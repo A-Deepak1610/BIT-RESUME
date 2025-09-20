@@ -19,7 +19,6 @@ func UploadMentorMentee(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create data directory: " + err.Error()})
 		return
 	}
-
 	if _, err := os.Stat(saveDir); err == nil {
 		if err := os.Remove(saveDir); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to remove old file: " + err.Error()})

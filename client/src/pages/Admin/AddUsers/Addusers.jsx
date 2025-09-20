@@ -184,6 +184,7 @@ const MentorMenteeUploadModal = ({ open, onClose, onUploadSuccess }) => {
                 handleClose();
             } else {
                 const error = await response.json();
+                console.log(error);
                 alert(`Upload failed: ${error.message || 'Unknown error'}`);
             }
         } catch (error) {
