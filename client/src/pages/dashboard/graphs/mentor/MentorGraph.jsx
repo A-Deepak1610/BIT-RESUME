@@ -11,6 +11,7 @@ import {
 } from "chart.js";
 import "../../../../index.css";
 import useAuth from "../../../../store/UseAuth";
+
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
 const LegendItem = ({ color, label }) => (
@@ -24,113 +25,81 @@ const LegendItem = ({ color, label }) => (
 );
 
 const MentorMenteesGraph = (props) => {
-  const [mentorSkillData, setMentorSkillData] = useState([]);
-  const [instituteAverageData, setInstituteAverageData] = useState([]);
+  // --- CHANGE 1: REMOVED `instituteAverageData` state. We only need one state for the source data.
+  const [mentorshipData, setMentorshipData] = useState([]);
   const [processedChartData, setProcessedChartData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const {fetchUser,rollno}=useAuth();
-  const student_rollno= props.rollno || rollno; // Use prop or fallback to context value
+  const { fetchUser, rollno } = useAuth();
+  const student_rollno = props.rollno || rollno;
+
   useEffect(() => {
     fetchUser();
   }, []);
+
   const API_URL = import.meta.env.VITE_API_URL;
-  const fetchMentorDetails = async (currentRollno) => {
+
+  // --- CHANGE 2: Simplified the fetch logic. We only need one function now.
+  const fetchMentorshipData = async () => {
     try {
-      const res = await fetch(`${API_URL}api/mentor/details/${currentRollno}`, {
+      const res = await fetch(`${API_URL}api/ps/metorships`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
         },
-        credentials: "include", 
+        credentials: "include",
       });
       if (!res.ok) {
-        throw new Error(`HTTP Error (Mentor Details): ${res.status}`);
+        throw new Error(`HTTP Error: ${res.status}`);
       }
       const data = await res.json();
-      console.log("Mentor Details:", data);
-      return Array.isArray(data) ? data : [];
+      console.log("API Response Data:", data);
+
+      // IMPORTANT: Extract the array from the 'mentorships' key.
+      if (data && Array.isArray(data.mentorships)) {
+        setMentorshipData(data.mentorships);
+      } else {
+        console.error("API response is not in the expected format.", data);
+        setMentorshipData([]);
+      }
     } catch (error) {
-      console.error("Fetch mentor details error:", error);
-      return [];
+      console.error("Failed to fetch mentorship data:", error);
+      setMentorshipData([]); // Reset on error
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const fetchInstituteAverage = async () => {
-    try {
-      const res = await fetch(
-        `${API_URL}api/mentor/institute_avg/fetchData`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include", 
-        }
-      );
-      if (!res.ok) {
-        throw new Error(`HTTP Error (Institute Avg): ${res.status}`);
-      }
-      const data = await res.json();
-      console.log("Institute Average Data:", data);
-      return Array.isArray(data) ? data : [];
-    } catch (error) {
-      console.error("Fetch institute average error:", error);
-      return [];
-    }
-  };
   // Effect to fetch data on component mount or when rollno changes
   useEffect(() => {
-    const loadData = async () => {
+    if (student_rollno) {
       setIsLoading(true);
-      try {
-        const [mentorRes, avgRes] = await Promise.all([
-          fetchMentorDetails(student_rollno),
-          fetchInstituteAverage(),
-        ]);
-        setMentorSkillData(mentorRes);
-        setInstituteAverageData(avgRes);
-      } catch (error) {
-        setMentorSkillData([]); // Ensure state is reset on top-level error too
-        setInstituteAverageData([]);
-      }
-      setIsLoading(false);
-    };
-    loadData();
+      fetchMentorshipData();
+    }
   }, [student_rollno]);
+
+  // --- CHANGE 3: Simplified the data processing logic. No more merging needed.
   useEffect(() => {
-    if (mentorSkillData.length > 0 && instituteAverageData.length > 0) {
-      const instituteAvgMap = new Map(
-        instituteAverageData.map((item) => [
-          item.skill_name,
-          item.avg_mentees_per_mentor,
-        ])
-      );
-      const combinedData = mentorSkillData.map((mentorSkill) => ({
-        skill: mentorSkill.skill_name,
-        Mentees: mentorSkill.mentee_count,
-        ArvgMentees: instituteAvgMap.get(mentorSkill.skill_name) || 0, // Use 0 if no institute avg for this skill
-      }));
-      setProcessedChartData(combinedData);
-    } else if (
-      mentorSkillData.length > 0 &&
-      instituteAverageData.length === 0
-    ) {
-      const combinedData = mentorSkillData.map((mentorSkill) => ({
-        skill: mentorSkill.skill_name,
-        Mentees: mentorSkill.mentee_count,
-        ArvgMentees: 0, // Default average to 0
+    if (mentorshipData && mentorshipData.length > 0) {
+      // Directly map the single data source to the format the chart needs.
+      const combinedData = mentorshipData.map((item) => ({
+        skill: item.skill_name,
+        Mentees: item.mentee_count,
+        ArvgMentees: item.institute_avg, // Use `institute_avg` directly from the data
       }));
       setProcessedChartData(combinedData);
     } else {
-      setProcessedChartData(null); // No data or only one dataset loaded
+      setProcessedChartData(null); // Reset if there's no data
     }
-  }, [mentorSkillData, instituteAverageData]); // Re-process if source data changes
+  }, [mentorshipData]); // This effect now only depends on `mentorshipData`
+
+  // The rest of your component (chartConfig, JSX) remains largely the same.
+  // It will now work correctly with the simplified data flow.
 
   const chartConfig = useMemo(() => {
     if (!processedChartData || processedChartData.length === 0) {
       return {
         data: { labels: [], datasets: [] },
-        options: { maintainAspectRatio: false, responsive: true }, // Basic options for empty chart
+        options: { maintainAspectRatio: false, responsive: true },
       };
     }
 
@@ -189,7 +158,7 @@ const MentorMenteesGraph = (props) => {
           ticks: {
             minRotation: 0,
             maxRotation: 0,
-            autoSkip: false, // Consider `true` if many skills
+            autoSkip: false,
             font: (context) => {
               const width = context.chart.width;
               return {
@@ -224,12 +193,6 @@ const MentorMenteesGraph = (props) => {
     return { data, options };
   }, [processedChartData]);
 
-  // async function testSubmission() { // For testing API calls
-  //   setIsLoading(true);
-  //   await fetchInstituteAverage();
-  //   await fetchMentorDetails(rollno);
-  //   setIsLoading(false);
-  // }
 
   if (isLoading) {
     return (
@@ -250,7 +213,7 @@ const MentorMenteesGraph = (props) => {
           }}
           mb={2}
         >
-          <h1 onClick={()=>{fetchInstituteAverage();fetchMentorDetails();}} className="text-[20px] font-[500] text-gray-800">
+          <h1 className="text-[20px] font-[500] text-gray-800">
             Mentorship Status
           </h1>
         </Box>
@@ -271,7 +234,6 @@ const MentorMenteesGraph = (props) => {
         }}
         mb={2}
       >
-        {/* <button onClick={testSubmission}>Fetch Test</button> */}
         <h1 className="text-[20px] font-[500] text-gray-800">
           Mentorship Status
         </h1>
@@ -287,8 +249,6 @@ const MentorMenteesGraph = (props) => {
         className="flex-grow relative"
         style={{ height: "calc(100% - 70px)" }}
       >
-        {" "}
-        {/* Adjust height as needed */}
         <Bar
           data={chartConfig.data}
           options={chartConfig.options}

@@ -11,6 +11,7 @@ import AchievementsGraphForResume from "../dashboard/graphs/grpah2/AchievementsG
 import A4Page from "./A4Page"; // Your A4Page component from above
 import QRCode from "react-qr-code"; // <-- CORRECTED IMPORT for the new library
 import bit_logo from '../../assets/bit_logo.png'
+import useAuth from "../../store/UseAuth";
 const Section = ({ title, children, className }) => (
   <section className={`mb-5 ${className || ""}`}>
     {title && (
@@ -21,48 +22,48 @@ const Section = ({ title, children, className }) => (
     {children}
   </section>
 );
-
-const ResumeContent = () => (
+  
+const ResumeContent = ({name,email,info}) => (
   <>
     <A4Page>
       <header className="flex items-start justify-between w-full mb-5">
         <div className="flex-1">
-          <h1 className="text-4xl font-bold text-gray-800">Selva</h1>
+          <h1 className="text-4xl font-bold text-gray-800">{name}</h1>
           <p className="text-lg font-medium text-blue-800">
             Computer Science & Engineering Student
           </p>
           <div className="flex items-center text-xs text-gray-600 mt-2 space-x-4 flex-wrap">
             <div className="flex items-center">
               <Mail size={12} className="mr-1.5" />
-              <span>email@gmail.com</span>
+              <span>{email}</span>
             </div>
             <div className="flex items-center">
               <Phone size={12} className="mr-1.5" />
-              <span>+91 6380899737</span>
+              <span>+91 {info.phone}</span>
             </div>
             <div className="flex items-center">
               <MapPin size={12} className="mr-1.5" />
-              <span>Erode, Tamil Nadu</span>
+              <span>{info.location}</span>
             </div>
           </div>
           <div className="flex items-center text-xs text-gray-600 mt-1.5 space-x-4 flex-wrap">
             <a
-              href="https://github.com/selva"
+              href={info.github}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center hover-text-blue-600"
             >
               <Github size={12} className="mr-1.5" />
-              <span>github.com/selva</span>
+              <span>{info.gihub}</span>
             </a>
             <a
-              href="https://linkedin.com/in/selva"
+              href={info.linkedin}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center hover-text-blue-600"
             >
               <Linkedin size={12} className="mr-1.5" />
-              <span>linkedin.com/in/selva</span>
+              <span>linkedin.com</span>
             </a>
           </div>
         </div>
@@ -195,15 +196,30 @@ export default function PrintableResumeView() {
       className: "hover:bg-indigo-700",
     };
   };
-
+  const {rollno,name,email}=useAuth();
+  const [info,setInfo]=useState([]);
+  const getInfo=async()=>{
+    try{
+      const res=await fetch("http://localhost:6001/api/header/getprofile",{
+        method:"GET",
+        credentials:"include"
+      })
+      if(!res.ok) console.error("Response not ok for info");
+      const data=await res.json();
+      setInfo(data);
+      console.log("data from info",info);
+    }
+    catch(error){
+      console.log(error);
+    }
+  }
+  useEffect(()=>{getInfo()},[rollno]);
   const buttonState = getButtonState();
-
   return (
     <>
       <div id="resume-content-to-print">
-        <ResumeContent />
+        <ResumeContent name={name} email={email} info={info}/>
       </div>
-
        <div className="print-hide bg-gray-100 py-6 text-center">
         <button
           onClick={handlePrint}

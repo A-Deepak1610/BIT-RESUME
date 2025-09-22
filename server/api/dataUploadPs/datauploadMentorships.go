@@ -7,11 +7,16 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/xuri/excelize/v2"
 )
+
+// UpdateMentorShips reads mentorships_sample.xlsx and inserts rows into
+// the mentorships table, logging each inserted row to the terminal.
 func UpdateMentorShips() error {
 	const excelPath = "data/MENTOR-MENTEE.xlsx"
+
 	f, err := excelize.OpenFile(excelPath)
 	if err != nil {
 		return fmt.Errorf("failed to open Excel file %s: %w", excelPath, err)
@@ -71,6 +76,8 @@ func UpdateMentorShips() error {
 		} else {
 			updated = time.Now()
 		}
+
+		// **Detailed row logging before insertion**
 		log.Printf("Inserting -> Mentor:%s | Mentee:%s | Skill:%s | Level:%s | Date:%s",
 			mentor, mentee, skill, level, updated.Format("2006-01-02"))
 
@@ -88,51 +95,50 @@ func UpdateMentorShips() error {
 func GetMentorShips(c *gin.Context) {
 	rollno := c.GetString("rollNo")
 	query := `SELECT
-		mentor_rollno,
-		skill_name,
-		skill_level,
-		COUNT(*) AS mentee_count
-	FROM mentorships
-	WHERE mentor_rollno = ?
+		m.mentor_rollno,
+		m.skill_name,
+		COUNT(*) AS mentee_count,
+		(
+			SELECT AVG(skill_count)
+			FROM (
+				SELECT COUNT(*) AS skill_count
+				FROM mentorships
+				WHERE skill_name = m.skill_name
+				GROUP BY mentor_rollno
+			) AS skill_counts
+		) AS institute_avg
+	FROM mentorships m
+	WHERE m.mentor_rollno = ?
 	GROUP BY
-		mentor_rollno,
-		skill_name,
-		skill_level
+		m.mentor_rollno,
+		m.skill_name
 	ORDER BY
-		skill_name,
-		skill_level;`
-
+		m.skill_name;`
 	rows, err := config.DB.Query(query, rollno)
 	if err != nil {
 		c.JSON(500, gin.H{"error": "Database query error: " + err.Error()})
 		return
 	}
 	defer rows.Close()
-
 	type MentorShip struct {
-		MentorRollNo string `json:"mentor_rollno"`
-		SkillName    string `json:"skill_name"`
-		SkillLevel   string `json:"skill_level"`
-		MenteeCount  int    `json:"mentee_count"`
+		MentorRollNo string  `json:"mentor_rollno"`
+		SkillName    string  `json:"skill_name"`
+		MenteeCount  int     `json:"mentee_count"`
+		InstituteAvg float64 `json:"institute_avg"`
 	}
-
 	var mentorShips []MentorShip
-
 	for rows.Next() {
 		var m MentorShip
-		err := rows.Scan(&m.MentorRollNo, &m.SkillName, &m.SkillLevel, &m.MenteeCount)
+		err := rows.Scan(&m.MentorRollNo, &m.SkillName, &m.MenteeCount, &m.InstituteAvg)
 		if err != nil {
 			c.JSON(500, gin.H{"error": "Row scan error: " + err.Error()})
 			return
 		}
 		mentorShips = append(mentorShips, m)
 	}
-
-	// Check for errors after iterating
 	if err = rows.Err(); err != nil {
 		c.JSON(500, gin.H{"error": "Rows iteration error: " + err.Error()})
 		return
 	}
-
 	c.JSON(200, gin.H{"mentorships": mentorShips})
 }

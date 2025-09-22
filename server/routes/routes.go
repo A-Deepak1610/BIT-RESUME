@@ -1,8 +1,7 @@
 package routes
-
 import (
 	activitymaster "bitresume/api/ActivityMaster"
-	auth "bitresume/api/auth"
+	auth "bitresume/api/auth"                     
 	achievementgraph "bitresume/api/dashboard/achievement_graph"
 	activitygraph "bitresume/api/dashboard/activity_graph"
 	headerdetails "bitresume/api/dashboard/header_details"
@@ -24,7 +23,6 @@ import (
 	dashboard "bitresume/api/upload-view/upload_view_dashboard"
 	"bitresume/api/upload-view/workshops"
 	"bitresume/middleware"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -66,6 +64,7 @@ func RegisterRoutes(r *gin.Engine) {
 		studentOnly.GET("/header/getprofile", headerdetails.GetProfileDetails)
 		studentOnly.GET("/ps/levels_status", pointshandlers.HandleFetchPsLevels)
 		studentOnly.GET("/ps/metorships",dataUploadPs.GetMentorShips)
+		studentOnly.GET("/aresofexpertise",resume.GetAreasOfExpertise)
 	}
 	facultyOnly := r.Group("/api")
 	facultyOnly.Use(middleware.AuthorizeRoles("faculty"))

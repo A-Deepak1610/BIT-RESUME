@@ -9,7 +9,6 @@ const AreasOfExpertise = () => {
     "Web & Database": ["HTML5", "CSS3", "SQL (PostgreSQL)", "MongoDB"],
     "Tools & Platforms": ["Git", "Docker", "AWS", "Vercel", "Figma"],
   };
-
   return (
     <div className="space-y-1">
       {Object.entries(expertise).map(([category, skills]) => (

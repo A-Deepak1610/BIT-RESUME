@@ -65,7 +65,6 @@ export default function Content(props) {
           <div className="p-2 md:p-2 bg-white w-full lg:w-[50%] shadow rounded-lg h-[32vh] flex flex-col">
             <PsSkillGraph rollno={rollno} />
           </div>
-
           {/* Graph 3 */}
           <div className="p-2 md:p-2 mt-2 lg:mt-0 lg:ml-2 bg-white w-full lg:w-[50%] shadow rounded-lg h-[32vh]">
             <AchievementsGraph  rollno={rollno}/>

@@ -32,12 +32,21 @@ const PsDataForResume = () => {
       setIsLoading(false);
       return;
     }
+    
     const fetchPsCompletionData = async () => {
       try {
         const res = await fetch(`${API_URL}api/ps/levels_status`, { credentials: "include" });
         if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
-        const data = await res.json();
-        setSkillCompletionData(Array.isArray(data) ? data : []);
+        const responseData = await res.json();
+        
+        // Extract data from the nested structure and map to expected format
+        if (responseData && Array.isArray(responseData.data)) {
+          const mappedData = mapPsDataToSkillFormat(responseData.data);
+          setSkillCompletionData(mappedData);
+        } else {
+          console.error("API response is not in the expected format.", responseData);
+          setSkillCompletionData([]);
+        }
       } catch (error) {
         console.error("Fetch error for levels status:", error);
         setSkillCompletionData([]);
@@ -45,18 +54,90 @@ const PsDataForResume = () => {
         setIsLoading(false);
       }
     };
+    
     fetchPsCompletionData();
   }, [rollno, API_URL]);
 
+  // Helper function to map PS data to the format expected by UI
+  const mapPsDataToSkillFormat = (psData) => {
+    // Group by skill_name and find the highest completed level for each skill
+    const skillMap = {};
+    
+    psData.forEach((record) => {
+      const skillName = record.skill_name;
+      const skillLevel = parseInt(record.skill_level);
+      const totalLevels = parseInt(record.total_levels);
+      const status = record.status;
+      
+      if (!skillMap[skillName]) {
+        skillMap[skillName] = {
+          skillname: skillName,
+          skilldomain: categorizeSkilDomain(skillName), // Categorize skills
+          skilllevel: 0,
+          totallevels: totalLevels
+        };
+      }
+      // Update to highest completed level (only count completed levels)
+      if (status === "completed" && skillLevel > skillMap[skillName].skilllevel) {
+        skillMap[skillName].skilllevel = skillLevel;
+      }
+    });
+    
+    return Object.values(skillMap);
+  };
+  const categorizeSkilDomain = (skillName) => {
+    const SKILL_CATEGORIZATION = {
+      // CS Domain
+      "c programming": "CS",
+      "python programming": "CS",
+      "java": "CS",
+      "javascript": "CS",
+      "DBMS": "CS",
+      "data structures": "CS",
+      "algorithms": "CS",
+      "web development": "CS",
+      "machine learning": "CS",
+      "artificial intelligence": "CS",
+      
+      // Electrical Domain
+      "circuit analysis": "Electrical",
+      "digital electronics": "Electrical",
+      "power systems": "Electrical",
+      "control systems": "Electrical",
+      "electronics": "Electrical",
+      "electrical machines": "Electrical",
+      
+      // Soft Skills Domain
+      "communication": "Soft Skills",
+      "leadership": "Soft Skills",
+      "teamwork": "Soft Skills",
+      "presentation": "Soft Skills",
+      "time management": "Soft Skills",
+      "problem solving": "Soft Skills",
+      
+      // Non-Technical Domain
+      "algebra": "Non-Technical",
+      "calculus": "Non-Technical",
+      "statistics": "Non-Technical",
+      "physics": "Non-Technical",
+      "chemistry": "Non-Technical",
+      "mathematics": "Non-Technical",
+      "geometry": "Non-Technical"
+    };
+    const normalizedSkillName = skillName.toLowerCase().trim();
+    return SKILL_CATEGORIZATION[normalizedSkillName] || "General";
+  };
   const visibleSkills = skillCompletionData.filter(skill => skill.skilllevel > 0);
-
   const groupedSkills = visibleSkills.reduce((acc, skill) => {
     if (!acc[skill.skilldomain]) acc[skill.skilldomain] = [];
     acc[skill.skilldomain].push(skill);
     return acc;
   }, {});
 
-  const skillDomains = Object.entries(groupedSkills);
+  const domainOrder = ["CS", "Non-Technical", "Soft Skills", "Electrical", "General"];  
+  const skillDomains = domainOrder
+    .filter(domain => groupedSkills[domain]) // Only include domains that have skills
+    .map(domain => [domain, groupedSkills[domain]]);
 
   if (isLoading) {
     return <div className="text-xs text-gray-500">Loading skills data...</div>;

@@ -1,16 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import useAuth from '../../store/UseAuth';
-import { Users } from 'lucide-react';
-
-// --- DUMMY DATA ---
-// This data will serve as a fallback if the API fetch fails.
-const DUMMY_MENTOR_SKILLS = [
-  { skill_name: "React & Frontend", mentee_count: 5 },
-  { skill_name: "Node.js (Backend)", mentee_count: 4 },
-  { skill_name: "Database Management", mentee_count: 3 },
-  { skill_name: "UI/UX Design Principles", mentee_count: 2 },
-];
-
 const MentorMenteeForResume = () => {
   const [mentorSkillData, setMentorSkillData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -22,36 +11,49 @@ const MentorMenteeForResume = () => {
       setIsLoading(false);
       return;
     }
-    const loadData = async () => {
+    
+    const fetchMentorshipData = async () => {
       try {
-        const res = await fetch(`${API_URL}api/mentor/details/${rollno}`, {
+        const res = await fetch(`${API_URL}api/ps/metorships`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
           credentials: "include",
         });
-        if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+        if (!res.ok) {
+          throw new Error(`HTTP Error: ${res.status}`);
+        }
         const data = await res.json();
-        setMentorSkillData(Array.isArray(data) ? data : []);
+        console.log("API Response Data:", data);
+        if (data && Array.isArray(data.mentorships)) {
+          const cleanedData = cleanMentorshipData(data.mentorships);
+          setMentorSkillData(cleanedData);
+        } else {
+          console.error("API response is not in the expected format.", data);
+          setMentorSkillData([]);
+        }
       } catch (error) {
-        // **FALLBACK LOGIC**: On fetch error, use dummy data.
-        console.error("Fetch mentor details error, using dummy data:", error);
-        setMentorSkillData(DUMMY_MENTOR_SKILLS);
+        console.error("Failed to fetch mentorship data, using dummy data:", error);
       } finally {
         setIsLoading(false);
       }
     };
-    loadData();
+    fetchMentorshipData();
   }, [rollno, API_URL]);
 
+  // Helper function to filter out institute_avg and keep only needed properties
+  const cleanMentorshipData = (mentorships) => {
+    return mentorships.map(({ mentor_rollno, institute_avg, ...cleanData }) => cleanData);
+  };
   const totalMentees = mentorSkillData.reduce((total, skill) => total + skill.mentee_count, 0);
   const skillCount = mentorSkillData.length;
-
   if (isLoading) {
     return <div className="text-xs text-gray-500">Loading mentorship data...</div>;
   }
-
   if (skillCount === 0) {
     return <div className="text-xs text-gray-500">No mentorship data available.</div>;
   }
-
   return (
     <div className="text-sm space-y-2">
       {/* The summary paragraph remains at full-width */}

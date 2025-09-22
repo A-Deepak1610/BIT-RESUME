@@ -1,6 +1,7 @@
 import { create } from "zustand";
 const useAuth = create((set) => ({
   user: null,
+  email: null,
   loading: true,
   rollno:null,
   name: null,
@@ -15,6 +16,7 @@ const useAuth = create((set) => ({
       if (data?.user) {
         set({ user: data.user, loading: false });
         set({ rollno: data.user.rollNo });
+        set({ email: data.user.email });
         set({ role: data.user.role });
         set({ name: data.user.user_name});
       } else {

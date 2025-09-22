@@ -25,17 +25,6 @@ export default function Info(props) {
   const [open, setOpen] = useState(false);
   // State to hold the fetched profile information
   const [profileData, setProfileData] = useState(null);
-
-  const SkillSet = [
-    "Java",
-    "React",
-    "Go",
-    "Mysql",
-    "JavaScript",
-    "Node.js",
-    "CSS3",
-  ];
-
   // Fetch profile data when the component mounts or rollno changes
   useEffect(() => {
     const getProfileInfo = async () => {
@@ -64,14 +53,29 @@ export default function Info(props) {
     };
     getProfileInfo();
   }, [Student_rollno]); // Dependency array ensures fetch runs when rollno changes
-
   const toggleDrawer = (newOpen) => () => {
     setOpen(newOpen);
   };
-
   // Sidebar component now accepts profile as a prop
   const SidebarContent = ({ profile }) => {
-    // Show a loading state while data is being fetched
+    const [SkillSet,setskillSet]= useState(["NA"]);
+    const getAresOfExpertise=async()=>{
+      try{
+        const response=await fetch("http://localhost:6001/api/aresofexpertise",{
+          method:"GET",
+          credentials:'include'
+        })
+        const data=await response.json()
+        console.log("Areas of expertise data",data)
+        setskillSet(data)
+      }
+      catch(error){
+        console.err("Error in getting ares of expertise",error)
+      }
+    }
+    useEffect(()=>{
+      getAresOfExpertise()
+    },rollno)
     if (!profile) {
       return <div className="p-4 text-center">Loading profile...</div>;
     }

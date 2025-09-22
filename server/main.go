@@ -35,7 +35,7 @@ func main() {
 	if errCron != nil {
 		panic("Failed to schedule cron job for Update Ps Data: " + errCron.Error())
 	}
-	_, errCron = c.AddFunc("0 50 9 * * *", jobs.UpdateMentorShipsData) //Mentorships
+	_, errCron = c.AddFunc("0 51 10 * * *", jobs.UpdateMentorShipsData) //Mentorships
 	if errCron != nil {
 		panic("Failed to schedule cron job for mentorships: " + errCron.Error())
 	}

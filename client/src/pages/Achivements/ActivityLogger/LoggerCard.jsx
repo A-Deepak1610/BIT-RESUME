@@ -381,7 +381,6 @@ const LoggerCard = ({ data, onCardClick }) => {
           </div>
         </div>
       </div>
-
       <TeamDetailsModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}

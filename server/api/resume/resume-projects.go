@@ -34,9 +34,7 @@ func GetProjectsData(c *gin.Context) {
 			fmt.Println("Error scanning base project row:", err)
 			continue // Skip this project if there's an error
 		}
-
 		// Step 3: For each project, fetch its related data (GitHub link and Tech Stack).
-
 		// Fetch the GitHub link from the 'project_files' table.
 		var githubLink sql.NullString // Use sql.NullString to handle potential NULL values
 		err := config.DB.QueryRow("SELECT github_link FROM project_files WHERE project_id = ?", projectID).Scan(&githubLink)
@@ -44,7 +42,6 @@ func GetProjectsData(c *gin.Context) {
 			fmt.Println("Error fetching github link for project_id", projectID, ":", err)
 			// Decide if you want to skip or continue with an empty link
 		}
-
 		// Fetch the list of tech stack names from the 'project_tech_stack' table.
 		var techStack []string
 		stackRows, err := config.DB.Query("SELECT tech_name FROM project_tech_stack WHERE project_id = ?", projectID)
@@ -74,4 +71,22 @@ func GetProjectsData(c *gin.Context) {
 
 	// Final Step: Send the complete, aggregated list to the frontend.
 	c.JSON(http.StatusOK, allProjects)
+}
+func GetAreasOfExpertise(c *gin.Context){
+	rollno:=c.GetString("rollNo");
+	query:="select distinct pt.tech_name  from projects p join project_tech_stack pt on p.id=pt.project_id and rollno=?"
+	rows,err:=config.DB.Query(query,rollno);
+	if err!=nil{
+		fmt.Println("Error fetching areas of expertise:",err);
+		c.JSON(http.StatusInternalServerError,gin.H{"message":"Could not fetch areas of expertise"});
+		return;
+	}
+	defer rows.Close();
+	var areas []string;
+	for rows.Next(){
+		var area string;
+		rows.Scan(&area)
+		areas=append(areas,area);
+	}
+	c.JSON(http.StatusOK,areas);
 }
