@@ -21,11 +21,9 @@ export default function StudentPerformance({
     onClose
 }) {
     const [searchTerm, setSearchTerm] = useState("");
-
     const filteredStudents = datas.filter((student) =>
         student.user_name.toLowerCase().includes(searchTerm.toLowerCase())
     );
-
     const handleClickOnLeft = (student) => {
         if (onStudentSelect) {
             onStudentSelect(student);

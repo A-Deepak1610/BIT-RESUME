@@ -4,12 +4,12 @@ import (
 	"bitresume/config"
 	"bitresume/models"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
-	"github.com/gin-gonic/gin"
 )
 
-func HandlePointlogs2(rollno string, point float64 , sem int, currdate string) {
+func HandlePointlogs2(rollno string, point float64, sem int, currdate string) {
 	stmt, err := config.DB.Prepare("INSERT INTO point_logs2 (rollno, points, sem, currdate) VALUES (?, ?, ?, ?)")
 	if err != nil {
 		log.Printf("Failed to prepare statement: %v", err)
@@ -79,7 +79,7 @@ func HandleInactivity(rollno string, currdate string, sem int) error {
 
 	var avg float64
 	if entries > 0 {
-		avg = ((total / float64(entries))*0.2) //in this i need to modify the avg points (i should take some percent of avg points)
+		avg = ((total / float64(entries)) * 0.2) //in this i need to modify the avg points (i should take some percent of avg points)
 	} else {
 		avg = 0.0
 	}
@@ -92,7 +92,7 @@ func HandleInactivity(rollno string, currdate string, sem int) error {
 	fmt.Printf("Inserted avg point %.2f for rollno %s on %s\n", avg, rollno, currdate)
 	return nil
 }
- 
+
 // HandleAchievementPoints calculates and updates current points and rank for a student called in ----------cron job
 func HandleAcheivemnetPoints(rollno string, currdate string, sem int) {
 	fmt.Print("Rollno: ", rollno)
@@ -129,6 +129,7 @@ func HandleAcheivemnetPoints(rollno string, currdate string, sem int) {
 	}
 	HandleInstituteAvg(sem, currdate)
 }
+
 // calculate the average points for the institute called in -----------------------cron job
 func FetchLastInstituteAvg() (float64, error) {
 	var lastCumulative float64
@@ -148,7 +149,7 @@ func FetchLastInstituteAvg() (float64, error) {
 	return lastCumulative, nil
 }
 
-func HandleInstituteAvg(sem int, currdate string) { 
+func HandleInstituteAvg(sem int, currdate string) {
 	lastCumulative, err := FetchLastInstituteAvg()
 	if err != nil {
 		log.Printf("Failed to fetch last cumulative_points: %v", err)
@@ -175,7 +176,7 @@ func HandleInstituteAvg(sem int, currdate string) {
 		return
 	}
 	defer insertStmt.Close()
-	_, execErr := insertStmt.Exec(CurrentCumulative,r.Points, sem, currdate)
+	_, execErr := insertStmt.Exec(CurrentCumulative, r.Points, sem, currdate)
 	if execErr != nil {
 		log.Printf("Failed to insert activity graph data: %v", execErr)
 	}
@@ -206,8 +207,27 @@ func HandleFetchAchievementGraph(c *gin.Context) {
 
 func HandleFetchInstituteAvg(c *gin.Context) {
 	var records1 []models.Institute_avg
+	rollno := c.GetString("rollNo") 
+	fmt.Print("Rollno:",rollno)
+	rows1, err1 := config.DB.Query(`
+SELECT
+    SUM(avg_points) OVER (ORDER BY currdate, sem) AS cummulative_points,
+    avg_points AS points,
+    sem,
+    currdate
+FROM (
+    SELECT
+        ag.currdate,
+        ag.sem,
+        AVG(ag.points_earned) AS avg_points
+    FROM achievement_graph ag
+    JOIN login l ON ag.rollno = l.rollno
+    WHERE l.batch = (SELECT batch FROM login WHERE rollno = ?)
+    GROUP BY ag.currdate, ag.sem
+) AS daily_avg
+ORDER BY currdate, sem;
+`, rollno) // pass rollno here
 
-	rows1, err1 := config.DB.Query("SELECT cummulative_points, points, sem, currdate FROM institute_avg")
 	if err1 != nil {
 		c.JSON(500, gin.H{"error": err1.Error()})
 		return
@@ -224,6 +244,5 @@ func HandleFetchInstituteAvg(c *gin.Context) {
 		records1 = append(records1, r1)
 	}
 
-	c.JSON(http.StatusAccepted, records1)
+	c.JSON(http.StatusOK, records1)
 }
-

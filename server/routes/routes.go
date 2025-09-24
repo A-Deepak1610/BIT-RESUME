@@ -1,7 +1,8 @@
 package routes
+
 import (
 	activitymaster "bitresume/api/ActivityMaster"
-	auth "bitresume/api/auth"                     
+	auth "bitresume/api/auth"
 	achievementgraph "bitresume/api/dashboard/achievement_graph"
 	activitygraph "bitresume/api/dashboard/activity_graph"
 	headerdetails "bitresume/api/dashboard/header_details"
@@ -65,6 +66,8 @@ func RegisterRoutes(r *gin.Engine) {
 		studentOnly.GET("/ps/levels_status", pointshandlers.HandleFetchPsLevels)
 		studentOnly.GET("/ps/metorships",dataUploadPs.GetMentorShips)
 		studentOnly.GET("/aresofexpertise",resume.GetAreasOfExpertise)
+		studentOnly.GET("/achievement_graph/institute_avg/fetchData", achievementgraph.HandleFetchInstituteAvg)
+
 	}
 	facultyOnly := r.Group("/api")
 	facultyOnly.Use(middleware.AuthorizeRoles("faculty"))
@@ -95,7 +98,7 @@ func RegisterRoutes(r *gin.Engine) {
 	r.GET("/api/studentdata/fetchmentees/:rollno", studentdata.HandleMenteesData)
 	r.GET("/api/activity_graph/fetchData/:rollno", activitygraph.FetchActivityGraphData)
 	r.GET("/api/achievement_graph/fetchData/:rollno", achievementgraph.HandleFetchAchievementGraph)
-	r.GET("/api/achievement_graph/institute_avg/fetchData", achievementgraph.HandleFetchInstituteAvg)
+	// r.GET("/api/achievement_graph/institute_avg/fetchData", achievementgraph.HandleFetchInstituteAvg)
 	r.GET("/api/ps/attempts/:rollno", pointshandlers.HandleFetchPsAttempts)
 	r.GET("/api/mentor/details/:rollno", pointshandlers.FetchMentorSkillStats)
 	r.GET("/api/mentor/institute_avg/fetchData", pointshandlers.FetchSkillWiseAvgMentees)

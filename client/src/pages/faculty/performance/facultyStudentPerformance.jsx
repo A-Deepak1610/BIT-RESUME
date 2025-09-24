@@ -18,7 +18,7 @@ export default function StudentDashboardPage() {
       const response = await fetch(role=='faculty'?`http://localhost:6001/api/studentdata/fetchmentees/${rollno}`:`http://localhost:6001/api/studentdata/fetchstudentdata`, {
         method: "GET",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/json" ,
         },
         credentials: "include",
       });

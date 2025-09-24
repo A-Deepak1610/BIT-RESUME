@@ -31,7 +31,7 @@ func main() {
 	r.Use(cors.New(corsConfig))
 	routes.RegisterRoutes(r)
 	c := cron.New(cron.WithSeconds())
-	_, errCron := c.AddFunc("0 58 15 * * *", jobs.UpdatePsData) //PS
+	_, errCron := c.AddFunc("0 00 14 * * *", jobs.UpdatePsData) //PS
 	if errCron != nil {
 		panic("Failed to schedule cron job for Update Ps Data: " + errCron.Error())
 	}
