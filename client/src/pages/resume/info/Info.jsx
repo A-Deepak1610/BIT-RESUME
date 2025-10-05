@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"; // Added useEffect
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import logo from "../../../assets/logo_bit.jpg";
@@ -9,7 +9,7 @@ import {
   Network,
   BookOpen,
   Phone,
-  MapPin ,
+  MapPin,
   Linkedin,
   Github,
   Mail,
@@ -18,20 +18,20 @@ import {
 import useAuth from "../../../store/UseAuth";
 
 export default function Info(props) {
-  const { rollno, name } = useAuth();
-  const Student_rollno = props.rollno || rollno;
+  const { rollno } = useAuth();
+  const Student_rollno = props.rollno || "-";
   const navigate = useNavigate();
 
   const [open, setOpen] = useState(false);
-  // State to hold the fetched profile information
   const [profileData, setProfileData] = useState(null);
+
   // Fetch profile data when the component mounts or rollno changes
   useEffect(() => {
     const getProfileInfo = async () => {
       if (!Student_rollno) return;
       try {
         const response = await fetch(
-          `http://localhost:6001/api/header/getprofile`,
+          `http://localhost:6001/api/header/getprofile/${Student_rollno}`,
           {
             method: "GET",
             headers: { "Content-Type": "application/json" },
@@ -40,8 +40,8 @@ export default function Info(props) {
         );
         if (response.ok) {
           const result = await response.json();
-          console.log(result);
-          setProfileData(result.data);
+          // Assuming the profile data is nested under a 'data' key
+          setProfileData(result.data); 
         } else {
           console.error("Failed to fetch profile info");
           setProfileData({}); // Set to empty object on failure to prevent errors
@@ -53,29 +53,55 @@ export default function Info(props) {
     };
     getProfileInfo();
   }, [Student_rollno]); // Dependency array ensures fetch runs when rollno changes
+
   const toggleDrawer = (newOpen) => () => {
     setOpen(newOpen);
   };
+
   // Sidebar component now accepts profile as a prop
   const SidebarContent = ({ profile }) => {
-    const [SkillSet,setskillSet]= useState(["NA"]);
-    const getAresOfExpertise=async()=>{
-      try{
-        const response=await fetch("http://localhost:6001/api/aresofexpertise",{
-          method:"GET",
-          credentials:'include'
-        })
-        const data=await response.json()
-        console.log("Areas of expertise data",data)
-        setskillSet(data)
-      }
-      catch(error){
-        console.err("Error in getting ares of expertise",error)
-      }
-    }
-    useEffect(()=>{
-      getAresOfExpertise()
-    },rollno)
+    // Correctly handle skill set state
+    const [skillSet, setSkillSet] = useState([]); // Start with an empty array
+    const [isLoadingSkills, setIsLoadingSkills] = useState(true);
+
+    useEffect(() => {
+      const getAreasOfExpertise = async () => {
+        if (!rollno) return;
+        setIsLoadingSkills(true);
+        try {
+          const response = await fetch(`http://localhost:6001/api/aresofexpertise/${Student_rollno}`, {
+            method: "GET",
+            credentials: 'include'
+          });
+          const data = await response.json();
+          console.log("Areas of expertise API response:", data); // IMPORTANT: Check this log in your browser console
+
+          // --- FIX STARTS HERE ---
+          // Check if the received data is an array. If not, try to find the array within the object.
+          if (Array.isArray(data)) {
+            setSkillSet(data);
+          } else if (data && Array.isArray(data.skills)) { // Example: if response is { skills: [...] }
+            setSkillSet(data.skills);
+          } else if (data && Array.isArray(data.data)) { // Example: if response is { data: [...] }
+            setSkillSet(data.data);
+          } else {
+            console.error("API did not return a valid array for skills.");
+            setSkillSet([]); // Fallback to an empty array to prevent crash
+          }
+          // --- FIX ENDS HERE ---
+
+        } catch (error) {
+          // Corrected the typo from console.err to console.error
+          console.error("Error in getting areas of expertise:", error);
+          setSkillSet([]); // Set to empty array on error
+        } finally {
+            setIsLoadingSkills(false);
+        }
+      };
+
+      getAreasOfExpertise();
+    }, [rollno]); // Dependency is rollno, which is correct.
+
     if (!profile) {
       return <div className="p-4 text-center">Loading profile...</div>;
     }
@@ -98,7 +124,7 @@ export default function Info(props) {
             alt="profile"
             className="rounded-full w-20 h-20 object-cover"
           />
-          <h2 className="text-xl font-semibold text-primary mt-2">{name}</h2>
+          <h2 className="text-xl font-semibold text-primary mt-2">{profileData.user_name}</h2>
           <p className="text-gray-800 text-xs text-center mt-1 px-2">
             Department of Computer Science and Engineering
           </p>
@@ -124,7 +150,6 @@ export default function Info(props) {
             <div>01</div>
             <div>{Student_rollno}</div>
             <div>{profile.batch}</div>
-            {/* Mapped Data */}
             <div>{profile.domain || "Not specified"}</div>
           </div>
         </div>
@@ -151,17 +176,16 @@ export default function Info(props) {
                 <Linkedin size={15} className="mr-2 flex-shrink-0" /> LinkedIn
               </div>
               <div className="flex items-center">
-                <MapPin  size={15} className="mr-2 flex-shrink-0" /> Location
+                <MapPin size={15} className="mr-2 flex-shrink-0" /> Location
               </div>
             </div>
-            {/* Mapped Data */}
             <div className="space-y-2 text-primary font-medium text-sm overflow-hidden">
               <div className="truncate">
                 {profile.phone ? `+91 ${profile.phone}` : "Not specified"}
               </div>
               <div className="truncate">{profile.user_email}</div>
-              <div className="truncate"><a href={profile.github || "Not specified"} target="blank">{profile.github}</a></div>
-              <div className="truncate"><a href={profile.linkedin} target="blank">{profile.linkedin || "Not specified"}</a></div>
+              <div className="truncate"><a href={profile.github || "#"} target="_blank" rel="noopener noreferrer">{profile.github}</a></div>
+              <div className="truncate"><a href={profile.linkedin || "#"} target="_blank" rel="noopener noreferrer">{profile.linkedin}</a></div>
               <div className="truncate">{profile.location || "Not specified"}</div>
             </div>
           </div>
@@ -175,14 +199,20 @@ export default function Info(props) {
             AREAS OF EXPERTISE
           </h1>
           <div className="flex flex-wrap gap-2">
-            {SkillSet.map((skill, index) => (
-              <span
-                key={index}
-                className="bg-gray-200 text-gray-800 text-xs font-medium px-3 py-1.5 rounded-full hover:bg-gray-300 transition-colors cursor-default"
-              >
-                {skill}
-              </span>
-            ))}
+            {isLoadingSkills ? (
+                <p className="text-gray-500 text-xs">Loading skills...</p>
+            ) : skillSet.length > 0 ? (
+              skillSet.map((skill, index) => (
+                <span
+                  key={index}
+                  className="bg-gray-200 text-gray-800 text-xs font-medium px-3 py-1.5 rounded-full hover:bg-gray-300 transition-colors cursor-default"
+                >
+                  {skill}
+                </span>
+              ))
+            ) : (
+                <p className="text-gray-500 text-xs">No skills listed.</p>
+            )}
           </div>
         </div>
         <div className="flex justify-center mt-5">
@@ -217,7 +247,6 @@ export default function Info(props) {
           },
         }}
       >
-        {/* Pass the fetched data as a prop */}
         <SidebarContent profile={profileData} />
       </Drawer>
 
@@ -241,7 +270,6 @@ export default function Info(props) {
         </div>
 
         <div className="w-[280px] hidden lg:block shadow-md h-screen">
-          {/* Pass the fetched data as a prop */}
           <SidebarContent profile={profileData} />
         </div>
 
@@ -249,4 +277,4 @@ export default function Info(props) {
       </div>
     </>
   );
-}
+} 

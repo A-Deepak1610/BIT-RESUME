@@ -14,7 +14,7 @@ const MentorMenteeForResume = () => {
     
     const fetchMentorshipData = async () => {
       try {
-        const res = await fetch(`${API_URL}api/ps/metorships`, {
+        const res = await fetch(`${API_URL}api/ps/metorships/-`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",

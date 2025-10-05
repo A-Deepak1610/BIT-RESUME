@@ -9,7 +9,20 @@ import (
 )
 
 func GetHackathonData(c *gin.Context) {
-    rollno := c.GetString("rollNo")
+    role := c.GetString("role")
+	var rollno string
+    if role == "student" {
+        rollno = c.GetString("rollNo")
+    } else if role == "faculty" ||role=="Admin" {
+        rollno = c.Param("rollno")
+        if rollno == "" {
+            c.JSON(http.StatusBadRequest, gin.H{"error": "rollno query parameter required for faculty"})
+            return
+        }
+    } else {
+        c.JSON(http.StatusForbidden, gin.H{"error": "unauthorized role"})
+        return
+    }
     query := `
         SELECT e.image_url, e.event_name, ce.did_you_win
         FROM certificates_events ce

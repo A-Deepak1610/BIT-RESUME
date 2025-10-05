@@ -19,9 +19,9 @@ const modalStyle = {
   outline: 'none', // Remove the default focus outline
 };
 
-export default function Accomplishments() {
+export default function Accomplishments(props) {
   const [modalContent, setModalContent] = useState(null);
-
+  const student_rollno = props.rollno || '-';
   const openModal = (content) => {
     setModalContent(content);
   };
@@ -33,11 +33,11 @@ export default function Accomplishments() {
   const renderModalContent = () => {
     switch (modalContent) {
       case 'certifications':
-        return <Certifications />;
+        return <Certifications  rollno={student_rollno}/>;
       case 'hackathons':
-        return <Hackathons />;
+        return <Hackathons rollno={student_rollno}/>;
       case 'internships':
-        return <InternshipExperience />;
+        return <InternshipExperience rollno={student_rollno}/>;
       default:
         return null;
     }

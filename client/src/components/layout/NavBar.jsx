@@ -83,7 +83,7 @@ const ProfileUpdateCard = ({ user, onClose, onLogout }) => {
         const getProfileInfo = async () => {
             if (!rollno) return;
             try {
-                const response = await fetch(`http://localhost:6001/api/header/getprofile`, {
+                const response = await fetch(`http://localhost:6001/api/header/getprofile/-`, {
                     method: 'GET',
                     headers: { 'Content-Type': 'application/json' },
                     credentials: 'include'
@@ -549,7 +549,7 @@ export default function NavBar() {
   const {rollno,name}=useAuth();
   return (
     <>
-      <header className="h-14 dark:bg-gray-100 bg-white shadow-md flex items-center justify-between ">
+      <header className="h-14  bg-white shadow-md flex items-center justify-between ">
         <Drawer open={open} onClose={toggleDrawer(false)}>
           {DrawerList}
         </Drawer>

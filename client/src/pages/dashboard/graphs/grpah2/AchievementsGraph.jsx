@@ -21,7 +21,7 @@ const AchievementsGraph = React.memo((props) => {
   const semDropdownRef = useRef(null);
   const dataFetchedRef = useRef({ student: false, institute: false });
   const { fetchUser, rollno } = useAuth();
-  const student_rollno = props.rollno || rollno;
+  const student_rollno = props.rollno || '-';
 
   const API_URL = import.meta.env.VITE_API_URL;
 
@@ -57,7 +57,7 @@ const AchievementsGraph = React.memo((props) => {
     
     try {
       setIsLoading(true);
-      const res = await fetch(`${API_URL}api/achievement_graph/institute_avg/fetchData`, {
+      const res = await fetch(`${API_URL}api/achievement_graph/institute_avg/fetchData/${student_rollno}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

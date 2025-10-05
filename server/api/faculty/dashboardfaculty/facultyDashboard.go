@@ -105,7 +105,7 @@ func HandlePriorityLearners(c *gin.Context){
 		GROUP BY 
 			rollno
 	) AS p 
-		ON ag.rollno = p.rollno where ag.current_rank='Silver' order by current_point`
+		ON ag.rollno = p.rollno where ag.current_rank='silver' order by current_point`
 	rows, err := config.DB.Query(query, c.Param("rollno"))
 	if err != nil {
 		c.JSON(500, gin.H{"error": "Database query failed", "details": err.Error()})

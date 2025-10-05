@@ -10,12 +10,13 @@ export default function StudentDashboardPage() {
   const [studentRoll, setStudentRoll] = useState("");
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const { rollno ,role} = useAuth(); //this is mentor rollno
   console.log(role)
   const handleStudentsData = async () => {
     if (!rollno) return;
     try {
-      const response = await fetch(role=='faculty'?`http://localhost:6001/api/studentdata/fetchmentees/${rollno}`:`http://localhost:6001/api/studentdata/fetchstudentdata`, {
+      const response = await fetch(`http://localhost:6001/api/studentdata/fetchmentees`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json" ,
@@ -58,6 +59,12 @@ export default function StudentDashboardPage() {
     setIsPanelOpen(false);
   };
 
+  const filteredMentees = mentees.filter(
+    (mentee) =>
+      mentee.user_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      mentee.rollno.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="relative flex flex-col lg:flex-row h-screen bg-slate-50">
       {/* --- Mobile Header & Search Button --- */}
@@ -91,8 +98,15 @@ export default function StudentDashboardPage() {
         ></div>
 
         <div className="relative w-full max-w-lg lg:max-w-full h-full bg-slate-50">
+          <input
+            type="text"
+            placeholder="Search by name or rollno"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+          />
           <StudentPerformance
-            datas={mentees}
+            datas={filteredMentees}
             selectedStudentName={studentName}
             onStudentSelect={handleStudentSelect}
             onClose={() => setIsPanelOpen(false)}

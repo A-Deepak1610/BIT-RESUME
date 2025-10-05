@@ -200,7 +200,7 @@ export default function PrintableResumeView() {
   const [info,setInfo]=useState([]);
   const getInfo=async()=>{
     try{
-      const res=await fetch("http://localhost:6001/api/header/getprofile",{
+      const res=await fetch(`http://localhost:6001/api/header/getprofile`,{
         method:"GET",
         credentials:"include"
       })

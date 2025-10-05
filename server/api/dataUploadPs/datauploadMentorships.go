@@ -4,6 +4,7 @@ import (
 	"bitresume/config"
 	"fmt"
 	"log"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -93,7 +94,20 @@ func UpdateMentorShips() error {
 }
 
 func GetMentorShips(c *gin.Context) {
-	rollno := c.GetString("rollNo")
+	role := c.GetString("role")
+	var rollno string
+    if role == "student" {
+        rollno = c.GetString("rollNo")
+    } else if role == "faculty" ||role=="Admin" {
+        rollno = c.Param("rollno")
+        if rollno == "" {
+            c.JSON(http.StatusBadRequest, gin.H{"error": "rollno query parameter required for faculty"})
+            return
+        }
+    } else {
+        c.JSON(http.StatusForbidden, gin.H{"error": "unauthorized role"})
+        return
+    }
 	query := `SELECT
 		m.mentor_rollno,
 		m.skill_name,

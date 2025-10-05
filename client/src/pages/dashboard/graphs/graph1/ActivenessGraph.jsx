@@ -11,7 +11,7 @@ const ActivenessGraph = (props) => {
   const viewDropdownRef = useRef(null);
   const semDropdownRef = useRef(null);
   const {fetchUser,rollno}=useAuth();
-  const student_rollno=props.rollno||rollno;
+  const student_rollno=props.rollno||'-';
   console.log("Student Roll No:", student_rollno);
   useEffect(() => {
     fetchUser();

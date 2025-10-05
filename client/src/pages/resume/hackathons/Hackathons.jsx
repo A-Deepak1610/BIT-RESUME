@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Award, Loader2 } from "lucide-react";
 import useAuth from '../../../store/UseAuth';
 
-export default function Hackathons() {
+export default function Hackathons(props) {
   const [hackathonsData, setHackathonsData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -12,13 +12,13 @@ export default function Hackathons() {
     if (!rollno) {
       return;
     }
-
+    const student_rollno = props.rollno || '-';
     const fetchHackathons = async () => {
       setLoading(true);
       setError(null);
 
       try {
-        const response = await fetch(`http://localhost:6001/api/resume/gethackathondata`, {
+        const response = await fetch(`http://localhost:6001/api/resume/gethackathondata/${student_rollno}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",

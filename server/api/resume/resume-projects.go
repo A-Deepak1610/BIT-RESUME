@@ -12,7 +12,20 @@ import (
 
 // GetProjectsData fetches and combines project data from multiple tables.
 func GetProjectsData(c *gin.Context) {
-	rollno := c.GetString("rollNo")
+	role := c.GetString("role")
+	var rollno string
+    if role == "student" {
+        rollno = c.GetString("rollNo")
+    } else if role == "faculty" ||role=="Admin" {
+        rollno = c.Param("rollno")
+        if rollno == "" {
+            c.JSON(http.StatusBadRequest, gin.H{"error": "rollno query parameter required for faculty"})
+            return
+        }
+    } else {
+        c.JSON(http.StatusForbidden, gin.H{"error": "unauthorized role"})
+        return
+    }
 	var allProjects []models.Project
 
 	// Step 1: Fetch all base projects for the given rollno from the main 'projects' table.
@@ -73,7 +86,20 @@ func GetProjectsData(c *gin.Context) {
 	c.JSON(http.StatusOK, allProjects)
 }
 func GetAreasOfExpertise(c *gin.Context){
-	rollno:=c.GetString("rollNo");
+	role := c.GetString("role")
+	var rollno string
+    if role == "student" {
+        rollno = c.GetString("rollNo")
+    } else if role == "faculty" ||role=="Admin" {
+        rollno = c.Param("rollno")
+        if rollno == "" {
+            c.JSON(http.StatusBadRequest, gin.H{"error": "rollno query parameter required for faculty"})
+            return
+        }
+    } else {
+        c.JSON(http.StatusForbidden, gin.H{"error": "unauthorized role"})
+        return
+    }
 	query:="select distinct pt.tech_name  from projects p join project_tech_stack pt on p.id=pt.project_id and rollno=?"
 	rows,err:=config.DB.Query(query,rollno);
 	if err!=nil{

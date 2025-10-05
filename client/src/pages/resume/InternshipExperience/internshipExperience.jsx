@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Briefcase, DollarSign, Code, Loader2, Building, Globe } from 'lucide-react';
 import useAuth from '../../../store/UseAuth'; // Assuming this is the correct path
 
-export default function InternshipExperience() {
+export default function InternshipExperience(props) {
   const [internshipsData, setInternshipsData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -13,13 +13,13 @@ export default function InternshipExperience() {
     if (!rollno) {
       return;
     }
-
+    const student_rollno = props.rollno || '-';
     const fetchInternships = async () => {
       setLoading(true);
       setError(null);
 
       try {
-        const response = await fetch(`http://localhost:6001/api/resume/getinternshipdata`, {
+        const response = await fetch(`http://localhost:6001/api/resume/getinternshipdata/${student_rollno}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",

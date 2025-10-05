@@ -30,7 +30,7 @@ const MentorMenteesGraph = (props) => {
   const [processedChartData, setProcessedChartData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const { fetchUser, rollno } = useAuth();
-  const student_rollno = props.rollno || rollno;
+  const student_rollno = props.rollno || '-';
 
   useEffect(() => {
     fetchUser();
@@ -41,7 +41,7 @@ const MentorMenteesGraph = (props) => {
   // --- CHANGE 2: Simplified the fetch logic. We only need one function now.
   const fetchMentorshipData = async () => {
     try {
-      const res = await fetch(`${API_URL}api/ps/metorships`, {
+      const res = await fetch(`${API_URL}api/ps/metorships/${student_rollno}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

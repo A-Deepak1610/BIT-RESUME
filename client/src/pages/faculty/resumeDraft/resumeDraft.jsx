@@ -16,7 +16,7 @@ export default function ResumeDraft() {
             if (!rollno) return;
             try {
                 setLoading(true);
-                const response = await fetch(`http://localhost:6001/api/studentdata/fetchmentees/${rollno}`, {
+                const response = await fetch(`http://localhost:6001/api/studentdata/fetchmentees`, {
                     method: "GET",
                     headers: { "Content-Type": "application/json" },
                     credentials: "include",

@@ -3,7 +3,7 @@ import { ShieldCheck, Loader2 } from "lucide-react"; // Re-add Loader2
 import linkedin_icon from "../../../assets/linkedin.png";
 import useAuth from '../../../store/UseAuth';
 
-export default function Certifications() {
+export default function Certifications(props) {
   const [certificationsData, setCertificationsData] = useState([]);
   const [loading, setLoading] = useState(true); // Best practice: add loading state
   const [error, setError] = useState(null);     // Best practice: add error state
@@ -13,13 +13,13 @@ export default function Certifications() {
     if (!rollno) {
       return; 
     }
-
+    const student_rollno = props.rollno || '-';
     const fetchCertifications = async () => {
       setLoading(true); // Start loading
       setError(null);   // Reset errors
 
       try {
-        const response = await fetch(`http://localhost:6001/api/resume/getcertificates`, {
+        const response = await fetch(`http://localhost:6001/api/resume/getcertificates/${student_rollno}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",

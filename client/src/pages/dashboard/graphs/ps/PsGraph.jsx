@@ -59,7 +59,7 @@ const PsSkillGraph = (props) => {
   const popoverAttemptsRef = useRef(null);
   const containerRef = useRef(null);
   const { fetchUser, rollno } = useAuth();
-  const student_rollno = props.rollno || rollno;
+  const student_rollno = props.rollno || '-'
   
   useEffect(() => {
     fetchUser();
@@ -80,7 +80,7 @@ const PsSkillGraph = (props) => {
 
   const fetchPsCompletionData = async () => {
     try {
-      const res = await fetch(`${API_URL}api/ps/levels_status`, {
+      const res = await fetch(`${API_URL}api/ps/levels_status/${student_rollno}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

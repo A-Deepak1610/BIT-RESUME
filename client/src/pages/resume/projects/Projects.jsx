@@ -3,14 +3,14 @@ import { Github, Flower, Loader2 } from "lucide-react";
 import useAuth from "../../../store/UseAuth";
 
 
-export default function Projects() {
+export default function Projects(props) {
   // 2. Initialize state with dummy data and set loading to false
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(false); // Set to false since we are not fetching
   const [error, setError] = useState(null);
   const [hoveredIndex, setHoveredIndex] = useState(null);
   const { rollno } = useAuth(); // Assuming useAuth provides a rollno, even if dummy, it won't trigger the fetch.
-
+  const student_rollno = props.rollno || '-';
   // The useEffect for fetching data is commented out or removed for dummy data
   useEffect(() => {
     if (!rollno) {
@@ -22,7 +22,7 @@ export default function Projects() {
       setError(null);
 
       try {
-        const response = await fetch(`http://localhost:6001/api/resume/getprojects`, {
+        const response = await fetch(`http://localhost:6001/api/resume/getprojects/${student_rollno}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",

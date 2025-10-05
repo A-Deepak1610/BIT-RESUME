@@ -1,48 +1,46 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-// Import Lucide icons instead of react-icons
+// Import Lucide icons, adding CheckCircle for the empty state
 import {
   AlertTriangle,
   User,
   Trophy,
   Award,
   ShieldAlert,
+  CheckCircle, // Import the CheckCircle icon
 } from "lucide-react";
 import useAuth from "../../../../store/UseAuth";
 
-// Helper function to derive priority based on rank
+// Helper functions (no changes needed here)
 const getPriorityInfo = (rank) => {
-  switch (rank.toLowerCase()) {
-    case "silver":
-      return { priority: "High", status: "At Risk" };
-    case "gold":
-      return { priority: "Medium", status: "Warning" };
-    default:
-      return { priority: "Low", status: "Monitoring" };
-  }
+    // Return a default for null or undefined ranks to prevent errors
+    const safeRank = rank || 'default'; 
+    switch (safeRank.toLowerCase()) {
+      case "silver":
+        return { priority: "High", status: "At Risk" };
+      case "gold":
+        return { priority: "Medium", status: "Warning" };
+      default:
+        return { priority: "Low", status: "Monitoring" };
+    }
 };
 
 const getPriorityColor = (priority) => {
-  switch (priority) {
-    case "High":
-      return "text-red-600 bg-red-100";
-    case "Medium":
-      return "text-orange-600 bg-orange-100";
-    default:
-      return "text-yellow-600 bg-yellow-100";
-  }
+    switch (priority) {
+      case "High": return "text-red-600 bg-red-100";
+      case "Medium": return "text-orange-600 bg-orange-100";
+      default: return "text-yellow-600 bg-yellow-100";
+    }
 };
 
 const getStatusColor = (status) => {
-  switch (status) {
-    case "At Risk":
-      return "text-red-700 bg-red-100 border-red-200";
-    case "Warning":
-      return "text-orange-700 bg-orange-100 border-orange-200";
-    default:
-      return "text-yellow-700 bg-yellow-100 border-yellow-200";
-  }
+    switch (status) {
+      case "At Risk": return "text-red-700 bg-red-100 border-red-200";
+      case "Warning": return "text-orange-700 bg-orange-100 border-orange-200";
+      default: return "text-yellow-700 bg-yellow-100 border-yellow-200";
+    }
 };
+
 
 export default function PriorityLearners() {
   const navigate = useNavigate();
@@ -73,16 +71,15 @@ export default function PriorityLearners() {
           throw new Error("Failed to fetch priority learners data");
         }
         const data = await response.json();
-        console.log("prioritylearners", data);
-
+        console.log("API response for priority learners:", data);
         if (data && Array.isArray(data.prioritylearners)) {
           setPriorityLearners(data.prioritylearners);
         } else {
           setPriorityLearners([]);
+          console.log("No priority learners data found or response format is incorrect.");
         }
       } catch (error) {
-        console.error("Error fetching priority learners:", error);
-        setError("Could not load priority learners data.");
+        setPriorityLearners([]);
       } finally {
         setLoading(false);
       }
@@ -95,7 +92,6 @@ export default function PriorityLearners() {
     <div className="p-4 rounded-lg flex flex-col h-full bg-white shadow-md overflow-hidden">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 flex-shrink-0">
         <div className="flex items-center gap-2 mb-2 sm:mb-0">
-          {/* Replaced MdPriorityHigh with ShieldAlert */}
           <ShieldAlert className="text-red-500" size={20} />
           <h2 className="text-lg font-semibold text-gray-800">
             Priority Learners
@@ -103,7 +99,6 @@ export default function PriorityLearners() {
         </div>
         <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-gray-600 items-center">
           <div className="flex items-center gap-1">
-            {/* Replaced FaExclamationTriangle with AlertTriangle */}
             <AlertTriangle className="text-red-500" size={14} />
             <span>Needs Attention</span>
           </div>
@@ -112,18 +107,23 @@ export default function PriorityLearners() {
 
       <div className="flex-grow overflow-y-auto space-y-2 pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 min-h-0">
         {loading ? (
-          <p className="text-center text-gray-500">Loading...</p>
+          <p className="text-center text-gray-500 pt-8">Loading...</p>
         ) : error ? (
-          <p className="text-center text-red-500">{error}</p>
+          <p className="text-center text-red-500 pt-8">{error}</p>
         ) : priorityLearners.length === 0 ? (
-          <div className="flex items-center justify-center h-full text-center text-gray-500 bg-gray-50 rounded-md">
-            <div>
-              <h3 className="text-md font-medium">No Priority Learners</h3>
-              <p className="text-sm mt-1">All students are performing well.</p>
-            </div>
+          // --- ENHANCED EMPTY STATE START ---
+          <div className="flex flex-col items-center justify-center h-full text-center text-gray-500 bg-gray-50 rounded-md p-4">
+            <CheckCircle className="w-12 h-12 text-green-400 mb-2" />
+            <h3 className="text-md font-semibold text-gray-700">No Priority Learners</h3>
+            <p className="text-sm mt-1">
+              All students are currently meeting expectations.
+            </p>
           </div>
+          // --- ENHANCED EMPTY STATE END ---
         ) : (
           priorityLearners.map((learner) => {
+            // Handle cases where learner object might be null or undefined
+            if (!learner) return null; 
             const { priority, status } = getPriorityInfo(learner.current_rank);
             return (
               <div
@@ -133,10 +133,9 @@ export default function PriorityLearners() {
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between">
                   <div className="flex-grow min-w-0 mb-2 sm:mb-0">
                     <div className="flex items-center gap-2 mb-1">
-                      {/* Replaced FaUser with User */}
                       <User className="text-gray-500 flex-shrink-0" size={14} />
                       <p className="font-semibold text-gray-900 text-sm truncate">
-                        {learner.user_name}
+                        {learner.user_name || "Unknown User"}
                       </p>
                       <span
                         className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(
@@ -147,7 +146,7 @@ export default function PriorityLearners() {
                       </span>
                     </div>
                     <p className="text-xs text-gray-500 mb-1">
-                      {learner.department}
+                      {learner.department || "No department specified"}
                     </p>
                     <p className="text-xs text-gray-600 font-medium">
                       Issue: Low Performance
@@ -164,12 +163,10 @@ export default function PriorityLearners() {
                     </span>
                     <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
                       <span className="flex items-center gap-1">
-                        {/* Replaced FaTrophy with Trophy */}
-                        <Trophy className="text-yellow-500" size={14} /> {learner.current_point}
+                        <Trophy className="text-yellow-500" size={14} /> {learner.current_point || 0}
                       </span>
                       <span className="flex items-center gap-1 capitalize">
-                        {/* Replaced FaRankingStar with Award */}
-                        <Award className="text-blue-500" size={14} /> {learner.current_rank}
+                        <Award className="text-blue-500" size={14} /> {learner.current_rank || 'N/A'}
                       </span>
                     </div>
                   </div>
@@ -185,7 +182,6 @@ export default function PriorityLearners() {
           onClick={() => navigate("/faculty-studentperformance")}
           className="w-full flex items-center justify-center space-x-2 bg-red-50 border border-red-200 hover:bg-red-100 text-red-700 font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
         >
-          {/* Replaced FaExclamationTriangle with AlertTriangle */}
           <AlertTriangle size={16} />
           <span>View All Priority Cases</span>
         </button>

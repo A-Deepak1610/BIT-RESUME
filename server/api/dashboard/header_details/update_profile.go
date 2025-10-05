@@ -61,6 +61,7 @@ func UpdateProfile(c *gin.Context) {
 }
 func GetProfileDetails(c *gin.Context){
 	type ProfileDetails struct {
+		Name     string `json:"user_name"`
 		Domain   string `json:"domain"`
 		Phone    string `json:"phone"`
 		Github   string `json:"github"`
@@ -69,10 +70,23 @@ func GetProfileDetails(c *gin.Context){
 		Email    string `json:"user_email"`
 		Batch    string `json:"batch"`
 	}
-	rollno:=c.GetString("rollNo")
-	query:="SELECT s.domain,s.phone_no,s.github_url,s.linkedin_url,s.location,l.user_email,l.batch FROM student_info s join login l on s.rollno=l.rollno and s.rollno=?"
+	role := c.GetString("role")
+	var rollno string
+    if role == "student" {
+        rollno = c.GetString("rollNo")
+    } else if role == "faculty" ||role=="Admin" {
+        rollno = c.Param("rollno")
+        if rollno == "" {
+            c.JSON(http.StatusBadRequest, gin.H{"error": "rollno query parameter required for faculty"})
+            return
+        }
+    } else {
+        c.JSON(http.StatusForbidden, gin.H{"error": "unauthorized role"})
+        return
+    }
+	query:="SELECT l.user_name,s.domain,s.phone_no,s.github_url,s.linkedin_url,s.location,l.user_email,l.batch FROM student_info s join login l on s.rollno=l.rollno and s.rollno=?"
 	var profile ProfileDetails
-	err:=config.DB.QueryRow(query,rollno).Scan(&profile.Domain,&profile.Phone,&profile.Github,&profile.Linkedin,&profile.Location,&profile.Email,&profile.Batch)
+	err:=config.DB.QueryRow(query,rollno).Scan(&profile.Name,&profile.Domain,&profile.Phone,&profile.Github,&profile.Linkedin,&profile.Location,&profile.Email,&profile.Batch)
 	if err!=nil{
 		c.JSON(http.StatusInternalServerError,gin.H{
 			"message":"Failed to fetch profile details",

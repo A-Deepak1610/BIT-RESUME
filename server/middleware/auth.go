@@ -1,8 +1,10 @@
 package middleware
+
 import (
 	"bitresume/utils"
-	"github.com/gin-gonic/gin"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 func AuthorizeRoles(allowedRoles ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {

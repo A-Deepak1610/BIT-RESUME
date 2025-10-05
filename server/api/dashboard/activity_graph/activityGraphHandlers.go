@@ -13,7 +13,20 @@ import (
 func FetchActivityGraphData(c *gin.Context) {
 	var records []models.ActGph
 	var r models.ActGph
-	rollno := c.Param("rollno")
+	role := c.GetString("role")
+	var rollno string
+    if role == "student" {
+        rollno = c.GetString("rollNo")   // set by middleware from cookie
+    } else if role == "faculty"||role=="Admin" {
+        rollno = c.Param("rollno")
+        if rollno == "" {
+            c.JSON(http.StatusBadRequest, gin.H{"error": "rollno query parameter required for faculty"})
+            return
+        }
+    } else {
+        c.JSON(http.StatusForbidden, gin.H{"error": "unauthorized role"})
+        return
+    }
 	rows, err := config.DB.Query("SELECT rollno, current_point, current_rank, sem, currdate FROM activity_graph WHERE rollno = ?", rollno)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})

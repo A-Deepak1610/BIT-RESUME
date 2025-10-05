@@ -185,7 +185,20 @@ func HandleInstituteAvg(sem int, currdate string) {
 func HandleFetchAchievementGraph(c *gin.Context) {
 	var records []models.Achievementgraph
 	var r models.Achievementgraph
-	rollno := c.Param("rollno")
+	role := c.GetString("role")
+	var rollno string
+    if role == "student" {
+        rollno = c.GetString("rollNo")
+    } else if role == "faculty" ||role=="Admin" {
+        rollno = c.Param("rollno")
+        if rollno == "" {
+            c.JSON(http.StatusBadRequest, gin.H{"error": "rollno query parameter required for faculty"})
+            return
+        }
+    } else {
+        c.JSON(http.StatusForbidden, gin.H{"error": "unauthorized role"})
+        return
+    }
 	rows, err := config.DB.Query("SELECT cummulative_points, points_earned, sem, currdate FROM achievement_graph WHERE rollno = ?", rollno)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
@@ -207,8 +220,20 @@ func HandleFetchAchievementGraph(c *gin.Context) {
 
 func HandleFetchInstituteAvg(c *gin.Context) {
 	var records1 []models.Institute_avg
-	rollno := c.GetString("rollNo") 
-	fmt.Print("Rollno:",rollno)
+	role := c.GetString("role")
+	var rollno string
+    if role == "student" {
+        rollno = c.GetString("rollNo")   // set by middleware from cookie
+    } else if role == "faculty"||role=="Admin" {
+        rollno = c.Param("rollno")
+        if rollno == "" {
+            c.JSON(http.StatusBadRequest, gin.H{"error": "rollno query parameter required for faculty"})
+            return	
+        }
+    } else {
+        c.JSON(http.StatusForbidden, gin.H{"error": "unauthorized role"})
+        return
+    }
 	rows1, err1 := config.DB.Query(`
 SELECT
     SUM(avg_points) OVER (ORDER BY currdate, sem) AS cummulative_points,

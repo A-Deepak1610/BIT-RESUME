@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react"; // Added useEffect for a small improvement
 import { useNavigate } from "react-router-dom";
 import { TrendingUp, Puzzle, CalendarDays, Users } from 'lucide-react';
 import PsSkillGraph from "../../dashboard/graphs/ps/PsGraph";
@@ -17,12 +17,19 @@ export default function GraphVisual({ name, roll }) {
     const [activeTab, setActiveTab] = useState(tabsData[0].id);
     const navigate = useNavigate();
 
+    // --- IMPROVEMENT ---
+    // Reset to the first tab whenever the student changes.
+    // This provides a more consistent user experience.
+    useEffect(() => {
+        setActiveTab(tabsData[0].id);
+    }, [roll]); // This effect runs every time the `roll` prop changes.
+
     const handleResumeClick = () => {
-        navigate('/resume',{state: { rollno: roll }});
+        navigate('/resume', { state: { rollno: roll } });
     };
 
     return (
-        <div className="p-4 md:p-6 bg-gray-50 ">
+        <div className="p-4 md:p-6 bg-gray-50">
             <div className="mb-6">
                 <div className="text-2xl md:text-3xl font-bold text-gray-800">
                     {name ? `${name}'s Performance` : "Performance Overview"}
@@ -39,7 +46,7 @@ export default function GraphVisual({ name, roll }) {
                 )}
             </div>
 
-            {name && (
+            {name && roll && ( // Ensure both name and roll exist before rendering graphs
                 <>
                     <div className="bg-slate-100 p-1.5 rounded-xl flex flex-wrap items-center space-x-1.5 mb-8 shadow-sm">
                         {tabsData.map((tab) => {
@@ -79,13 +86,18 @@ export default function GraphVisual({ name, roll }) {
                             );
                         })}
                     </div>
-                    {/* Graph Content Area */}
-                    <div className="mb-8">
+                    
+                    {/* --- THE FIX IS HERE --- */}
+                    {/* By adding `key={roll}` to this container, any time the `roll` prop changes,
+                        React will destroy the old component inside and create a brand new one.
+                        This forces the graph component to re-mount and re-run its data fetching logic. */}
+                    <div key={roll} className="mb-8">
                         {activeTab === 'activeness' && <div className="border border-gray-200 p-2 md:p-4 bg-white w-full rounded-xl shadow-md h-[50vh]"><ActivenessGraph rollno={roll} /></div>}
                         {activeTab === 'achievement' && <div className="border border-gray-200 p-2 md:p-4 bg-white w-full rounded-xl shadow-md h-[50vh]"><AchievementsGraph rollno={roll} /></div>}
                         {activeTab === 'psgraph' && <div className="border border-gray-200 p-2 md:p-4 bg-white w-full rounded-xl shadow-md h-[50vh]"><PsSkillGraph rollno={roll} /></div>}
                         {activeTab === 'mentograph' && <div className="border border-gray-200 p-2 md:p-4 bg-white w-full rounded-xl shadow-md h-[50vh]"><MentorMenteesGraph rollno={roll} /></div>}
                     </div>
+                    
                     {/* View Resume Button */}
                     <div className="mt-6 text-center">
                         <button
