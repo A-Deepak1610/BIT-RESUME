@@ -15,9 +15,9 @@ func HandleSem(c *gin.Context) {
 		MAX(sem) AS sem
 	FROM bitresume.login
 	WHERE year IS NOT NULL
-	AND batch IS NOT NULL
-	AND sem IS NOT NULL
-	GROUP BY year
+	AND batch IS NOT NULL 
+	AND sem IS NOT NULL  
+	GROUP BY year 
 	ORDER BY year;
 	`
 	rows, err := config.DB.Query(query)

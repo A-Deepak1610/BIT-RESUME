@@ -39,7 +39,8 @@ const ProjectItem = React.memo(({ project }) => (
 
 ProjectItem.displayName = 'ProjectItem';
 
-export default function ProjectsForResume() {
+export default function ProjectsForResume(props) {
+  const Student_rollno = props.rollno || "-";
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -55,7 +56,7 @@ export default function ProjectsForResume() {
       setError(null);
 
       try {
-        const response = await fetch(`http://localhost:6001/api/resume/getprojects`, {
+        const response = await fetch(`http://localhost:6001/api/resume/getprojects/${Student_rollno }`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",

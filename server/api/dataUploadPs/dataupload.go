@@ -19,6 +19,7 @@ import (
 	"github.com/xuri/excelize/v2"
 )                                  
 func UploadDataFromExcel() error {
+	fmt.Print("Starting UploadDataFromExcel...\n")
 	const excelPath = "data/PS SKILL STATUS.xlsx"
 	f, err := excelize.OpenFile(excelPath)
 	if err != nil {

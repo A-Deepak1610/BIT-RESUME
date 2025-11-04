@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Box, IconButton } from '@mui/material';
-import { X, User, Mail, Hash, Phone, GraduationCap, Briefcase, AlertTriangle, Book, Star } from 'lucide-react';
+import { X, User, Mail, Hash, Phone, GraduationCap, Briefcase, AlertTriangle, Book, Star, ShieldCheck } from 'lucide-react';
 import axios from 'axios';
 
 // --- Reusable Helper Components ---
@@ -33,6 +33,29 @@ const FormInput = ({ id, label, value, onChange, error, icon: Icon, placeholder,
     </div>
 );
 
+const FormSelect = ({ id, label, value, onChange, error, icon: Icon, options }) => (
+    <div>
+        <label htmlFor={id} className="block text-sm font-medium text-gray-600 mb-1.5">
+            <Icon size={16} className="inline mr-2 mb-0.5" />
+            {label} *
+        </label>
+        <select
+            id={id}
+            name={id}
+            value={value}
+            onChange={onChange}
+            className={`w-full p-2.5 border rounded-md shadow-sm text-sm ${error ? 'border-red-500' : 'border-gray-300'}`}
+        >
+            <option value="">Select {label}</option>
+            {options.map(option => (
+                <option key={option.value} value={option.value}>
+                    {option.label}
+                </option>
+            ))}
+        </select>
+        <ErrorDisplay message={error} />
+    </div>
+);
 
 // --- Modal Style ---
 const style = {
@@ -48,37 +71,36 @@ const style = {
     overflow: 'hidden',
 };
 
-// --- Initial Form States ---
-const initialFacultyState = {
-    name: '',
-    email: '',
-    facultyId: '', // Changed from "Roll no" for clarity
-    department: '',
-    mobile: ''
-};
-
-const initialStudentState = {
+// --- Initial Form State ---
+const initialFormState = {
     name: '',
     email: '',
     rollno: '',
-    year: '',
+    facultyId: '',
     department: '',
-    mentorId: '',
-    mobile: ''
+    mobile: '',
+    role: '',
+    year: '',
+    mentorId: ''
 };
 
-export default function AddUsersModal({ open, onClose, userType }) {
-    const isStudent = userType === 'student';
-    const [formData, setFormData] = useState(isStudent ? initialStudentState : initialFacultyState);
+const roleOptions = [
+    { value: 'student', label: 'Student' },
+    { value: 'faculty', label: 'Faculty' },
+    { value: 'admin', label: 'Admin' }
+];
+
+export default function AddUsersModal({ open, onClose }) {
+    const [formData, setFormData] = useState(initialFormState);
     const [errors, setErrors] = useState({});
 
-    // Effect to reset form when modal opens or userType changes
+    // Effect to reset form when modal opens
     useEffect(() => {
         if (open) {
-            setFormData(isStudent ? initialStudentState : initialFacultyState);
+            setFormData(initialFormState);
             setErrors({});
         }
-    }, [open, isStudent]);
+    }, [open]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -102,6 +124,7 @@ export default function AddUsersModal({ open, onClose, userType }) {
         } else if (!emailRegex.test(formData.email.trim())) {
             newErrors.email = 'Email must be a valid @bitsathy.ac.in address.';
         }
+        if (!formData.role) newErrors.role = 'Role is required.';
         if (!formData.department.trim()) newErrors.department = 'Department is required.';
         if (!formData.mobile.trim()) {
             newErrors.mobile = 'Mobile number is required.';
@@ -109,11 +132,12 @@ export default function AddUsersModal({ open, onClose, userType }) {
              newErrors.mobile = 'Please enter a valid mobile number (e.g., +919876543210).';
         }
 
-        if (isStudent) {
+        // Role-specific validation
+        if (formData.role === 'student') {
             if (!formData.rollno.trim()) newErrors.rollno = 'Roll number is required.';
             if (!formData.year.trim()) newErrors.year = 'Year is required.';
             if (!formData.mentorId.trim()) newErrors.mentorId = 'Mentor ID is required.';
-        } else { // isFaculty
+        } else if (formData.role === 'faculty' || formData.role === 'admin') {
             if (!formData.facultyId.trim()) newErrors.facultyId = 'Faculty ID is required.';
         }
 
@@ -127,28 +151,42 @@ export default function AddUsersModal({ open, onClose, userType }) {
             return;
         }
 
-        // Add the 'role' to the data being sent
+        // Prepare payload based on role
         const payload = {
-            ...formData,
-            role: isStudent ? 'student' : 'faculty',
+            name: formData.name,
+            email: formData.email,
+            department: formData.department,
+            mobile: formData.mobile,
+            role: formData.role,
         };
+
+        if (formData.role === 'student') {
+            payload.rollno = formData.rollno;
+            payload.year = formData.year;
+            payload.mentorId = formData.mentorId;
+        } else {
+            payload.facultyId = formData.facultyId;
+        }       
         
         console.log("--- Sending Data to Backend ---");
         console.log("Format:", payload);
         console.log("-----------------------------");
 
-        // Dummy API call
-        const API_URL = 'https://jsonplaceholder.typicode.com/posts'; // Public dummy API for testing
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:6001/';
         try {
-            const response = await axios.post(API_URL, payload);
-            console.log('Dummy API Response:', response.data);
-            alert(`${isStudent ? 'Student' : 'Faculty'} added successfully!`);
+            const response = await axios.post(`${API_URL}api/addusers`, payload);
+            console.log('API Response:', response.data);
+            alert(`${formData.role.charAt(0).toUpperCase() + formData.role.slice(1)} added successfully!`);
             onClose(); // Close modal on success
         } catch (error) {
             console.error('Error submitting form:', error);
-            setErrors({ submit: 'Failed to add user. Please try again.' });
+            const errorMessage = error.response?.data?.error || 'Failed to add user. Please try again.';
+            setErrors({ submit: errorMessage });
         }
     };
+
+    const isStudent = formData.role === 'student';
+    const isFacultyOrAdmin = formData.role === 'faculty' || formData.role === 'admin';
 
     return (
         <Modal open={open} onClose={onClose}>
@@ -156,32 +194,49 @@ export default function AddUsersModal({ open, onClose, userType }) {
                 {/* Header */}
                 <div className="flex items-center justify-between p-4 sm:p-6 border-b">
                     <div className="flex items-center gap-3">
-                        {isStudent ? <GraduationCap className="text-indigo-600" size={28} /> : <User className="text-indigo-600" size={28} />}
+                        <User className="text-indigo-600" size={28} />
                         <h2 className="text-xl sm:text-2xl font-semibold text-gray-800">
-                            {isStudent ? 'Add New Student' : 'Add New Faculty'}
+                            Add New User
                         </h2>
                     </div>
                     <IconButton onClick={onClose} size="small">
                         <X className="text-gray-500 hover:text-gray-700" />
                     </IconButton>
                 </div>
-
                 {/* Body with Form */}
                 <div className="p-4 sm:p-6 max-h-[70vh] overflow-y-auto">
                     {errors.submit && <ErrorDisplay message={errors.submit} />}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                        {/* Role Selection - Full Width */}
+                        <div className="md:col-span-2">
+                            <FormSelect 
+                                id="role" 
+                                label="Role" 
+                                value={formData.role} 
+                                onChange={handleChange} 
+                                error={errors.role} 
+                                icon={ShieldCheck} 
+                                options={roleOptions}
+                            />
+                        </div>
+
+                        {/* Common Fields */}
                         <FormInput id="name" label="Name" value={formData.name} onChange={handleChange} error={errors.name} icon={User} placeholder="Enter full name" />
                         <FormInput id="email" label="BITSathy Mail ID" value={formData.email} onChange={handleChange} error={errors.email} icon={Mail} placeholder="user@bitsathy.ac.in" />
                         <FormInput id="department" label="Department" value={formData.department} onChange={handleChange} error={errors.department} icon={Briefcase} placeholder="e.g., Computer Science" />
                         <FormInput id="mobile" label="Mobile No" value={formData.mobile} onChange={handleChange} error={errors.mobile} icon={Phone} placeholder="+91..." />
                         
-                        {isStudent ? (
+                        {/* Student-Specific Fields */}
+                        {isStudent && (
                             <>
                                 <FormInput id="rollno" label="Roll No" value={formData.rollno} onChange={handleChange} error={errors.rollno} icon={Hash} placeholder="e.g., BIT2021001" />
                                 <FormInput id="year" label="Year" value={formData.year} onChange={handleChange} error={errors.year} icon={Book} placeholder="e.g., 3rd Year" />
                                 <FormInput id="mentorId" label="Mentor ID" value={formData.mentorId} onChange={handleChange} error={errors.mentorId} icon={Star} placeholder="Enter mentor's faculty ID" />
                             </>
-                        ) : (
+                        )}
+
+                        {/* Faculty/Admin-Specific Fields */}
+                        {isFacultyOrAdmin && (
                              <FormInput id="facultyId" label="Faculty ID" value={formData.facultyId} onChange={handleChange} error={errors.facultyId} icon={Hash} placeholder="e.g., F2015001" />
                         )}
                     </div>
@@ -193,7 +248,7 @@ export default function AddUsersModal({ open, onClose, userType }) {
                         Cancel
                     </button>
                     <button type="submit" form="add-user-form" className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-lg shadow-md">
-                        {isStudent ? 'Add Student' : 'Add Faculty'}
+                        Add User
                     </button>
                 </div>
             </Box>

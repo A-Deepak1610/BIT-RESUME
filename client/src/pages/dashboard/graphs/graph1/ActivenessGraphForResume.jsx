@@ -1,12 +1,9 @@
-// src/components/dashboard/graphs/graph1/ActivenessGraphForResume.jsx
-
-
 import React, { useEffect, useState, useMemo } from "react";
 import Plot from "react-plotly.js";
 import useAuth from "../../../../store/UseAuth";
 
-
-const ActivenessGraphForResume = () => {
+const ActivenessGraphForResume = (props) => {
+  const Student_rollno = props.rollno || "-";
   // ... (all your state and data fetching logic remains the same) ...
   const { fetchUser, rollno } = useAuth();
   const [activenessData, setActivenessData] = useState([]);
@@ -14,7 +11,7 @@ const ActivenessGraphForResume = () => {
   const API_URL = import.meta.env.VITE_API_URL;
   useEffect(() => { fetchUser(); }, [fetchUser]);
   useEffect(() => { if (rollno) { handlePoints(); handleSemDays(); } }, [rollno]);
-  const handlePoints = async () => { try { const res = await fetch(`${API_URL}api/activity_graph/fetchData/${rollno}`, { method: "GET", headers: { "Content-Type": "application/json" }, credentials: "include", }); if (!res.ok) throw new Error(`HTTP Error: ${res.status}`); const data = await res.json(); setActivenessData(data); } catch (error) { console.error("Fetch error for activeness points:", error); } };
+  const handlePoints = async () => { try { const res = await fetch(`${API_URL}api/activity_graph/fetchData/${Student_rollno}`, { method: "GET", headers: { "Content-Type": "application/json" }, credentials: "include", }); if (!res.ok) throw new Error(`HTTP Error: ${res.status}`); const data = await res.json(); setActivenessData(data); } catch (error) { console.error("Fetch error for activeness points:", error); } };
   const handleSemDays = async () => { try { const res = await fetch(`${API_URL}api/sem_wise_totaldays`, { method: "GET", headers: { "Content-Type": "application/json" }, credentials: "include", }); if (!res.ok) throw new Error(`HTTP Error: ${res.status}`); const data = await res.json(); const semMap = {}; data.forEach(item => { semMap[`sem-${item.sem}`] = item.sem_count; }); setSemDayLimits(semMap); } catch (error) { console.error("Fetch error for semester days:", error); } };
   const { points, ticks } = useMemo(() => { let processedPoints = []; let processedTicks = []; const semestersMap = {}; (activenessData || []).forEach((item) => { if (!item || typeof item.sem === "undefined" || !item.currdate) return; const semKey = `sem-${item.sem}`; if (!semestersMap[semKey]) { semestersMap[semKey] = []; } semestersMap[semKey].push({ date: new Date(item.currdate), value: item.current_point, }); }); Object.keys(semestersMap).sort().forEach((sem) => { const dateEntries = semestersMap[sem]; const maxDays = semDayLimits[sem] || 75; const semPoints = dateEntries .sort((a, b) => a.date.getTime() - b.date.getTime()) .slice(0, maxDays); if (semPoints.length) { processedPoints.push(...semPoints); const midIndex = Math.floor(semPoints.length / 2); if (semPoints[midIndex] && semPoints[midIndex].date instanceof Date && !isNaN(semPoints[midIndex].date)) { processedTicks.push({ val: semPoints[midIndex].date, label: sem.toUpperCase().replace("-", " "), }); } } }); processedPoints.sort((a, b) => a.date.getTime() - b.date.getTime()); processedTicks.sort((a, b) => a.val.getTime() - b.val.getTime()); return { points: processedPoints, ticks: processedTicks }; }, [activenessData, semDayLimits]);
   const x = points.map((p) => p.date);

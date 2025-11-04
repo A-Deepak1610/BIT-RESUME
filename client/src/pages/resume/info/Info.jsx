@@ -217,7 +217,7 @@ export default function Info(props) {
         </div>
         <div className="flex justify-center mt-5">
           <button
-            onClick={() => navigate("/downloadResume")}
+            onClick={() => {navigate("/downloadResume",{ state: { rollno: Student_rollno } })}}
             className="group cursor-pointer bg-primary hover:bg-primary/80 text-white font-semibold rounded-lg mt-2 px-4 py-2 shadow-md transition-all duration-300 ease-in-out transform hover:scale-105 flex items-center"
           >
             <span className="group-hover:mr-2 transition-all duration-300">

@@ -4,11 +4,13 @@ import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import MyResume from './MyResume'; 
 import { Download, Loader2 } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 
-export default function DownloadResume() {
+export default function   DownloadResume() {
   const resumeRef = useRef(null);
-  const [loading, setLoading] = useState(false);
-
+  const [loading, setLoading] = useState();
+  const { state } = useLocation();
+  const rollno = state?.rollno;
   const handleDownloadPdf = async () => {
     const input = resumeRef.current;
     if (!input) {
@@ -16,7 +18,6 @@ export default function DownloadResume() {
     }
 
     setLoading(true);
-
     try {
       const canvas = await html2canvas(input, {
         scale: 2, 
@@ -62,9 +63,8 @@ export default function DownloadResume() {
     <div className="bg-gray-200 min-h-screen p-4 sm:p-8 flex flex-col items-center">
       <div className="w-full max-w-[794px] flex justify-end mb-4">
       </div>
-
       <div ref={resumeRef}>
-        <MyResume />
+        <MyResume sume rollno={rollno} />
       </div>
     </div>
   );

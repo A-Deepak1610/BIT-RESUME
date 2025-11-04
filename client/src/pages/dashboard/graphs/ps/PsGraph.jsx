@@ -40,13 +40,21 @@ const SKILL_CATEGORIZATION = {
   "physics": "Non-Technical",
   "chemistry": "Non-Technical",
   "mathematics": "Non-Technical",
-  "geometry": "Non-Technical"
+  "geometry": "Non-Technical",
+  "aptitude": "Non-Technical"
 };
 
 // Function to categorize skill based on skill name
 const categorizeSkill = (skillName) => {
   const normalizedSkillName = skillName.toLowerCase().trim();
   return SKILL_CATEGORIZATION[normalizedSkillName] || "CS"; // Default to CS if not found
+};
+
+// Function to extract level number from skill_level string
+const extractLevelNumber = (skillLevel) => {
+  // Match patterns like "Aptitude Level - 1A", "C Programming Level - 1", etc.
+  const match = skillLevel.match(/Level\s*-\s*(\d+)/i);
+  return match ? parseInt(match[1]) : null;
 };
 
 const PsSkillGraph = (props) => {
@@ -98,6 +106,12 @@ const PsSkillGraph = (props) => {
       response.data.forEach(skill => {
         const skillKey = skill.skill_name.toLowerCase();
         const domain = categorizeSkill(skill.skill_name);
+        const levelNumber = extractLevelNumber(skill.skill_level);
+        
+        if (levelNumber === null) {
+          console.warn(`Could not extract level number from: ${skill.skill_level}`);
+          return;
+        }
         
         if (!skillsMap.has(skillKey)) {
           skillsMap.set(skillKey, {
@@ -111,25 +125,47 @@ const PsSkillGraph = (props) => {
         }
         
         const skillData = skillsMap.get(skillKey);
-        const level = parseInt(skill.skill_level);
         
-        skillData.levels.set(level, {
-          attempts: skill.attempts,
-          status: skill.status,
-          attempted_at: skill.attempted_at
-        });
-        
-        skillData.maxLevel = Math.max(skillData.maxLevel, level);
-        
-        // Calculate completed levels - count all levels with "completed" status
-        let completedCount = 0;
-        for (let [levelNum, levelData] of skillData.levels.entries()) {
-          if (levelData.status === "completed") {
-            completedCount = Math.max(completedCount, levelNum);
+        // Store level data - if level already exists, keep the one with more attempts or completed status
+        if (!skillData.levels.has(levelNumber)) {
+          skillData.levels.set(levelNumber, {
+            attempts: skill.attempts,
+            status: skill.status,
+            attempted_at: skill.attempted_at
+          });
+        } else {
+          const existingLevel = skillData.levels.get(levelNumber);
+          // Update if current status is completed or has more attempts
+          if (skill.status === "completed" || skill.attempts > existingLevel.attempts) {
+            skillData.levels.set(levelNumber, {
+              attempts: skill.attempts,
+              status: skill.status,
+              attempted_at: skill.attempted_at
+            });
           }
         }
+        
+        skillData.maxLevel = Math.max(skillData.maxLevel, levelNumber);
+      });
+      
+      // Calculate completed levels for each skill
+      skillsMap.forEach((skillData) => {
+        let completedCount = 0;
+        
+        // Count consecutive completed levels starting from 1
+        for (let level = 1; level <= skillData.totallevels; level++) {
+          const levelData = skillData.levels.get(level);
+          if (levelData && levelData.status === "completed") {
+            completedCount = level;
+          } else {
+            // Stop counting if we hit a non-completed level
+            break;
+          }
+        }
+        
         skillData.completed = completedCount;
       });
+      
       // Convert back to array format
       const processedData = Array.from(skillsMap.values()).map(skill => ({
         skilldomain: skill.skilldomain,
@@ -235,14 +271,8 @@ const PsSkillGraph = (props) => {
     
     // Initialize all levels with 0 attempts
     for (let i = 1; i <= skillData.totallevels; i++) {
-      attemptInfo[i] = 0;
-    }
-    
-    // Update with actual attempts data if available
-    if (skillData.levels) {
-      for (let [level, levelData] of skillData.levels.entries()) {
-        attemptInfo[level] = levelData.attempts || 0;
-      }
+      const levelData = skillData.levels.get(i);
+      attemptInfo[i] = levelData ? levelData.attempts : 0;
     }
 
     setHoveredSkillInfo({

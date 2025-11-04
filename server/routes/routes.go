@@ -12,6 +12,7 @@ import (
 	addevents "bitresume/api/faculty/AddEvents"
 	studentdata "bitresume/api/faculty/StudentData"
 	dashBoardfaculty "bitresume/api/faculty/dashboardfaculty"
+	"bitresume/api/login"
 	pointshandlers "bitresume/api/pointsHandlers"
 	registerevents "bitresume/api/registerEvents"
 	"bitresume/api/resume"
@@ -24,9 +25,9 @@ import (
 	dashboard "bitresume/api/upload-view/upload_view_dashboard"
 	"bitresume/api/upload-view/workshops"
 	"bitresume/middleware"
+
 	"github.com/gin-gonic/gin"
 )
-
 func RegisterRoutes(r *gin.Engine) {
 	authGroup := r.Group("/api/auth")
 	authGroup.GET("/google/login", auth.GoogleLogin)
@@ -92,11 +93,12 @@ func RegisterRoutes(r *gin.Engine) {
 	adminOnly := r.Group("/api")
 	adminOnly.Use(middleware.AuthorizeRoles("Admin"))
 	{
-		adminOnly.DELETE("/deleteevents/:id", addevents.DeleteEvent)
-		adminOnly.POST("/addevents/create", addevents.AddEvents)
-		adminOnly.GET("/events/fetchregisteredteams/:eventcode", registerevents.HandleRegisteredTeams)
-		adminOnly.GET("/studentdata/fetchstudentdata", studentdata.HandleMenteesData)
-		adminOnly.POST("/mentor-mentee-upload",dataUploadPs.UploadMentorMentee)
+	 	adminOnly.DELETE("/deleteevents/:id", addevents.DeleteEvent)
+	 	adminOnly.POST("/addevents/create", addevents.AddEvents)
+	 	adminOnly.GET("/events/fetchregisteredteams/:eventcode", registerevents.HandleRegisteredTeams)
+	 	adminOnly.GET("/studentdata/fetchstudentdata", studentdata.HandleMenteesData)
+	 	adminOnly.POST("/mentor-mentee-upload",dataUploadPs.UploadMentorMentee)
+	 	adminOnly.POST("/addusers",login.AddUsers)
 	}
 	r.GET("/api/activitymaster/fetch", addevents.FetchEvents)
 	//both student and faculty

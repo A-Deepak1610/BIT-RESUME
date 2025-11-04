@@ -22,16 +22,18 @@ func main() {
 	r := gin.Default()
 	r.Static("/uploads", "./uploads")
 	corsConfig := cors.Config{
-		AllowOrigins:     []string{"http://localhost:5173"},
+		AllowOrigins:     []string{"http://localhost:5173", "http://localhost:5174"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 	}
 	r.Use(cors.New(corsConfig))
+	
 	routes.RegisterRoutes(r)
 	c := cron.New(cron.WithSeconds())
-	_, errCron := c.AddFunc("0 00 14 * * *", jobs.UpdatePsData) //PS
+	//seconds minute hour day month dayOfWeek
+	_, errCron := c.AddFunc("0 9 9 * * *", jobs.UpdatePsData)	//PS
 	if errCron != nil {
 		panic("Failed to schedule cron job for Update Ps Data: " + errCron.Error())
 	}

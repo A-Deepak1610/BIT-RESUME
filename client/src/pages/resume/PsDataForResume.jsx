@@ -21,7 +21,8 @@ const SkillDomainBlock = ({ domain, skills }) => (
     </div>
 );
 
-const PsDataForResume = () => {
+const PsDataForResume = (props) => {
+  const Student_rollno = props.rollno || "-";
   const [skillCompletionData, setSkillCompletionData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const { rollno } = useAuth();
@@ -35,7 +36,7 @@ const PsDataForResume = () => {
     
     const fetchPsCompletionData = async () => {
       try {
-        const res = await fetch(`${API_URL}api/ps/levels_status/-`, { credentials: "include" });
+        const res = await fetch(`${API_URL}api/ps/levels_status/${Student_rollno}`, { credentials: "include" });
         if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
         const responseData = await res.json();
         

@@ -1,5 +1,4 @@
 package pointshandlers
-
 import (
 	achievementgraph "bitresume/api/dashboard/achievement_graph"
 	activitygraph "bitresume/api/dashboard/activity_graph"
@@ -9,7 +8,6 @@ import (
 	"net/http"
 	"github.com/gin-gonic/gin"
 )
-
 // Main function for points if points is come by his activity
 func HandlePointlogs(rollno, source string, points int, desc string, sem int, currdate string) error { //This is for all other than ps
 	var newpoints float64
@@ -128,15 +126,16 @@ func HandleFetchPsAttempts(c *gin.Context) {
 func HandleFetchPsLevels(c *gin.Context) {
 	role := c.GetString("role")
 	var rollno string
-    if role == "student" {
+    switch role {
+case "student":
         rollno = c.GetString("rollNo")   // set by middleware from cookie
-    } else if role == "faculty" ||role=="Admin" {
+    case "faculty", "Admin":
         rollno = c.Param("rollno")
         if rollno == "" {
             c.JSON(http.StatusBadRequest, gin.H{"error": "rollno query parameter required for faculty"})
             return
         }
-    } else {
+    default:
         c.JSON(http.StatusForbidden, gin.H{"error": "unauthorized role"})
         return
     }

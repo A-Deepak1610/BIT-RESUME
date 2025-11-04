@@ -15,15 +15,15 @@ const SubSection = ({ title, icon, children }) => (
   </div>
 );
 
-const AccomplishmentsForResume = () => {
+const AccomplishmentsForResume = (props) => {
   const { rollno } = useAuth();
+  console.log("AccomplishmentsForResume rollno from auth:", props.rollno);
+  const student_rollno = props.rollno || '-'
   const API_URL = "http://localhost:6001";
-  
   // State for each data type
   const [internships, setInternships] = useState([]);
   const [certifications, setCertifications] = useState([]);
   const [hackathons, setHackathons] = useState([]);
-  
   // States for loading and error handling
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -40,19 +40,19 @@ const AccomplishmentsForResume = () => {
 
       try {
         // Create fetch requests
-        const fetchInternships = fetch(`${API_URL}/api/resume/getinternshipdata`, {
+        const fetchInternships = fetch(`${API_URL}/api/resume/getinternshipdata/${student_rollno}`, {
           method: "GET",
           headers: { "Content-Type": "application/json" },
           credentials: 'include',
         });
 
-        const fetchCertifications = fetch(`${API_URL}/api/resume/getcertificates`, {
+        const fetchCertifications = fetch(`${API_URL}/api/resume/getcertificates/${student_rollno}`, {
           method: "GET",
           headers: { "Content-Type": "application/json" },
           credentials: 'include',
         });
 
-        const fetchHackathons = fetch(`${API_URL}/api/resume/gethackathondata`, {
+        const fetchHackathons = fetch(`${API_URL}/api/resume/gethackathondata/${student_rollno}`, {
           method: "GET",
           headers: { "Content-Type": "application/json" },
           credentials: 'include',

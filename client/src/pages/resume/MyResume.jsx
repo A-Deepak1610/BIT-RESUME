@@ -23,7 +23,7 @@ const Section = ({ title, children, className }) => (
   </section>
 );
   
-const ResumeContent = ({name,email,info}) => (
+const ResumeContent = ({rollno,name,email,info}) => (
   <>
     <A4Page>
       <header className="flex items-start justify-between w-full mb-5">
@@ -102,18 +102,17 @@ const ResumeContent = ({name,email,info}) => (
           </div>
         </div>
       </Section>
-
       <div className="flex justify-between items-start gap-6 mb-5">
         <div className="w-1/2">
-          <ActivenessGraphForResume />
+          <ActivenessGraphForResume  rollno={rollno}/>
         </div>
         <div className="w-1/2">
-          <AchievementsGraphForResume />
+          <AchievementsGraphForResume rollno={rollno} />
         </div>
-      </div>
+      </div>       
       <div className="text-sm text-gray-700 -mt-2 mb-5">
-        <p>
-          <span className="font-semibold">Activeness Graph</span> - Illustrates
+          <p> 
+            <span className="font-semibold">Activeness Graph</span> - Illustrates
           consistent engagement and participation across academic semesters.
         </p>
         <p>
@@ -125,28 +124,28 @@ const ResumeContent = ({name,email,info}) => (
         <AreasOfExpertise />
       </Section>
       <Section title="Accomplishments">
-        <AccomplishmentsForResume />
+        <AccomplishmentsForResume rollno={rollno} />
       </Section>
       <Section title="Leadership & Mentorship">
-        <MentorMenteeForResume />
+        <MentorMenteeForResume  rollno={rollno}/>
       </Section>
     </A4Page>
-
     <A4Page>
       <Section title="Projects">
-        <ProjectsForResume />
+        <ProjectsForResume  rollno={rollno}/>
       </Section>
       <Section title="Personal Skills">
-        <PsDataForResume />
+        <PsDataForResume rollno={rollno}/>
       </Section>
     </A4Page>
   </>
 );
 
-export default function PrintableResumeView() {
+export default function PrintableResumeView(props) {
   const [isReady, setIsReady] = useState(false);
   const [isPrinting, setIsPrinting]=useState(false);
-
+  const Student_rollno = props.rollno || "-";
+  console.log("PrintableResumeView rollno:", Student_rollno);   
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsReady(true);
@@ -157,10 +156,8 @@ export default function PrintableResumeView() {
   useEffect(() => {
     const handleBeforePrint = () => setIsPrinting(true);
     const handleAfterPrint = () => setIsPrinting(false);
-
     window.addEventListener("beforeprint", handleBeforePrint);
     window.addEventListener("afterprint", handleAfterPrint);
-
     return () => {
       window.removeEventListener("beforeprint", handleBeforePrint);
       window.removeEventListener("afterprint", handleAfterPrint);
@@ -192,7 +189,7 @@ export default function PrintableResumeView() {
     }
     return {
       disabled: false,
-      text: "Print or Save as PDF",
+      text: "Print or Save as PDF",    
       className: "hover:bg-indigo-700",
     };
   };
@@ -200,7 +197,7 @@ export default function PrintableResumeView() {
   const [info,setInfo]=useState([]);
   const getInfo=async()=>{
     try{
-      const res=await fetch(`http://localhost:6001/api/header/getprofile`,{
+      const res=await fetch(`http://localhost:6001/api/header/getprofile/${Student_rollno}`,{
         method:"GET",
         credentials:"include"
       })
@@ -218,7 +215,7 @@ export default function PrintableResumeView() {
   return (
     <>
       <div id="resume-content-to-print">
-        <ResumeContent name={name} email={email} info={info}/>
+        <ResumeContent rollno={Student_rollno} name={name} email={email} info={info}/>
       </div>
        <div className="print-hide bg-gray-100 py-6 text-center">
         <button

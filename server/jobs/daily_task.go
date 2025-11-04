@@ -5,10 +5,12 @@ import (
 	activitygraph "bitresume/api/dashboard/activity_graph"
 	"bitresume/api/dataUploadPs"
 	"bitresume/config"
+	"fmt"
 	"log"
 	"time"
 )
 func UpdatePsData(){
+	fmt.Print("Updating PS Data from Excel...\n")
 	dataUploadPs.UploadDataFromExcel();
 }
 func UpdateMentorShipsData(){
