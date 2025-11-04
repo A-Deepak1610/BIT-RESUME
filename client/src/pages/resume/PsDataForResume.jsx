@@ -1,24 +1,27 @@
-import React, { useState, useEffect } from 'react';
-import useAuth from '../../store/UseAuth';
+import React, { useState, useEffect } from "react";
+import useAuth from "../../store/UseAuth";
 
 // Helper component for a single skill domain block
 const SkillDomainBlock = ({ domain, skills }) => (
-    <div className="break-inside-avoid">
-      <h4 className="font-semibold text-gray-700 text-sm">{domain}</h4>
-      <ul className="list-disc list-inside text-xs text-gray-600 mt-1 space-y-1 ml-1">
-        {skills.map((skill) => {
-          const completionRate = ((skill.skilllevel / skill.totallevels) * 100).toFixed(0);
-          return (
-            <li key={skill.skillname}>
-              {skill.skillname}:{' '}
-              <span className="font-medium text-gray-700">
-                Level {skill.skilllevel}/{skill.totallevels} ({completionRate}%)
-              </span>
-            </li>
-          );
-        })}
-      </ul>
-    </div>
+  <div className="break-inside-avoid">
+    <h4 className="font-semibold text-gray-700 text-sm">{domain}</h4>
+    <ul className="list-disc list-inside text-xs text-gray-600 mt-1 space-y-1 ml-1">
+      {skills.map((skill) => {
+        const completionRate = (
+          (skill.skilllevel / skill.totallevels) *
+          100
+        ).toFixed(0);
+        return (
+          <li key={skill.skillname}>
+            {skill.skillname}:{" "}
+            <span className="font-medium text-gray-700">
+              Level {skill.skilllevel}/{skill.totallevels} ({completionRate}%)
+            </span>
+          </li>
+        );
+      })}
+    </ul>
+  </div>
 );
 
 const PsDataForResume = (props) => {
@@ -33,19 +36,25 @@ const PsDataForResume = (props) => {
       setIsLoading(false);
       return;
     }
-    
+
     const fetchPsCompletionData = async () => {
       try {
-        const res = await fetch(`${API_URL}api/ps/levels_status/${Student_rollno}`, { credentials: "include" });
+        const res = await fetch(
+          `${API_URL}api/ps/levels_status/${Student_rollno}`,
+          { credentials: "include" }
+        );
         if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
         const responseData = await res.json();
-        
+
         // Extract data from the nested structure and map to expected format
         if (responseData && Array.isArray(responseData.data)) {
           const mappedData = mapPsDataToSkillFormat(responseData.data);
           setSkillCompletionData(mappedData);
         } else {
-          console.error("API response is not in the expected format.", responseData);
+          console.error(
+            "API response is not in the expected format.",
+            responseData
+          );
           setSkillCompletionData([]);
         }
       } catch (error) {
@@ -55,7 +64,7 @@ const PsDataForResume = (props) => {
         setIsLoading(false);
       }
     };
-    
+
     fetchPsCompletionData();
   }, [rollno, API_URL]);
 
@@ -63,27 +72,32 @@ const PsDataForResume = (props) => {
   const mapPsDataToSkillFormat = (psData) => {
     // Group by skill_name and find the highest completed level for each skill
     const skillMap = {};
-    
+
     psData.forEach((record) => {
       const skillName = record.skill_name;
-      const skillLevel = parseInt(record.skill_level);
+      // Extract numeric level from skill_level string (e.g., "C Programming Level - 1" -> 1)
+      const levelMatch = record.skill_level.match(/(\d+)/);
+      const skillLevel = levelMatch ? parseInt(levelMatch[1]) : 0;
       const totalLevels = parseInt(record.total_levels);
       const status = record.status;
-      
+
       if (!skillMap[skillName]) {
         skillMap[skillName] = {
           skillname: skillName,
           skilldomain: categorizeSkilDomain(skillName), // Categorize skills
           skilllevel: 0,
-          totallevels: totalLevels
+          totallevels: totalLevels,
         };
       }
       // Update to highest completed level (only count completed levels)
-      if (status === "completed" && skillLevel > skillMap[skillName].skilllevel) {
+      if (
+        status === "completed" &&
+        skillLevel > skillMap[skillName].skilllevel
+      ) {
         skillMap[skillName].skilllevel = skillLevel;
       }
     });
-    
+
     return Object.values(skillMap);
   };
   const categorizeSkilDomain = (skillName) => {
@@ -93,61 +107,73 @@ const PsDataForResume = (props) => {
       "python programming": "CS",
       "java": "CS",
       "javascript": "CS",
-      "DBMS": "CS",
+      "dbms": "CS",
       "data structures": "CS",
       "algorithms": "CS",
       "web development": "CS",
       "machine learning": "CS",
       "artificial intelligence": "CS",
-      
+
       // Electrical Domain
       "circuit analysis": "Electrical",
       "digital electronics": "Electrical",
       "power systems": "Electrical",
       "control systems": "Electrical",
-      "electronics": "Electrical",
+      electronics: "Electrical",
       "electrical machines": "Electrical",
-      
+
       // Soft Skills Domain
-      "communication": "Soft Skills",
-      "leadership": "Soft Skills",
-      "teamwork": "Soft Skills",
-      "presentation": "Soft Skills",
+      communication: "Soft Skills",
+      leadership: "Soft Skills",
+      teamwork: "Soft Skills",
+      presentation: "Soft Skills",
       "time management": "Soft Skills",
       "problem solving": "Soft Skills",
-      
+
       // Non-Technical Domain
-      "algebra": "Non-Technical",
-      "calculus": "Non-Technical",
-      "statistics": "Non-Technical",
-      "physics": "Non-Technical",
-      "chemistry": "Non-Technical",
-      "mathematics": "Non-Technical",
-      "geometry": "Non-Technical"
+      algebra: "Non-Technical",
+      calculus: "Non-Technical",
+      statistics: "Non-Technical",
+      physics: "Non-Technical",
+      chemistry: "Non-Technical",
+      mathematics: "Non-Technical",
+      geometry: "Non-Technical",
     };
     const normalizedSkillName = skillName.toLowerCase().trim();
     return SKILL_CATEGORIZATION[normalizedSkillName] || "General";
   };
-  const visibleSkills = skillCompletionData.filter(skill => skill.skilllevel > 0);
+  const visibleSkills = skillCompletionData.filter(
+    (skill) => skill.skilllevel > 0
+  );
   const groupedSkills = visibleSkills.reduce((acc, skill) => {
     if (!acc[skill.skilldomain]) acc[skill.skilldomain] = [];
     acc[skill.skilldomain].push(skill);
     return acc;
   }, {});
 
-  const domainOrder = ["CS", "Non-Technical", "Soft Skills", "Electrical", "General"];  
+  const domainOrder = [
+    "CS",
+    "Non-Technical",
+    "Soft Skills",
+    "Electrical",
+    "General",
+  ];
   const skillDomains = domainOrder
-    .filter(domain => groupedSkills[domain]) // Only include domains that have skills
-    .map(domain => [domain, groupedSkills[domain]]);
+    .filter((domain) => groupedSkills[domain]) // Only include domains that have skills
+    .map((domain) => [domain, groupedSkills[domain]]);
 
   if (isLoading) {
     return <div className="text-xs text-gray-500">Loading skills data...</div>;
   }
 
   if (skillDomains.length === 0) {
-    return <div className="text-xs text-gray-500">No problem solving data available.</div>;
+    return (
+      <div className="text-xs text-gray-500">
+        No problem solving data available.
+      </div>
+    );
   }
-  
+
   if (skillDomains.length === 1) {
     const [domain, skills] = skillDomains[0];
     return <SkillDomainBlock domain={domain} skills={skills} />;

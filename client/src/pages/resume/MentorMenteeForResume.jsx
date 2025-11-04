@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import useAuth from '../../store/UseAuth';
-const MentorMenteeForResume = () => {
+const MentorMenteeForResume = (props) => {
+   const Student_rollno = props.rollno || "-";
   const [mentorSkillData, setMentorSkillData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const { rollno } = useAuth();
@@ -14,7 +15,7 @@ const MentorMenteeForResume = () => {
     
     const fetchMentorshipData = async () => {
       try {
-        const res = await fetch(`${API_URL}api/ps/metorships/-`, {
+        const res = await fetch(`${API_URL}api/ps/metorships/${Student_rollno}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",

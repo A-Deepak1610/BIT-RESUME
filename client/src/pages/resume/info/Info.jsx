@@ -116,7 +116,6 @@ export default function Info(props) {
           />
           <h1 className="text-lg font-bold">BIT Resume</h1>
         </div>
-
         {/* Profile Section */}
         <div className="flex flex-col items-center mb-6">
           <img
@@ -190,9 +189,7 @@ export default function Info(props) {
             </div>
           </div>
         </div>
-
         <div className="border-b border-gray-300 mb-6" />
-
         {/* Areas of Expertise */}
         <div>
           <h1 className="text-primary text-sm font-semibold mb-3">
