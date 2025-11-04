@@ -7,6 +7,7 @@ export default function Graph2() {
         className="p-2 md:p-4  bg-white w-full shadow rounded-lg h-[38.5vh]"
       >
         <AchievementsGraph/>
+        {/* sldm */}
       </div>
     </div>
   )
