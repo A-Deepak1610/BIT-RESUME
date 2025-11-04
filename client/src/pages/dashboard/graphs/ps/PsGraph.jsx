@@ -5,35 +5,45 @@ import useAuth from "../../../../store/UseAuth";
 
 const FIXED_DOMAINS_ORDER = ["CS", "Electrical", "Soft Skills", "Non-Technical"];
 const SKILL_CATEGORIZATION = {
-  // CS Domain
+  // -------------------------
+  // 💻 CS Domain
+  // -------------------------
   "c programming": "CS",
-  "python programming": "CS",
-  "java": "CS",
-  "javascript": "CS",
-  "DBMS": "CS",
-  "data structures": "CS",
-  "algorithms": "CS",
+  "programming c++": "CS",
+  "programming python": "CS",
+  "programming java": "CS",
+  "data structure": "CS",
+  "data structure using java": "CS",
+  "database programming": "CS",
+  "sql": "CS",
   "web development": "CS",
   "machine learning": "CS",
   "artificial intelligence": "CS",
-  
-  // Electrical Domain
+  "tcs codevita": "CS",
+
+  // -------------------------
+  // ⚡ Electrical Domain
+  // -------------------------
   "circuit analysis": "Electrical",
   "digital electronics": "Electrical",
   "power systems": "Electrical",
   "control systems": "Electrical",
   "electronics": "Electrical",
   "electrical machines": "Electrical",
-  
-  // Soft Skills Domain
+
+  // -------------------------
+  // 💬 Soft Skills Domain
+  // -------------------------
   "communication": "Soft Skills",
   "leadership": "Soft Skills",
   "teamwork": "Soft Skills",
   "presentation": "Soft Skills",
   "time management": "Soft Skills",
   "problem solving": "Soft Skills",
-  
-  // Non-Technical Domain
+
+  // -------------------------
+  // 🧮 Non-Technical Domain
+  // -------------------------
   "algebra": "Non-Technical",
   "calculus": "Non-Technical",
   "statistics": "Non-Technical",

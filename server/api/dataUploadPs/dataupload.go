@@ -18,26 +18,101 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/xuri/excelize/v2"
 )                                  
+// func UploadDataFromExcel() error {
+// 	fmt.Print("Starting UploadDataFromExcel...\n")
+// 	const excelPath = "data/PS SKILL STATUS.xlsx"
+// 	f, err := excelize.OpenFile(excelPath)
+// 	if err != nil {
+// 		return fmt.Errorf("failed to open Excel file: %w", err)
+// 	}
+// 	defer f.Close()
+// 	sheet := f.GetSheetName(0)
+// 	if sheet == "" {
+// 		return fmt.Errorf("no sheet found in %s", excelPath)
+// 	}
+// 	rows, err := f.GetRows(sheet)
+// 	if err != nil {
+// 		return fmt.Errorf("cannot read rows: %w", err)
+// 	}
+// 	stmt, err := config.DB.Prepare(`		
+// 		INSERT INTO ps__status
+// 			(rollno, skill_name, skill_level, attempts, status, total_levels, attempted_at)
+// 		VALUES (?, ?, ?, ?, ?, 7, ?)
+// 	`)
+// 	if err != nil {
+// 		return fmt.Errorf("prepare failed: %w", err)
+// 	}
+// 	defer stmt.Close()
+
+// 	inserted := 0
+// 	for i, row := range rows {
+// 		if i == 0 || len(row) < 7 { // skip header or incomplete rows
+// 			continue
+// 		}
+// 		rollno := strings.TrimSpace(row[0])
+// 		dateStr := strings.TrimSpace(row[1])
+// 		skillName := strings.TrimSpace(row[2])
+// 		skillLevel := strings.TrimSpace(row[3])
+// 		attemptStr := strings.TrimSpace(row[4])
+// 		status := strings.ToLower(strings.TrimSpace(row[5]))
+// 		attempts, _ := strconv.Atoi(attemptStr)
+
+// 		switch status {
+// 		case "pending":
+// 			HandlePs(rollno, skillName, skillLevel, 0, dateStr)
+// 		case "missed":
+// 			HandlePs(rollno, skillName, skillLevel, -50, dateStr)
+// 		default:
+// 			rewardPoints, err := strconv.Atoi(strings.TrimSpace(row[6]))
+// 			if err != nil {
+// 				rewardPoints = 0
+// 			}
+
+// 			_, err = stmt.Exec(
+// 				rollno,
+// 				skillName,
+// 				skillLevel,
+// 				attempts,
+// 				status,
+// 				time.Now(),
+// 			)
+// 			if err != nil {
+// 				fmt.Printf("Row %d insert error: %v\n", i+1, err)
+// 				continue
+// 			}
+
+// 			HandlePs(rollno, skillName, skillLevel, rewardPoints, dateStr)
+// 			inserted++
+// 		}
+// 	}
+
+// 	fmt.Printf("UploadDataFromExcel completed: inserted %d rows\n", inserted)
+// 	return nil
+// }
 func UploadDataFromExcel() error {
 	fmt.Print("Starting UploadDataFromExcel...\n")
 	const excelPath = "data/PS SKILL STATUS.xlsx"
+
 	f, err := excelize.OpenFile(excelPath)
 	if err != nil {
 		return fmt.Errorf("failed to open Excel file: %w", err)
 	}
 	defer f.Close()
+
 	sheet := f.GetSheetName(0)
 	if sheet == "" {
 		return fmt.Errorf("no sheet found in %s", excelPath)
 	}
+
 	rows, err := f.GetRows(sheet)
 	if err != nil {
 		return fmt.Errorf("cannot read rows: %w", err)
 	}
+
 	stmt, err := config.DB.Prepare(`
-		INSERT INTO ps__status
+		INSERT INTO ps__status 
 			(rollno, skill_name, skill_level, attempts, status, total_levels, attempted_at)
-		VALUES (?, ?, ?, ?, ?, 7, ?)
+		VALUES (?, ?, ?, ?, ?, ?, ?)
 	`)
 	if err != nil {
 		return fmt.Errorf("prepare failed: %w", err)
@@ -45,46 +120,64 @@ func UploadDataFromExcel() error {
 	defer stmt.Close()
 
 	inserted := 0
+
 	for i, row := range rows {
-		if i == 0 || len(row) < 7 { // skip header or incomplete rows
+		if i == 0 || len(row) < 6 { // skip header
 			continue
 		}
 
 		rollno := strings.TrimSpace(row[0])
 		dateStr := strings.TrimSpace(row[1])
-		skillName := strings.TrimSpace(row[2])
-		skillLevel := strings.TrimSpace(row[3])
-		attemptStr := strings.TrimSpace(row[4])
-		status := strings.ToLower(strings.TrimSpace(row[5]))
-		attempts, _ := strconv.Atoi(attemptStr)
+		idStr := strings.TrimSpace(row[2])
+		attemptStr := strings.TrimSpace(row[3])
+		status := strings.ToLower(strings.TrimSpace(row[4]))
+		pointsStr := strings.TrimSpace(row[5])
 
-		switch status {
-		case "pending":
-			HandlePs(rollno, skillName, skillLevel, 0, dateStr)
-		case "missed":
-			HandlePs(rollno, skillName, skillLevel, -50, dateStr)
-		default:
-			rewardPoints, err := strconv.Atoi(strings.TrimSpace(row[6]))
-			if err != nil {
-				rewardPoints = 0
-			}
-
-			_, err = stmt.Exec(
-				rollno,
-				skillName,
-				skillLevel,
-				attempts,
-				status,
-				time.Now(),
-			)
-			if err != nil {
-				fmt.Printf("Row %d insert error: %v\n", i+1, err)
-				continue
-			}
-
-			HandlePs(rollno, skillName, skillLevel, rewardPoints, dateStr)
-			inserted++
+		id, err := strconv.Atoi(idStr)
+		if err != nil {
+			fmt.Printf("Row %d: invalid id %s\n", i+1, idStr)
+			continue
 		}
+
+		attempts, _ := strconv.Atoi(attemptStr)
+		rewardPoints, _ := strconv.Atoi(pointsStr)
+
+		// ✅ Fetch skill details from master_course
+		var skillName, skillLevel string
+		err = config.DB.QueryRow(`
+			SELECT group_name, level_name 
+			FROM master_course 
+			WHERE level_id = ?`, id).Scan(&skillName, &skillLevel)
+		if err != nil {
+			fmt.Printf("Row %d: no skill found for id %d (%v)\n", i+1, id, err)
+			continue
+		}
+
+		// ✅ Insert into ps__status
+		_, err = stmt.Exec(
+			rollno,
+			skillName,
+			skillLevel,
+			attempts,
+			status,
+			7,               // total_levels (constant)
+			time.Now(),         // attempted_at
+		)
+		if err != nil {
+			fmt.Printf("Row %d insert error: %v\n", i+1, err)
+			continue
+		}
+
+		// ✅ Handle points logic
+		if status == "pending" {
+			HandlePs(rollno, skillName, skillLevel, 0, dateStr)
+		} else if status == "missed" {
+			HandlePs(rollno, skillName, skillLevel, -50, dateStr)
+		} else {
+			HandlePs(rollno, skillName, skillLevel, rewardPoints, dateStr)
+		}
+
+		inserted++
 	}
 
 	fmt.Printf("UploadDataFromExcel completed: inserted %d rows\n", inserted)
@@ -200,128 +293,6 @@ func HandlePs(rollno, skillname, skilllevel string, points int, dateStr string) 
 	}
 	return nil
 }
-
-// func HandlePs(rollno string,skillname string,skilllevel string,points int) { //if attempted itself
-// 	var data models.Ps
-// 	desc := skillname + " " + skilllevel
-// 	currdate := data.Currdate
-// 	sem := pointshandlers.GetCurrentSem(rollno)
-// 	source := "PS"
-// 	now := time.Now().Format("2006-01-02")
-// 	var newpoints float64
-// 	rank, rankerr := activitygraph.FetchDataRank(rollno)
-// 	if rankerr != nil {
-// 		c.JSON(500, gin.H{"error": rankerr.Error()})
-// 		return
-// 	}
-// 	// Calculate new points based on rank
-// 	switch rank.Current_rank {
-// 	case "TITANIUM":
-// 		if points > 0 {
-// 			newpoints = float64(points) * 0.5 / 300.0
-// 		} else if points == 0 {
-// 			newpoints = 0
-// 		} else {
-// 			newpoints = -1
-// 		}
-// 	case "GOLD":
-// 		if points > 0 {
-// 			newpoints = float64(points) * 1 / 300.0
-// 		} else if points == 0 {
-// 			newpoints = 0
-// 		} else {
-// 			newpoints = -0.5
-// 		}
-// 	default:
-// 		if points > 0 { //Silver
-// 			newpoints = float64(points) * 2 / 300.0
-// 		} else if points == 0 { //Fail in that level
-// 			newpoints = 0
-// 		} else {
-// 			newpoints = -0.5 //Attempted but not went
-// 		}
-// 	}
-// 	newpoints = math.Round(newpoints*100) / 100
-// 	// Insert into points_logs
-// 	stmp, reqerr := config.DB.Prepare(`INSERT INTO points_logs(rollno, source, points, description, sem, currdate) VALUES (?, ?, ?, ?, ?, ?)`)
-// 	if reqerr != nil {
-// 		log.Println("Error preparing points_logs insert:", reqerr)
-// 		c.JSON(500, gin.H{"error": reqerr.Error()})
-// 		return
-// 	}
-// 	_, execErr := stmp.Exec(rollno, source, newpoints, desc, sem, currdate)
-// 	if execErr != nil {
-// 		log.Println("Error executing points_logs insert:", execErr)
-// 		c.JSON(500, gin.H{"error": execErr.Error()})
-// 		return
-// 	}
-// 	if newpoints > 0 {
-// 		achievementgraph.HandlePointlogs2(rollno, newpoints, sem, currdate)
-// 	}
-// 	if currdate != now {
-// 		delta := newpoints // amount to add for all subsequent dates
-// 		// 2. Get all rows from currdate to lastDate
-// 		rows, err := config.DB.Query(`
-// 			SELECT currdate, current_point
-// 			FROM activity_graph
-// 			WHERE rollno = ? AND currdate >= ?
-// 			ORDER BY currdate ASC`, rollno, currdate)
-// 		if err != nil {
-// 			log.Println("Error fetching activity_graph rows:", err)
-// 			c.JSON(500, gin.H{"error": err.Error()})
-// 			return
-// 		}
-// 		defer rows.Close()
-
-// 		for rows.Next() {
-// 			var d string
-// 			var pts float64
-// 			if err := rows.Scan(&d, &pts); err != nil {
-// 				log.Println("Error scanning row:", err)
-// 				continue
-// 			}
-
-// 			// --- ACTIVITY_GRAPH update (your existing logic) ---
-// 			newPts := pts + delta
-// 			newPts, newRank := validateRank(newPts)
-
-// 			_, err = config.DB.Exec(`
-// 				UPDATE activity_graph
-// 				SET current_point = ?, current_rank = ?
-// 				WHERE rollno = ? AND currdate = ?`,
-// 				newPts, newRank, rollno, d)
-// 			if err != nil {
-// 				log.Println("Error updating activity_graph:", err)
-// 			}
-
-// 			// --- ACHIEVEMENT_GRAPH update (new) ---
-// 			if d == currdate {
-// 				// On the starting day → earned + cumulative
-// 				_, err = config.DB.Exec(`
-// 					UPDATE achievement_graph
-// 					SET points_earned = points_earned + ?,
-// 						cummulative_points = cummulative_points + ?
-// 					WHERE rollno = ? AND currdate = ?`,
-// 					delta, delta, rollno, d)
-// 			} else {
-// 				// On later days → only cumulative
-// 				_, err = config.DB.Exec(`
-// 					UPDATE achievement_graph
-// 					SET cummulative_points = cummulative_points + ?
-// 					WHERE rollno = ? AND currdate = ?`,
-// 					delta, rollno, d)
-// 			}
-
-// 			if err != nil {
-// 				log.Println("Error updating achievement_graph:", err)
-// 			}
-// 		}
-
-//			if err := rows.Err(); err != nil {
-//				log.Println("Row iteration error:", err)
-//			}
-//		}
-//	}
 func validateRank(points float64) (float64, string) {
 	switch {
 	case points >= 90:
