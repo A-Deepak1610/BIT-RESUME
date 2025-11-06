@@ -17,7 +17,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/xuri/excelize/v2"
-)                                  
+)
+
 // func UploadDataFromExcel() error {
 // 	fmt.Print("Starting UploadDataFromExcel...\n")
 // 	const excelPath = "data/PS SKILL STATUS.xlsx"
@@ -34,7 +35,7 @@ import (
 // 	if err != nil {
 // 		return fmt.Errorf("cannot read rows: %w", err)
 // 	}
-// 	stmt, err := config.DB.Prepare(`		
+// 	stmt, err := config.DB.Prepare(`
 // 		INSERT INTO ps__status
 // 			(rollno, skill_name, skill_level, attempts, status, total_levels, attempted_at)
 // 		VALUES (?, ?, ?, ?, ?, 7, ?)
@@ -86,13 +87,12 @@ import (
 // 		}
 // 	}
 
-// 	fmt.Printf("UploadDataFromExcel completed: inserted %d rows\n", inserted)
-// 	return nil
-// }
+//		fmt.Printf("UploadDataFromExcel completed: inserted %d rows\n", inserted)
+//		return nil
+//	}
 func UploadDataFromExcel() error {
 	fmt.Print("Starting UploadDataFromExcel...\n")
 	const excelPath = "data/PS SKILL STATUS.xlsx"
-
 	f, err := excelize.OpenFile(excelPath)
 	if err != nil {
 		return fmt.Errorf("failed to open Excel file: %w", err)
@@ -108,9 +108,8 @@ func UploadDataFromExcel() error {
 	if err != nil {
 		return fmt.Errorf("cannot read rows: %w", err)
 	}
-
 	stmt, err := config.DB.Prepare(`
-		INSERT INTO ps__status 
+		INSERT INTO ps__status     
 			(rollno, skill_name, skill_level, attempts, status, total_levels, attempted_at)
 		VALUES (?, ?, ?, ?, ?, ?, ?)
 	`)
@@ -142,7 +141,7 @@ func UploadDataFromExcel() error {
 		attempts, _ := strconv.Atoi(attemptStr)
 		rewardPoints, _ := strconv.Atoi(pointsStr)
 
-		// ✅ Fetch skill details from master_course
+		// Fetch skill details from master_course
 		var skillName, skillLevel string
 		err = config.DB.QueryRow(`
 			SELECT group_name, level_name 
@@ -153,15 +152,15 @@ func UploadDataFromExcel() error {
 			continue
 		}
 
-		// ✅ Insert into ps__status
+		// Insert into ps__status
 		_, err = stmt.Exec(
 			rollno,
 			skillName,
 			skillLevel,
 			attempts,
 			status,
-			7,               // total_levels (constant)
-			time.Now(),         // attempted_at
+			7,          // total_levels (constant)
+			time.Now(), // attempted_at
 		)
 		if err != nil {
 			fmt.Printf("Row %d insert error: %v\n", i+1, err)
@@ -169,14 +168,14 @@ func UploadDataFromExcel() error {
 		}
 
 		// ✅ Handle points logic
-		if status == "pending" {
+		switch status {
+		case "pending":
 			HandlePs(rollno, skillName, skillLevel, 0, dateStr)
-		} else if status == "missed" {
+		case "missed":
 			HandlePs(rollno, skillName, skillLevel, -50, dateStr)
-		} else {
+		default:
 			HandlePs(rollno, skillName, skillLevel, rewardPoints, dateStr)
 		}
-
 		inserted++
 	}
 
@@ -243,7 +242,7 @@ func HandlePs(rollno, skillname, skilllevel string, points int, dateStr string) 
 			SELECT currdate, current_point
 			FROM activity_graph
 			WHERE rollno = ? AND currdate >= ?
-			ORDER BY currdate ASC`, rollno, currdate)
+			ORDER BY currdate ASC`, rollno, currdate)//need to update the  change the query
 		if err != nil {
 			log.Println("Query activity_graph error:", err)
 			return err

@@ -47,7 +47,7 @@ func FetchActivityGraphData(c *gin.Context) {
 // FetchDataRank fetches the most recent rank for a student
 func FetchDataRank(rollno string) (models.ActGph, error) {
 	var r models.ActGph
-	stmt, err := config.DB.Prepare("SELECT current_rank FROM activity_graph WHERE rollno = ? ORDER BY currdate DESC LIMIT 1")
+	stmt, err := config.DB.Prepare("SELECT  COALESCE((SELECT current_rank FROM activity_graph WHERE rollno = ? ORDER BY currdate DESC LIMIT 1),'TITANIUM') AS current_rank;")
 	if err != nil {
 		log.Printf("Prepare failed: %v", err)
 		return r, err

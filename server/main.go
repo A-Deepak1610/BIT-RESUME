@@ -33,15 +33,15 @@ func main() {
 	routes.RegisterRoutes(r)
 	c := cron.New(cron.WithSeconds())
 	//seconds minute hour day month dayOfWeek
-	_, errCron := c.AddFunc("0 0 14 * * *", jobs.UpdatePsData)	//PS
+	_, errCron := c.AddFunc("0 39 14 * * *", jobs.UpdatePsData)	//PS
 	if errCron != nil {
 		panic("Failed to schedule cron job for Update Ps Data: " + errCron.Error())
 	}
-	_, errCron = c.AddFunc("0 51 10 * * *", jobs.UpdateMentorShipsData) //Mentorships
-	if errCron != nil {
-		panic("Failed to schedule cron job for mentorships: " + errCron.Error())
-	}
-	_, errCron = c.AddFunc("0 57 23 * * *", jobs.CallDailyTasksForAllDates) //Daily Task
+	// _, errCron = c.AddFunc("0 51 10 * * *", jobs.UpdateMentorShipsData) //Mentorships
+	// if errCron != nil {
+	// 	panic("Failed to schedule cron job for mentorships: " + errCron.Error())
+	// }
+	_, errCron = c.AddFunc("0 41 14 * * *", jobs.CallDailyTasksForAllDates) //Daily Task
 	if errCron != nil {
 		panic("Failed to schedule cron job for Daily Activity: " + errCron.Error())
 	}
