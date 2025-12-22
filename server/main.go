@@ -6,7 +6,6 @@ import (
 	// "bitresume/jobs"
 	"bitresume/routes"
 	"log"
-
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -22,17 +21,19 @@ func main() {
 	r := gin.Default()
 	r.Static("/uploads", "./uploads")
 	corsConfig := cors.Config{
-		AllowOrigins:     []string{"*"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		AllowOriginFunc: func(origin string) bool {
+			return true
+		},
 	}
 	r.Use(cors.New(corsConfig))
-	
 	routes.RegisterRoutes(r)
 	c := cron.New(cron.WithSeconds())
 	//seconds minute hour day month dayOfWeek
-	_, errCron := c.AddFunc("0 39 14 * * *", jobs.UpdatePsData)	//PS
+	_, errCron := c.AddFunc("0 26 11 * * *", jobs.UpdatePsData)	//PS
 	if errCron != nil {
 		panic("Failed to schedule cron job for Update Ps Data: " + errCron.Error())
 	}

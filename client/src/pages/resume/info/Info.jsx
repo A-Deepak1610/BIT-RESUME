@@ -147,7 +147,7 @@ export default function Info(props) {
           </div>
           <div className="space-y-2 text-primary font-medium text-sm">
             <div>01</div>
-            <div>{Student_rollno}</div>
+            <div>{Student_rollno=='-'?rollno:Student_rollno}</div>
             <div>{profile.batch}</div>
             <div>{profile.domain || "Not specified"}</div>
           </div>
