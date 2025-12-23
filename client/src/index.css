@@ -74,3 +74,10 @@
   }
 }
 
+/* Hide elements during print */
+@media print {
+  .print-hide {
+    display: none !important;
+  }
+}
+
