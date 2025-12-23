@@ -57,7 +57,6 @@ import (
 // 		attemptStr := strings.TrimSpace(row[4])
 // 		status := strings.ToLower(strings.TrimSpace(row[5]))
 // 		attempts, _ := strconv.Atoi(attemptStr)
-
 // 		switch status {
 // 		case "pending":
 // 			HandlePs(rollno, skillName, skillLevel, 0, dateStr)
@@ -98,18 +97,16 @@ func UploadDataFromExcel() error {
 		return fmt.Errorf("failed to open Excel file: %w", err)
 	}
 	defer f.Close()
-
 	sheet := f.GetSheetName(0)
 	if sheet == "" {
 		return fmt.Errorf("no sheet found in %s", excelPath)
 	}
-
 	rows, err := f.GetRows(sheet)
 	if err != nil {
 		return fmt.Errorf("cannot read rows: %w", err)
 	}
 	stmt, err := config.DB.Prepare(`
-		INSERT INTO ps__status     
+		INSERT INTO ps__status
 			(rollno, skill_name, skill_level, attempts, status, total_levels, attempted_at)
 		VALUES (?, ?, ?, ?, ?, ?, ?)
 	`)
@@ -117,14 +114,11 @@ func UploadDataFromExcel() error {
 		return fmt.Errorf("prepare failed: %w", err)
 	}
 	defer stmt.Close()
-
 	inserted := 0
-
 	for i, row := range rows {
 		if i == 0 || len(row) < 6 { // skip header
 			continue
 		}
-
 		rollno := strings.TrimSpace(row[0])
 		dateStr := strings.TrimSpace(row[1])
 		idStr := strings.TrimSpace(row[2])
@@ -141,40 +135,51 @@ func UploadDataFromExcel() error {
 		attempts, _ := strconv.Atoi(attemptStr)
 		rewardPoints, _ := strconv.Atoi(pointsStr)
 
-		// Fetch skill details from master_course
-		var skillName, skillLevel string
+		// 1️⃣ Fetch skill details
+		var groupName, skillLevel string
 		err = config.DB.QueryRow(`
-			SELECT group_name, level_name 
-			FROM master_course 
-			WHERE level_id = ?`, id).Scan(&skillName, &skillLevel)
+			SELECT group_name, level_name
+			FROM master_course
+			WHERE level_id = ?
+		`, id).Scan(&groupName, &skillLevel)
 		if err != nil {
 			fmt.Printf("Row %d: no skill found for id %d (%v)\n", i+1, id, err)
 			continue
 		}
 
-		// Insert into ps__status
+		// 2️⃣ Fetch total_levels using group_name
+		var totalLevels int
+		err = config.DB.QueryRow(`
+			SELECT total_levels
+			FROM course_levels
+			WHERE group_name = ?
+		`, groupName).Scan(&totalLevels)
+		if err != nil {
+			fmt.Printf("Row %d: no total_levels for group %s (%v)\n", i+1, groupName, err)
+			continue
+		} 
+		// 3️⃣ Insert into ps__status
 		_, err = stmt.Exec(
 			rollno,
-			skillName,
+			groupName,
 			skillLevel,
 			attempts,
 			status,
-			7,          // total_levels (constant)
-			time.Now(), // attempted_at
+			totalLevels,
+			time.Now(),
 		)
 		if err != nil {
 			fmt.Printf("Row %d insert error: %v\n", i+1, err)
 			continue
 		}
-
-		// ✅ Handle points logic
+		// 4️⃣ Handle points logic
 		switch status {
 		case "pending":
-			HandlePs(rollno, skillName, skillLevel, 0, dateStr)
+			HandlePs(rollno, groupName, skillLevel, 0, dateStr)
 		case "missed":
-			HandlePs(rollno, skillName, skillLevel, -50, dateStr)
+			HandlePs(rollno, groupName, skillLevel, -50, dateStr)
 		default:
-			HandlePs(rollno, skillName, skillLevel, rewardPoints, dateStr)
+			HandlePs(rollno, groupName, skillLevel, rewardPoints, dateStr)
 		}
 		inserted++
 	}
@@ -182,9 +187,10 @@ func UploadDataFromExcel() error {
 	fmt.Printf("UploadDataFromExcel completed: inserted %d rows\n", inserted)
 	return nil
 }
+
 func HandlePs(rollno, skillname, skilllevel string, points int, dateStr string) error {
 	// var data models.Ps
-	currdate := dateStr
+	currdate := dateStr  
 	sem := pointshandlers.GetCurrentSem(rollno)
 	source := "PS"
 	desc := skillname + " " + skilllevel

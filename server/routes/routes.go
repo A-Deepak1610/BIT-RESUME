@@ -2,6 +2,7 @@ package routes
 
 import (
 	activitymaster "bitresume/api/ActivityMaster"
+	"bitresume/api/admin"
 	auth "bitresume/api/auth"
 	achievementgraph "bitresume/api/dashboard/achievement_graph"
 	activitygraph "bitresume/api/dashboard/activity_graph"
@@ -28,6 +29,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 )
+
 func RegisterRoutes(r *gin.Engine) {
 	authGroup := r.Group("/api/auth")
 	authGroup.GET("/google/login", auth.GoogleLogin)
@@ -61,7 +63,7 @@ func RegisterRoutes(r *gin.Engine) {
 		studentOnly.PUT("/header/updateprofile", headerdetails.UpdateProfile)
 	}
 	facultyOnly := r.Group("/api")
-	facultyOnly.Use(middleware.AuthorizeRoles("faculty","student","Admin"))
+	facultyOnly.Use(middleware.AuthorizeRoles("faculty", "student", "Admin"))
 	{
 		facultyOnly.GET("/manageactivities", manageactivities.GetActivityData)
 		facultyOnly.GET("/manageactivities/approvels/:rollno", manageactivities.HandleActivityApprovals)
@@ -76,29 +78,34 @@ func RegisterRoutes(r *gin.Engine) {
 		facultyOnly.GET("/studentdata/fetchmentees", studentdata.HandleMenteesData)
 	}
 	bothStudentFacultyAdmin := r.Group("/api")
-	bothStudentFacultyAdmin.Use(middleware.AuthorizeRoles("faculty","student","Admin"))
+	bothStudentFacultyAdmin.Use(middleware.AuthorizeRoles("faculty", "student", "Admin"))
 	{
 		bothStudentFacultyAdmin.GET("/activity_graph/fetchData/:rollno", activitygraph.FetchActivityGraphData)
 		bothStudentFacultyAdmin.GET("/achievement_graph/institute_avg/fetchData/:rollno", achievementgraph.HandleFetchInstituteAvg)
 		bothStudentFacultyAdmin.GET("/achievement_graph/fetchData/:rollno", achievementgraph.HandleFetchAchievementGraph)
 		bothStudentFacultyAdmin.GET("/ps/levels_status/:rollno", pointshandlers.HandleFetchPsLevels)
-		bothStudentFacultyAdmin.GET("/ps/metorships/:rollno",dataUploadPs.GetMentorShips)
+		bothStudentFacultyAdmin.GET("/ps/metorships/:rollno", dataUploadPs.GetMentorShips)
 		bothStudentFacultyAdmin.GET("/resume/getprojects/:rollno", resume.GetProjectsData)
 		bothStudentFacultyAdmin.GET("/resume/getcertificates/:rollno", resume.GetCertificatesData)
 		bothStudentFacultyAdmin.GET("/resume/gethackathondata/:rollno", resume.GetHackathonData)
 		bothStudentFacultyAdmin.GET("/resume/getinternshipdata/:rollno", resume.GetInternshipData)
-		bothStudentFacultyAdmin.GET("/aresofexpertise/:rollno",resume.GetAreasOfExpertise)
+		bothStudentFacultyAdmin.GET("/aresofexpertise/:rollno", resume.GetAreasOfExpertise)
 		bothStudentFacultyAdmin.GET("/header/getprofile/:rollno", headerdetails.GetProfileDetails)
 	}
 	adminOnly := r.Group("/api")
 	adminOnly.Use(middleware.AuthorizeRoles("Admin"))
 	{
-	 	adminOnly.DELETE("/deleteevents/:id", addevents.DeleteEvent)
-	 	adminOnly.POST("/addevents/create", addevents.AddEvents)
-	 	adminOnly.GET("/events/fetchregisteredteams/:eventcode", registerevents.HandleRegisteredTeams)
-	 	adminOnly.GET("/studentdata/fetchstudentdata", studentdata.HandleMenteesData)
-	 	adminOnly.POST("/mentor-mentee-upload",dataUploadPs.UploadMentorMentee)
-	 	adminOnly.POST("/addusers",login.AddUsers)
+		adminOnly.DELETE("/deleteevents/:id", addevents.DeleteEvent)
+		adminOnly.POST("/addevents/create", addevents.AddEvents)
+		adminOnly.GET("/events/fetchregisteredteams/:eventcode", registerevents.HandleRegisteredTeams)
+		adminOnly.GET("/studentdata/fetchstudentdata", studentdata.HandleMenteesData)
+		adminOnly.POST("/mentor-mentee-upload", dataUploadPs.UploadMentorMentee)
+		adminOnly.POST("/addusers", login.AddUsers)
+		// Admin Dashboard Stats
+		adminOnly.GET("/admin/dashboard/stats", admin.GetDashboardStats)
+		adminOnly.GET("/admin/dashboard/category-summary", admin.GetCategorySummary)
+		adminOnly.GET("/admin/dashboard/user-stats", admin.GetUserStats)
+		adminOnly.GET("/admin/dashboard/faculty-performance", admin.GetFacultyPerformance)
 	}
 	r.GET("/api/activitymaster/fetch", addevents.FetchEvents)
 	//both student and faculty
@@ -108,7 +115,7 @@ func RegisterRoutes(r *gin.Engine) {
 	r.GET("/api/sem_wise_totaldays", pointshandlers.HandleSemDays)
 	r.GET("/api/handlesem", pointshandlers.HandleSem)
 	r.PUT("/api/updatesem", pointshandlers.HandleUpdateSem)
-	r.DELETE("/api/uploadview/deleteupload",Uploadsdelete.Uploadsdelete)
-	r.GET("/api/getpsdata/:rollno",dataUploadPs.GetPsStatus)
-	r.POST("/api/bulkupload",dataUploadPs.BulkUploadHandler)
+	r.DELETE("/api/uploadview/deleteupload", Uploadsdelete.Uploadsdelete)
+	r.GET("/api/getpsdata/:rollno", dataUploadPs.GetPsStatus)
+	r.POST("/api/bulkupload", dataUploadPs.BulkUploadHandler)
 }
