@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import html2canvas from "html2canvas-pro";
+import jsPDF from "jspdf";
 import logo from "../../assets/logo_bit.jpg";
-import { Phone, Mail, Linkedin, Github, MapPin, Printer } from "lucide-react";
+import { Phone, Mail, Linkedin, Github, MapPin, Download } from "lucide-react";
 import ProjectsForResume from "./projects/ProjectsForResume";
 import PsDataForResume from "./PsDataForResume";
 import MentorMenteeForResume from "./MentorMenteeForResume";
@@ -8,8 +10,8 @@ import AreasOfExpertise from "./AreasOfExpertise";
 import AccomplishmentsForResume from "./AccomplishmentsForResume";
 import ActivenessGraphForResume from "../dashboard/graphs/graph1/ActivenessGraphForResume";
 import AchievementsGraphForResume from "../dashboard/graphs/grpah2/AchievementsGraphForResume";
-import A4Page from "./A4Page"; // Your A4Page component from above
-import QRCode from "react-qr-code"; // <-- CORRECTED IMPORT for the new library
+import A4Page from "./A4Page";
+import QRCode from "react-qr-code";
 import useAuth from "../../store/UseAuth";
 const Section = ({ title, children, className }) => (
   <section className={`mb-5 ${className || ""}`}>
@@ -142,56 +144,11 @@ const ResumeContent = ({ rollno, name, email, info }) => (
 
 export default function PrintableResumeView(props) {
   const [isReady, setIsReady] = useState(false);
-  const [isPrinting, setIsPrinting] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   const Student_rollno = props.rollno || "-";
+  const resumeRef = useRef(null);
   console.log("PrintableResumeView rollno:", Student_rollno);
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsReady(true);
-    }, 500);
-    return () => clearTimeout(timer);
-  }, []);
 
-  useEffect(() => {
-    const handleBeforePrint = () => setIsPrinting(true);
-    const handleAfterPrint = () => setIsPrinting(false);
-    window.addEventListener("beforeprint", handleBeforePrint);
-    window.addEventListener("afterprint", handleAfterPrint);
-    return () => {
-      window.removeEventListener("beforeprint", handleBeforePrint);
-      window.removeEventListener("afterprint", handleAfterPrint);
-    };
-  }, []);
-
-  const handlePrint = async () => {
-    if (!isReady || isPrinting) return;
-
-    setIsPrinting(true);
-    await new Promise((resolve) => setTimeout(resolve, 100));
-    window.print();
-  };
-
-  const getButtonState = () => {
-    if (!isReady) {
-      return {
-        disabled: true,
-        text: "Loading Preview...",
-        className: "disabled:bg-gray-400",
-      };
-    }
-    if (isPrinting) {
-      return {
-        disabled: true,
-        text: "Printing...",
-        className: "disabled:bg-gray-400",
-      };
-    }
-    return {
-      disabled: false,
-      text: "Print or Save as PDF",
-      className: "hover:bg-indigo-700",
-    };
-  };
   const { rollno, name } = useAuth();
   const [info, setInfo] = useState({
     phone: "",
@@ -202,6 +159,14 @@ export default function PrintableResumeView(props) {
     user_name: "",
     department: "",
   });
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsReady(true);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, []);
+
   const getInfo = async () => {
     try {
       const res = await fetch(
@@ -222,13 +187,103 @@ export default function PrintableResumeView(props) {
       console.log(error);
     }
   };
+
   useEffect(() => {
     getInfo();
   }, [rollno]);
-  const buttonState = getButtonState();
+
+  const handleDownload = async () => {
+    if (!resumeRef.current || isDownloading) return;
+
+    setIsDownloading(true);
+
+    try {
+      const element = resumeRef.current;
+      const pages = element.querySelectorAll(".a4-page");
+
+      // A4 dimensions in mm
+      const a4Width = 210;
+      const a4Height = 297;
+
+      // Create PDF
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+        compress: true,
+      });
+
+      // Convert each page to canvas and add to PDF
+      for (let i = 0; i < pages.length; i++) {
+        const page = pages[i];
+
+        // Generate canvas from the page
+        const canvas = await html2canvas(page, {
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          letterRendering: true,
+          allowTaint: true,
+          backgroundColor: "#ffffff",
+          windowWidth: page.scrollWidth,
+          windowHeight: page.scrollHeight,
+        });
+
+        const imgData = canvas.toDataURL("image/jpeg", 0.98);
+
+        // Add new page for subsequent pages
+        if (i > 0) {
+          pdf.addPage();
+        }
+
+        // Add image to PDF
+        pdf.addImage(
+          imgData,
+          "JPEG",
+          0,
+          0,
+          a4Width,
+          a4Height,
+          undefined,
+          "FAST"
+        );
+      }
+
+      // Save the PDF
+      const filename = `${info.user_name || name || "Resume"}_${
+        new Date().toISOString().split("T")[0]
+      }.pdf`;
+      pdf.save(filename);
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      alert("Failed to generate PDF. Please try again.");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   return (
-    <>
-      <div id="resume-content-to-print">
+    <div className="relative min-h-screen bg-gray-100">
+      {/* Fixed Download Button in Top Right */}
+      <div className="fixed top-4 right-4 z-50 print-hide">
+        <button
+          onClick={handleDownload}
+          disabled={!isReady || isDownloading}
+          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-200"
+        >
+          <Download
+            className={`mr-2 h-4 w-4 ${isDownloading ? "animate-bounce" : ""}`}
+          />
+          {isDownloading
+            ? "Generating PDF..."
+            : isReady
+            ? "Download PDF"
+            : "Loading..."}
+        </button>
+      </div>
+
+      {/* Resume Content */}
+      <div ref={resumeRef} id="resume-content-to-print">
         <ResumeContent
           rollno={Student_rollno}
           name={info.user_name || name}
@@ -236,20 +291,6 @@ export default function PrintableResumeView(props) {
           info={info}
         />
       </div>
-      <div className="print-hide bg-gray-100 py-6 text-center">
-        <button
-          onClick={handlePrint}
-          // disabled={buttonState.disabled}
-          className={`inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:cursor-not-allowed transition-colors duration-200 ${buttonState.className}`}
-        >
-          <Printer
-            className={`mr-3 -ml-1 h-5 w-5 ${
-              isPrinting ? "animate-pulse" : ""
-            }`}
-          />
-          {buttonState.text}
-        </button>
-      </div>
-    </>
+    </div>
   );
 }

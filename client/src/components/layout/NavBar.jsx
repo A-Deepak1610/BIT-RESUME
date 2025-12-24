@@ -13,8 +13,6 @@ import { useNavigate, useLocation } from "react-router-dom";
 import logo from "../../assets/logo_bit.jpg";
 import logo_main from "../../assets/bit_logo.png";
 import useAuth from "../../store/UseAuth";
-
-// Icons
 import { User, Phone, Github, Linkedin, MapPin, Briefcase } from 'lucide-react';
 import GroupWorkOutlinedIcon from '@mui/icons-material/GroupWorkOutlined';
 import ApprovalOutlinedIcon from '@mui/icons-material/ApprovalOutlined';
@@ -23,7 +21,6 @@ import TuneOutlinedIcon from '@mui/icons-material/TuneOutlined';
 import BarChartOutlinedIcon from '@mui/icons-material/BarChartOutlined';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 
-// --- Reusable Input Field Component with Validation Display ---
 const InputField = ({ icon, name, placeholder, value, onChange, error }) => (
     <div>
         <div className="relative">
