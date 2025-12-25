@@ -89,6 +89,9 @@ func RegisterRoutes(r *gin.Engine) {
 		bothStudentFacultyAdmin.GET("/resume/getcertificates/:rollno", resume.GetCertificatesData)
 		bothStudentFacultyAdmin.GET("/resume/gethackathondata/:rollno", resume.GetHackathonData)
 		bothStudentFacultyAdmin.GET("/resume/getinternshipdata/:rollno", resume.GetInternshipData)
+		bothStudentFacultyAdmin.GET("/resume/getpapers/:rollno", resume.GetPapersData)
+		bothStudentFacultyAdmin.GET("/resume/getpatents/:rollno", resume.GetPatentsData)
+		bothStudentFacultyAdmin.GET("/resume/dashboardstats/:rollno", resume.GetDashboardStats)
 		bothStudentFacultyAdmin.GET("/aresofexpertise/:rollno", resume.GetAreasOfExpertise)
 		bothStudentFacultyAdmin.GET("/header/getprofile/:rollno", headerdetails.GetProfileDetails)
 	}

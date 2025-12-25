@@ -44,6 +44,8 @@ export default function SideBar() {
     if (path === "/admin-addactivity") return "addactivity";
     if(path == "/admin-studentsPerformance") return "studentsPerformance";
     if(path == "/admin-AddUsers") return "addusers";
+    if(path == "/uploadview/certificate") return "upload";
+    if(path == "/uploadview/paperpresentation") return "upload";
     return "";
   }, [location.pathname]);
 
@@ -157,7 +159,7 @@ export default function SideBar() {
                 </ul>
               </li>
 
-                  <li
+                  {/* <li
                     className={`flex items-center gap-3 cursor-pointer p-2 mt-3 rounded-md transition-all duration-300 ease-in-out ${
                   activeItem === "manageActivities"
                     ? "text-white bg-primary w-55"
@@ -170,7 +172,7 @@ export default function SideBar() {
                   >
                     <TuneOutlinedIcon fontSize="small" className="mr-1" />{" "}
                     Manage Activities
-                  </li>
+                  </li> */}
 
 
               <li

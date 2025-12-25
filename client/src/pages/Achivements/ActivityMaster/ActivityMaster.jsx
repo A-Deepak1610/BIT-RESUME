@@ -259,8 +259,6 @@ const ActivityMaster = () => {
         <div className="mb-6 border-b border-gray-200">
           <nav className="flex -mb-px space-x-1">
             <TabButton label="Activities" value="activities" />
-            <TabButton label="Surveys" value="surveys" />
-            <TabButton label="Meetings/Sessions" value="meetings" />
           </nav>
         </div>
 

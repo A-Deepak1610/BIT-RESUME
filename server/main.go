@@ -38,10 +38,10 @@ func main() {
 		panic("Failed to schedule cron job for Update Ps Data: " + errCron.Error())
 	}
 	// _, errCron = c.AddFunc("0 51 10 * * *", jobs.UpdateMentorShipsData) //Mentorships
-	// if errCron != nil {
+	// if errCron != nil {      
 	// 	panic("Failed to schedule cron job for mentorships: " + errCron.Error())
 	// }
-	_, errCron = c.AddFunc("0 41 14 * * *", jobs.CallDailyTasksForAllDates) //Daily Task
+	_, errCron = c.AddFunc("0 00 15 * * *", jobs.CallDailyTasksForAllDates) //Daily Task
 	if errCron != nil {
 		panic("Failed to schedule cron job for Daily Activity: " + errCron.Error())
 	}

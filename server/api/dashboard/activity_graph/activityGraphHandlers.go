@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -15,18 +16,18 @@ func FetchActivityGraphData(c *gin.Context) {
 	var r models.ActGph
 	role := c.GetString("role")
 	var rollno string
-    if role == "student" {
-        rollno = c.GetString("rollNo")   // set by middleware from cookie
-    } else if role == "faculty"||role=="Admin" {
-        rollno = c.Param("rollno")
-        if rollno == "" {
-            c.JSON(http.StatusBadRequest, gin.H{"error": "rollno query parameter required for faculty"})
-            return
-        }
-    } else {
-        c.JSON(http.StatusForbidden, gin.H{"error": "unauthorized role"})
-        return
-    }
+	if role == "student" {
+		rollno = c.GetString("rollNo") // set by middleware from cookie
+	} else if role == "faculty" || role == "Admin" {
+		rollno = c.Param("rollno")
+		if rollno == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "rollno query parameter required for faculty"})
+			return
+		}
+	} else {
+		c.JSON(http.StatusForbidden, gin.H{"error": "unauthorized role"})
+		return
+	}
 	rows, err := config.DB.Query("SELECT rollno, current_point, current_rank, sem, currdate FROM activity_graph WHERE rollno = ?", rollno)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
@@ -61,6 +62,7 @@ func FetchDataRank(rollno string) (models.ActGph, error) {
 	}
 	return r, nil
 }
+
 // FetchLastPoints fetches the most recent point total for a student
 func FetchLastPoints(rollno string) (models.ActGph, error) {
 	var r models.ActGph
@@ -79,21 +81,28 @@ func FetchLastPoints(rollno string) (models.ActGph, error) {
 	// fmt.Print("Last points: ", r.Current_point)
 	return r, nil
 }
+
 // HandleActivityGraphPoints calculates and updates current points and rank for a student called in cron job
 func HandleActivityGraphPoints(rollno string, sem int, currdate string) {
-	stmt, err := config.DB.Prepare("SELECT SUM(points) FROM points_logs WHERE rollno = ? AND currdate = ?")
+	// Use COALESCE to handle NULL when no points exist for the date
+	// Use DATE() to ensure consistent date comparison
+	stmt, err := config.DB.Prepare("SELECT COALESCE(SUM(points), 0) FROM points_logs WHERE rollno = ? AND DATE(currdate) = DATE(?)")
 	if err != nil {
 		log.Printf("Failed to prepare points sum query: %v", err)
-		return     
+		return
 	}
 	defer stmt.Close()
-	var r models.ActGph
+
+	var todayPoints float64
 	row := stmt.QueryRow(rollno, currdate)
-	err = row.Scan(&r.Current_point)
+	err = row.Scan(&todayPoints)
 	if err != nil {
 		log.Printf("Failed to scan SUM of points for %s on %s: %v", rollno, currdate, err)
 		return
 	}
+
+	log.Printf("Today's points for %s on %s: %f", rollno, currdate, todayPoints)
+
 	prevPoints, err := FetchLastPoints(rollno)
 	if err != nil {
 		log.Printf("Failed to fetch previous points for %s: %v", rollno, err)
@@ -101,13 +110,15 @@ func HandleActivityGraphPoints(rollno string, sem int, currdate string) {
 	}
 	var newpoints float64
 	var rank string
-	newpoints = float64(prevPoints.Current_point) + float64(r.Current_point)
+	newpoints = float64(prevPoints.Current_point) + todayPoints
 
-	if newpoints > 100{
+	log.Printf("Previous points: %f, Today points: %f, New points: %f", prevPoints.Current_point, todayPoints, newpoints)
+
+	if newpoints > 100 {
 		newpoints = 100 // Need to add bonus table
 	}
 	if newpoints < 70 {
-		newpoints = 70 //Need to add continuos inactivity table 
+		newpoints = 70 //Need to add continuos inactivity table
 	}
 	switch {
 	case newpoints >= 90:
@@ -128,38 +139,40 @@ func HandleActivityGraphPoints(rollno string, sem int, currdate string) {
 		log.Printf("Failed to insert activity graph data: %v", execErr)
 	}
 }
+
 // Handle inactivity for a student called in ----------------------cron job
 func HandleInactivity(rollno string, currDate string, sem int) error {
-    var count int
-    query := `SELECT COUNT(*) FROM points_logs WHERE rollno = ? AND DATE(currdate) = DATE(?)`
-    err := config.DB.QueryRow(query, rollno, currDate).Scan(&count)
-    if err != nil {
-        return fmt.Errorf("query error: %w", err)
-    }              
+	var count int
+	query := `SELECT COUNT(*) FROM points_logs WHERE rollno = ? AND DATE(currdate) = DATE(?)`
+	err := config.DB.QueryRow(query, rollno, currDate).Scan(&count)
+	if err != nil {
+		return fmt.Errorf("query error: %w", err)
+	}
 	fmt.Print("Count: ", count)
-    if count == 0 {
-        rank, rankerr := FetchDataRank(rollno)
-        if rankerr != nil {
-            return fmt.Errorf("rank fetch error: %w", rankerr)
-        }
-        var newpoints float64
-        if rank.Current_rank == "TITANIUM" {
-            newpoints = -0.4
-        } else if rank.Current_rank == "GOLD" {
-            newpoints = -0.3
-        } else {
-            newpoints = -0.2
-        }
-        insertQuery := `INSERT INTO points_logs(rollno, source, points, description, sem, currdate) 
+	if count == 0 {
+		rank, rankerr := FetchDataRank(rollno)
+		if rankerr != nil {
+			return fmt.Errorf("rank fetch error: %w", rankerr)
+		}
+		var newpoints float64
+		switch rank.Current_rank {
+		case "TITANIUM":
+			newpoints = -0.4
+		case "GOLD":
+			newpoints = -0.3
+		default:
+			newpoints = -0.2
+		}
+		insertQuery := `INSERT INTO points_logs(rollno, source, points, description, sem, currdate) 
                         VALUES (?, 'inactivity', ?, 'inactivity', ?, ?)`
-        _, err = config.DB.Exec(insertQuery, rollno, newpoints, sem, currDate)
-        if err != nil {
-            return fmt.Errorf("insert penalty error: %w", err)
-        }
-        fmt.Println("Penalty point added for", rollno)
-    } else {
-        fmt.Println("Point already added today for", rollno)
-    }
+		_, err = config.DB.Exec(insertQuery, rollno, newpoints, sem, currDate)
+		if err != nil {
+			return fmt.Errorf("insert penalty error: %w", err)
+		}
+		fmt.Println("Penalty point added for", rollno)
+	} else {
+		fmt.Println("Point already added today for", rollno)
+	}
 
-    return nil
+	return nil
 }

@@ -321,7 +321,7 @@ export default function NavBar() {
                   </li>
                 </ul>
               </li>
-              <li
+              {/* <li
                 className={`flex items-center gap-3 cursor-pointer p-2 mt-3 rounded-md transition-all duration-300 ease-in-out ${
                   activeItem === "manageActivities"
                     ? "text-white bg-primary w-55"
@@ -335,7 +335,7 @@ export default function NavBar() {
               >
                 <TuneOutlinedIcon fontSize="small" className="mr-1" />{" "}
                 Manage Activities
-              </li>
+              </li> */}
               <li
                 className={`flex items-center gap-3 cursor-pointer p-2 mt-3 rounded-md transition-all duration-300 ease-in-out ${
                   activeItem === "studentPerformance"

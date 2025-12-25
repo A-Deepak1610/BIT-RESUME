@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import Plot from "react-plotly.js";
-import achivementsPointsDataFromFile from "../../../../dummydatas/achivementPoints.json";
-import achivementPointsStudentDataFromFile from "../../../../dummydatas/achivementPointsStudent.json";
+// import achivementsPointsDataFromFile from "../../../../dummydatas/achivementPoints.json";
+// import achivementPointsStudentDataFromFile from "../../../../dummydatas/achivementPointsStudent.json";
 import useAuth from "../../../../store/UseAuth";
 
 const AchievementsGraph = React.memo((props) => {

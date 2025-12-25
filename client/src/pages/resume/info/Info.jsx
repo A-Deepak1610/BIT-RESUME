@@ -111,7 +111,7 @@ export default function Info(props) {
     return (
       <div className="h-full font-sans font-semibold px-4 bg-white py-3 overflow-y-auto scrollbar-hide">
         {/* Header */}
-        <div className="flex items-center text-primary mb-4">
+        <div className="flex items-center text-primary mb-3">
           <ArrowBackIcon
             onClick={() => navigate("/dashboard")}
             className="cursor-pointer mr-2"
@@ -119,7 +119,7 @@ export default function Info(props) {
           <h1 className="text-lg font-bold">BIT Resume</h1>
         </div>
         {/* Profile Section */}
-        <div className="flex flex-col items-center mb-6">
+        <div className="flex flex-col items-center mb-4">
           <img
             src={logo}
             alt="profile"
@@ -134,7 +134,7 @@ export default function Info(props) {
         </div>
 
         {/* Basic Info Section */}
-        <div className="grid grid-cols-2 gap-x-4 mb-6">
+        <div className="grid grid-cols-2 gap-x-4 mb-4">
           <div className="space-y-2 text-gray-900 text-sm">
             <div className="flex items-center text-[#dfb400]">
               <Trophy size={15} className="mr-2 flex-shrink-0" /> Group Rank
@@ -157,11 +157,10 @@ export default function Info(props) {
           </div>
         </div>
 
-        <div className="border-b border-gray-300 mb-6" />
-
+        <div className="border-b border-gray-300 mb-4" />
         {/* Additional Information */}
-        <div className="mb-6">
-          <h1 className="text-primary text-sm font-semibold mb-3">
+        <div className="mb-4">
+          <h1 className="text-primary text-sm font-semibold mb-2">
             ADDITIONAL INFORMATION
           </h1>
           <div className="grid grid-cols-2 gap-x-4">
@@ -211,10 +210,10 @@ export default function Info(props) {
             </div>
           </div>
         </div>
-        <div className="border-b border-gray-300 mb-6" />
+        <div className="border-b border-gray-300 mb-4" />
         {/* Areas of Expertise */}
         <div>
-          <h1 className="text-primary text-sm font-semibold mb-3">
+          <h1 className="text-primary text-sm font-semibold mb-2">
             AREAS OF EXPERTISE
           </h1>
           <div className="flex flex-wrap gap-2">
@@ -234,7 +233,7 @@ export default function Info(props) {
             )}
           </div>
         </div>
-        <div className="flex justify-center mt-5">
+        <div className="flex justify-center mt-4">
           <button
             onClick={() => {
               navigate("/downloadResume", {

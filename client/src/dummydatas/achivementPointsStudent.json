@@ -1,6 +1,0 @@
-[
-  { "rollno": "student123", "cummulative_points": 0, "points_earned": 0, "sem": 1, "currdate": "2024-01-01" },
-  { "rollno": "student123", "cummulative_points": 5, "points_earned": 5, "sem": 1, "currdate": "2024-01-02" },
-  { "rollno": "student123", "cummulative_points": 12, "points_earned": 7, "sem": 1, "currdate": "2024-01-03" },
-  { "rollno": "student123", "cummulative_points": 25, "points_earned": 10, "sem": 1, "currdate": "2024-01-04" }
-]

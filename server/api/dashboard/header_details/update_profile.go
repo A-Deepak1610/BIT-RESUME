@@ -74,15 +74,16 @@ func GetProfileDetails(c *gin.Context) {
 	}
 	role := c.GetString("role")
 	var rollno string
-	if role == "student" {
+	switch role {
+	case "student":
 		rollno = c.GetString("rollNo")
-	} else if role == "faculty" || role == "Admin" {
+	case "faculty", "Admin":
 		rollno = c.Param("rollno")
 		if rollno == "" {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "rollno query parameter required for faculty"})
 			return
 		}
-	} else {
+	default:
 		c.JSON(http.StatusForbidden, gin.H{"error": "unauthorized role"})
 		return
 	}
