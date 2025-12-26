@@ -29,6 +29,7 @@ import DownloadResume from "../pages/resume/downloadResume";
 import AdminDashboard from "../pages/Admin/AdminDashboard/AdminDashboard";
 import Addusers from "../pages/Admin/AddUsers/Addusers";
 import AddActivity from "../pages/faculty/add-activity/AddActivity";
+import Reports from "../pages/Admin/reports/Reports";
 
 export default function Applayout() {
   const { fetchUser, user, loading } = useAuth();
@@ -79,9 +80,10 @@ export default function Applayout() {
           <Route element={<ProtectedRoute allowedRoles={["Admin"]}/>}>
           <Route element={<DashboardLayout/>}>
             <Route path="/admin-addactivity" element={<AddActivity/>}/>
-            <Route path="/admin-studentsPerformance" element={<StudentPerformance/>}/>\
             <Route path="/admin-dashboard" element={<AdminDashboard/>}/>
+            <Route path="/admin-reports" element={<Reports/>}/>
             <Route path="/admin-AddUsers" element={<Addusers/>}/>
+            <Route path="/admin-studentsPerformance" element={<StudentPerformance/>}/>
           </Route>
           <Route path="/admin-resume" element={<Resume/>}/>
           </Route>

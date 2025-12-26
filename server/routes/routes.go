@@ -109,6 +109,10 @@ func RegisterRoutes(r *gin.Engine) {
 		adminOnly.GET("/admin/dashboard/category-summary", admin.GetCategorySummary)
 		adminOnly.GET("/admin/dashboard/user-stats", admin.GetUserStats)
 		adminOnly.GET("/admin/dashboard/faculty-performance", admin.GetFacultyPerformance)
+		// Admin Analytics
+		adminOnly.GET("/admin/analytics", admin.GetAnalytics)
+		adminOnly.GET("/admin/analytics/years", admin.GetYearsList)
+		adminOnly.GET("/admin/analytics/rollnos", admin.GetRollnosList)
 	}
 	r.GET("/api/activitymaster/fetch", addevents.FetchEvents)
 	//both student and faculty

@@ -157,14 +157,8 @@ export default function Dashboard() {
           const projects = uploadsData.filter(
             (item) => item.type === "Project"
           );
-          const certificates = uploadsData.filter(
-            (item) => item.type === "Certificate"
-          );
           const internships = uploadsData.filter(
             (item) => item.type === "Internship"
-          );
-          const hackathons = certificates.filter(
-            (item) => item["SUb-type"] === "Hackathon"
           );
           const pending = uploadsData.filter(
             (item) => item.status === "Pending"
@@ -179,8 +173,6 @@ export default function Dashboard() {
           setStats((prev) => ({
             ...prev,
             totalProjects: projects.length,
-            totalCertifications: certificates.length,
-            totalHackathons: hackathons.length,
             totalInternships: internships.length,
             pendingApprovals: pending.length,
             approvedItems: approved.length,
@@ -203,6 +195,49 @@ export default function Dashboard() {
           });
           setRecentUploads(formattedUploads);
         }
+
+        // Fetch verified certifications count from resume API
+        try {
+          const certRes = await fetch(
+            `${API_URL}api/resume/getcertificates/${rollno}`,
+            { credentials: "include" }
+          );
+          if (certRes.ok) {
+            const certData = await certRes.json();
+            setStats((prev) => ({
+              ...prev,
+              totalCertifications: Array.isArray(certData)
+                ? certData.length
+                : 0,
+            }));
+          }
+        } catch (err) {
+          console.error("Error fetching certifications:", err);
+        }
+
+        // Fetch verified hackathons count from resume API
+        try {
+          const hackRes = await fetch(
+            `${API_URL}api/resume/gethackathondata/${rollno}`,
+            { credentials: "include" }
+          );
+          if (hackRes.ok) {
+            const hackData = await hackRes.json();
+            setStats((prev) => ({
+              ...prev,
+              totalHackathons: Array.isArray(hackData) ? hackData.length : 0,
+            }));
+          } else if (hackRes.status === 404) {
+            // No hackathons found - set count to 0
+            setStats((prev) => ({
+              ...prev,
+              totalHackathons: 0,
+            }));
+          }
+        } catch (err) {
+          console.error("Error fetching hackathons:", err);
+        }
+
         // Fetch dashboard stats (papers and patents count)
         try {
           const statsRes = await fetch(

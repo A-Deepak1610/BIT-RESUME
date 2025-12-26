@@ -495,36 +495,6 @@ export default function AdminDashboard() {
         )}
 
         {/* User Statistics (Overall - not date filtered) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <StatCard
-            icon={Users}
-            title="Total Users"
-            value={userStats.total.toLocaleString()}
-            subtitle="Registered students"
-            color="bg-blue-500"
-            trend={5.2}
-          />
-          <StatCard
-            icon={UserCheck}
-            title="Active Users"
-            value={userStats.active.toLocaleString()}
-            subtitle={`${
-              userStats.total > 0
-                ? ((userStats.active / userStats.total) * 100).toFixed(1)
-                : 0
-            }% active rate`}
-            color="bg-green-500"
-            trend={2.1}
-          />
-          <StatCard
-            icon={UserX}
-            title="Inactive Users"
-            value={userStats.inactive.toLocaleString()}
-            subtitle="Need engagement"
-            color="bg-red-500"
-            trend={-1.5}
-          />
-        </div>
 
         {/* Upload Overview (Date filtered) */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

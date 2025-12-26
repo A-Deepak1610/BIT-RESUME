@@ -73,7 +73,7 @@ export default function StudentPerformance({
                                         ${selectedStudentName === item.user_name ? 'ring-2 ring-indigo-500 border-indigo-500' : ''} `}
                             onClick={() => handleClickOnLeft(item)}
                         >
-                            <div className="flex flex-col sm:flex-row justify-between sm:items-start mb-3">
+                            <div className="flex flex-col sm:flex-row justify-between sm:items-start">
                                 <div className="flex flex-col">
                                     <h3 className="text-lg font-semibold text-indigo-700 mb-1">
                                         {item.user_name}
@@ -82,32 +82,13 @@ export default function StudentPerformance({
                                         Roll: {item.rollno}
                                     </p>
                                 </div>
-                                <span
+                                {/* <span
                                     className={`px-3 py-1 text-xs font-medium rounded-full whitespace-nowrap mt-2 sm:mt-0 ${getRankBadgeColor(
                                         item.current_rank
                                     )}`}
                                 >
                                     {item.current_rank}
-                                </span>
-                            </div>
-
-                            <div className="flex flex-col sm:flex-row gap-5">
-                                <div className="bg-indigo-50 p-3 rounded-lg shadow-inner w-full">
-                                    <p className="text-xs text-indigo-500 font-medium mb-0.5">
-                                        Cumulative Points
-                                    </p>
-                                    <p className="text-xl font-bold text-indigo-600">
-                                        {item.cummulative_points}
-                                    </p>
-                                </div>
-                                <div className="bg-green-50 p-3 rounded-lg shadow-inner w-full">
-                                    <p className="text-xs text-green-500 font-medium mb-0.5">
-                                        Current Points
-                                    </p>
-                                    <p className="text-md font-semibold text-green-700">
-                                        {item.current_point}
-                                    </p>
-                                </div>
+                                </span> */}
                             </div>
                         </div>
                     ))}

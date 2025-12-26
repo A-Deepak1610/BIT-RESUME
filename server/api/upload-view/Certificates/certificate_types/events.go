@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func ReceiveEventsData(c *gin.Context,id int) {
+func ReceiveEventsData(c *gin.Context, id int) {
 	rollno := c.PostForm("rollno")
 	eventName := c.PostForm("event_name")
 	eventCode := c.PostForm("event_code")
@@ -17,6 +17,7 @@ func ReceiveEventsData(c *gin.Context,id int) {
 	summary := c.PostForm("summary")
 	participationType := c.PostForm("participation_type")
 	didYouWin := c.PostForm("did_you_win")
+	linkedin_link := c.PostForm("linkedinLink")
 
 	// Retrieve the uploaded certificate file
 	certificateFile, err := c.FormFile("certificate_pdf")
@@ -53,14 +54,15 @@ func ReceiveEventsData(c *gin.Context,id int) {
 			certificate_pdf,
 			summary,
 			did_you_win,
+			linkedin_link,
 			faculty_name,
 			faculty_id,
 			faculty_remarks,
 			submission_date
-		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_DATE)
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_DATE)
 	`
 
-	fmt.Println("Certificate_id: ",id)
+	fmt.Println("Certificate_id: ", id)
 
 	_, err = config.DB.Exec(query,
 		id,
@@ -72,9 +74,10 @@ func ReceiveEventsData(c *gin.Context,id int) {
 		savePath,
 		summary,
 		didYouWin,
-		"",     // faculty_name (to be filled later)
-		"",     // faculty_id
-		"",     // faculty_remarks
+		linkedin_link,
+		"", // faculty_name (to be filled later)
+		"", // faculty_id
+		"", // faculty_remarks
 	)
 
 	if err != nil {

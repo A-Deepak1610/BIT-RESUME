@@ -607,32 +607,46 @@ export default function UploadView() {
                       {upload.complexity}
                     </td>
                     <td className="py-4 px-4 align-top">
-                      <div className="flex items-center">
-                        {upload.status === "Verified" ? (
-                          <>
-                            <span className="inline-flex items-center justify-center w-5 h-5 bg-green-100 rounded-full mr-2">
-                              <Check size={12} className="text-green-500" />
-                            </span>
-                            <span className="text-sm">Verified</span>
-                          </>
-                        ) : upload.status === "Pending" ? (
-                          <>
-                            <span className="inline-flex items-center justify-center w-5 h-5 bg-yellow-100 rounded-full mr-2">
-                              <AlertCircle
-                                size={12}
-                                className="text-yellow-500"
-                              />
-                            </span>
-                            <span className="text-sm">Pending</span>
-                          </>
-                        ) : (
-                          <>
-                            <span className="inline-flex items-center justify-center w-5 h-5 bg-red-100 rounded-full mr-2">
-                              <AlertCircle size={12} className="text-red-500" />
-                            </span>
-                            <span className="text-sm">Rejected</span>
-                          </>
-                        )}
+                      <div className="flex flex-col">
+                        <div className="flex items-center">
+                          {upload.status === "Verified" ? (
+                            <>
+                              <span className="inline-flex items-center justify-center w-5 h-5 bg-green-100 rounded-full mr-2">
+                                <Check size={12} className="text-green-500" />
+                              </span>
+                              <span className="text-sm">Verified</span>
+                            </>
+                          ) : upload.status === "Pending" ? (
+                            <>
+                              <span className="inline-flex items-center justify-center w-5 h-5 bg-yellow-100 rounded-full mr-2">
+                                <AlertCircle
+                                  size={12}
+                                  className="text-yellow-500"
+                                />
+                              </span>
+                              <span className="text-sm">Pending</span>
+                            </>
+                          ) : (
+                            <>
+                              <span className="inline-flex items-center justify-center w-5 h-5 bg-red-100 rounded-full mr-2">
+                                <AlertCircle
+                                  size={12}
+                                  className="text-red-500"
+                                />
+                              </span>
+                              <span className="text-sm">Rejected</span>
+                            </>
+                          )}
+                        </div>
+                        {upload.faculty_remarks &&
+                          upload.status !== "Pending" && (
+                            <div className="mt-2 text-xs text-gray-600 bg-gray-50 p-2 rounded border border-gray-200 max-w-[200px]">
+                              <span className="font-medium text-gray-700">
+                                Remarks:{" "}
+                              </span>
+                              {upload.faculty_remarks}
+                            </div>
+                          )}
                       </div>
                     </td>
                     <td className="py-4 px-4 align-top">
@@ -827,6 +841,12 @@ function MobileCard({
           <div className="text-sm font-medium mb-3">{upload.ashId}</div>
           <div className="text-xs text-gray-500 mb-1">Uploaded On</div>
           <div className="text-sm font-medium mb-3">{upload.uploadDate}</div>
+          {upload.faculty_remarks && upload.status !== "Pending" && (
+            <div className="mb-3 p-2 bg-gray-50 rounded border border-gray-200">
+              <p className="text-xs text-gray-500 mb-1">Faculty Remarks</p>
+              <p className="text-sm text-gray-700">{upload.faculty_remarks}</p>
+            </div>
+          )}
           <div className="flex space-x-2 pt-2 border-t border-gray-100">
             <button
               onClick={() =>

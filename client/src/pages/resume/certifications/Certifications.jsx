@@ -1,35 +1,40 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import { ShieldCheck, Loader2 } from "lucide-react"; // Re-add Loader2
 import linkedin_icon from "../../../assets/linkedin.png";
-import useAuth from '../../../store/UseAuth';
+import useAuth from "../../../store/UseAuth";
 
 export default function Certifications(props) {
   const [certificationsData, setCertificationsData] = useState([]);
   const [loading, setLoading] = useState(true); // Best practice: add loading state
-  const [error, setError] = useState(null);     // Best practice: add error state
+  const [error, setError] = useState(null); // Best practice: add error state
   const { rollno } = useAuth();
 
   useEffect(() => {
     if (!rollno) {
-      return; 
+      return;
     }
-    const student_rollno = props.rollno || '-';
+    const student_rollno = props.rollno || "-";
     const fetchCertifications = async () => {
       setLoading(true); // Start loading
-      setError(null);   // Reset errors
+      setError(null); // Reset errors
 
       try {
-        const response = await fetch(`http://localhost:6001/api/resume/getcertificates/${student_rollno}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include", 
-        });
+        const response = await fetch(
+          `http://localhost:6001/api/resume/getcertificates/${student_rollno}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+          }
+        );
 
         if (!response.ok) {
           // Provide a more specific error based on the status
-          throw new Error(`Failed to fetch certifications. Status: ${response.status}`);
+          throw new Error(
+            `Failed to fetch certifications. Status: ${response.status}`
+          );
         }
 
         const data = await response.json();
@@ -37,7 +42,6 @@ export default function Certifications(props) {
 
         // THE FIX: Set state with the data array directly
         setCertificationsData(data);
-
       } catch (err) {
         console.error("Error fetching certifications:", err);
         setError(err.message); // Set the error state for the UI
@@ -47,7 +51,6 @@ export default function Certifications(props) {
     };
 
     fetchCertifications();
-
   }, [rollno]);
   const renderContent = () => {
     if (loading) {
@@ -62,7 +65,7 @@ export default function Certifications(props) {
     if (error) {
       return <div className="text-red-500 p-4">{error}</div>;
     }
-    
+
     if (!certificationsData || certificationsData.length === 0) {
       return <div className="text-gray-500 p-4">No certifications found.</div>;
     }
@@ -73,14 +76,35 @@ export default function Certifications(props) {
           <div className="w-6 h-6 border flex items-center justify-center border-[#9b9aff] rounded-full flex-shrink-0">
             <img src={linkedin_icon} className="w-4 h-4 rounded" alt="icon" />
           </div>
-          <span className="text-[#01009E] text-[14px] font-semibold ml-2">
-            {certification.title}
-          </span>
+          <div className="ml-2 flex-1">
+            {certification.linkedin_link ? (
+              <a
+                href={certification.linkedin_link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#01009E] text-[14px] font-semibold hover:underline cursor-pointer"
+              >
+                {certification.title}
+              </a>
+            ) : (
+              <span className="text-[#01009E] text-[14px] font-semibold">
+                {certification.title}
+              </span>
+            )}
+            <div className="text-xs text-gray-500 mt-1">
+              {certification.platform && <span>{certification.platform}</span>}
+              {certification.platform && certification.issue_date && (
+                <span> • </span>
+              )}
+              {certification.issue_date && (
+                <span>{certification.issue_date}</span>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     ));
   };
-
 
   return (
     <div className="p-2 lg:ml-2 bg-white shadow rounded-lg h-[30vh] flex flex-col">
@@ -88,7 +112,7 @@ export default function Certifications(props) {
         <ShieldCheck className="text-[#7371ff]" />
         <span className="ml-1">Professional Certification</span>
       </div>
-    
+
       <div className="mt-2 overflow-y-auto space-y-3 pr-1 flex-1">
         {renderContent()}
       </div>

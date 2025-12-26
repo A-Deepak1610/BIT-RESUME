@@ -1,0 +1,183 @@
+[
+  {
+    "Event Name": "InnovateX Hackathon 2025",
+    "Location": "Indian Institute of Technology, Delhi",
+    "Date": "01.05.2025",
+    "Mode": "Online",
+    "Team size": "Team of 1 to 4",
+    "Prize Money": "₹2,00,000",
+    "Feild or Domain" : "AI , ML , Blockchain",
+    "Applied Teams" : 15,
+    "Eligibility Status" : "Eligible",
+    "Registration Death Line" : "30.04.2025",
+    "Reward Points" : {
+      "Round 1":{
+        "Discription" : "Proposal Submission (Online)",
+        "Year 1" : 600,
+        "Year 2" : 600,
+        "year 3" : 1000,
+        "Year 4" : 1000
+      },
+      "Round 2" : {
+        "Discription" : "Final Presentation (Offline)",
+        "Year 1" : 1000,
+        "Year 2" : 1000,
+        "year 3" : 1500,
+        "Year 4" : 1500
+      }
+    },
+    "Event code" : "INHACK2025"
+  },
+  {
+    "Event Name": "Data Science Challenge",
+    "Location": "Online",
+    "Date": "15.06.2025",
+    "Mode": "Online",
+    "Team size": "Team of 2 to 5",
+    "Prize Money": "₹1,50,000"
+  },
+  {
+    "Event Name": "Future Coders Cup",
+    "Location": "IISc Bangalore",
+    "Date": "10.07.2025",
+    "Mode": "Offline",
+    "Team size": "Individual",
+    "Prize Money": "₹1,00,000"
+  },
+  {
+    "Event Name": "TechSprint 5.0",
+    "Location": "MIT Chennai",
+    "Date": "20.05.2025",
+    "Mode": "Offline",
+    "Team size": "Team of 2 to 4",
+    "Prize Money": "₹2,50,000"
+  },
+  {
+    "Event Name": "AlgoWarriors League",
+    "Location": "Online",
+    "Date": "25.06.2025",
+    "Mode": "Online",
+    "Team size": "Team of 1 to 3",
+    "Prize Money": "₹1,00,000"
+  },
+  {
+    "Event Name": "CodeCombat 2025",
+    "Location": "BITS Pilani",
+    "Date": "05.07.2025",
+    "Mode": "Offline",
+    "Team size": "Individual",
+    "Prize Money": "₹75,000"
+  },
+  {
+    "Event Name": "Neural Hack Summit",
+    "Location": "IIIT Hyderabad",
+    "Date": "18.07.2025",
+    "Mode": "Hybrid",
+    "Team size": "Team of 1 to 4",
+    "Prize Money": "₹3,00,000"
+  },
+  {
+    "Event Name": "Hackfinity",
+    "Location": "NIT Trichy",
+    "Date": "01.08.2025",
+    "Mode": "Offline",
+    "Team size": "Team of 2 to 5",
+    "Prize Money": "₹1,75,000"
+  },
+  {
+    "Event Name": "Quantum Code Clash",
+    "Location": "Online",
+    "Date": "10.08.2025",
+    "Mode": "Online",
+    "Team size": "Individual",
+    "Prize Money": "₹50,000"
+  },
+  {
+    "Event Name": "Hack the Future",
+    "Location": "IIT Bombay",
+    "Date": "15.08.2025",
+    "Mode": "Offline",
+    "Team size": "Team of 3 to 5",
+    "Prize Money": "₹2,20,000"
+  },
+  {
+    "Event Name": "DevStorm 2025",
+    "Location": "Online",
+    "Date": "01.09.2025",
+    "Mode": "Online",
+    "Team size": "Team of 1 to 4",
+    "Prize Money": "₹1,20,000"
+  },
+  {
+    "Event Name": "Binary Battle",
+    "Location": "Amrita Vishwa Vidyapeetham",
+    "Date": "12.09.2025",
+    "Mode": "Offline",
+    "Team size": "Team of 2 to 3",
+    "Prize Money": "₹80,000"
+  },
+  {
+    "Event Name": "HackHub India",
+    "Location": "Online",
+    "Date": "20.09.2025",
+    "Mode": "Online",
+    "Team size": "Team of 1 to 5",
+    "Prize Money": "₹1,50,000"
+  },
+  {
+    "Event Name": "DeepTech Duel",
+    "Location": "IIT Kanpur",
+    "Date": "30.09.2025",
+    "Mode": "Offline",
+    "Team size": "Individual",
+    "Prize Money": "₹1,00,000"
+  },
+  {
+    "Event Name": "AIthon 2025",
+    "Location": "Online",
+    "Date": "05.10.2025",
+    "Mode": "Online",
+    "Team size": "Team of 1 to 3",
+    "Prize Money": "₹2,00,000"
+  },
+  {
+    "Event Name": "CodeCrush",
+    "Location": "IIT Roorkee",
+    "Date": "10.10.2025",
+    "Mode": "Offline",
+    "Team size": "Team of 2 to 4",
+    "Prize Money": "₹1,10,000"
+  },
+  {
+    "Event Name": "StackHack Challenge",
+    "Location": "Online",
+    "Date": "20.10.2025",
+    "Mode": "Online",
+    "Team size": "Team of 3 to 6",
+    "Prize Money": "₹2,50,000"
+  },
+  {
+    "Event Name": "Smart India Hackathon",
+    "Location": "Hybrid",
+    "Date": "01.11.2025",
+    "Mode": "Hybrid",
+    "Team size": "Team of 2 to 6",
+    "Prize Money": "₹3,00,000"
+  },
+  {
+    "Event Name": "EcoTech Challenge",
+    "Location": "IIT Madras",
+    "Date": "10.11.2025",
+    "Mode": "Offline",
+    "Team size": "Team of 1 to 4",
+    "Prize Money": "₹1,50,000"
+  },
+  {
+    "Event Name": "Codeathon Prime",
+    "Location": "Online",
+    "Date": "20.11.2025",
+    "Mode": "Online",
+    "Team size": "Team of 2 to 5",
+    "Prize Money": "₹2,00,000"
+  }
+]

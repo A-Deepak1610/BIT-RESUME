@@ -1,0 +1,54 @@
+[
+  {
+    "id": 1,
+    "studentName": "Miguel Rodriguez",
+    "submissionDate": "May 1, 2025",
+    "status": "Awaiting",
+    "eventTitle": "Urban Water Management Conference",
+    "eventType": "Seminar",
+    "reason": "To present a research paper on sustainable urban water management solutions.",
+    "remarks": "Paper already cited by three researchers; opportunity to represent the institution.",
+    "eventDate": "Apr 25, 2025",
+    "isExpanded": false,
+    "approvalType": "Event"
+  },
+  {
+    "id": 2,
+    "studentName": "Zoe Williams",
+    "submissionDate": "May 8, 2025",
+    "status": "Awaiting",
+    "eventTitle": "International Conference on Quantum Computing",
+    "eventType": "Conference",
+    "reason": "To present research on qubit stability and attend networking sessions.",
+    "remarks": "Received positive peer review and valuable feedback from leading experts.",
+    "eventDate": "May 5, 2025",
+    "isExpanded": false,
+    "approvalType": "Event"
+  },
+  {
+    "id": 3,
+    "studentName": "Aisha Khan",
+    "submissionDate": "Apr 15, 2025",
+    "status": "Verified",
+    "eventTitle": "AI in Healthcare Diagnostics Workshop",
+    "eventType": "Workshop",
+    "reason": "To present AI model research and attend expert sessions on diagnostic AI tools.",
+    "remarks": "Research accepted in JMIR; model achieved 95% accuracy in trials.",
+    "eventDate": "Mar 30, 2025",
+    "isExpanded": false,
+    "approvalType": "Event"
+  },
+  {
+    "id": 4,
+    "studentName": "David Lee",
+    "submissionDate": "Mar 20, 2025",
+    "status": "Rejected",
+    "eventTitle": "Energy Storage Tech Symposium",
+    "eventType": "Symposium",
+    "reason": "To present comparative research on battery technologies.",
+    "remarks": "Research scope too broad; further refinement needed before future participation.",
+    "eventDate": "Feb 28, 2025",
+    "isExpanded": false,
+    "approvalType": "Event"
+  }
+]

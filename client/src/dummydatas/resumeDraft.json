@@ -1,0 +1,37 @@
+[
+  {
+    "year-1": [
+      { "name": "Mohammed Kalif", "rollNo": "23Y1S001" },
+      { "name": "Veerendra", "rollNo": "23Y1S002" },
+      { "name": "Selva", "rollNo": "23Y1S003" },
+      { "name": "Aarav Mehta", "rollNo": "23Y1S004" },
+      { "name": "Diya Nair", "rollNo": "23Y1S005" },
+      { "name": "Rohan Iyer", "rollNo": "23Y1S006" },
+      { "name": "Sneha Sharma", "rollNo": "23Y1S007" },
+      { "name": "Aditya Rao", "rollNo": "23Y1S008" },
+      { "name": "Kavya Reddy", "rollNo": "23Y1S009" },
+      { "name": "Nikhil Das", "rollNo": "23Y1S010" }
+    ],
+    "year-2": [
+      { "name": "Mohammed Kalif", "rollNo": "22Y2S001" }, 
+      { "name": "Veerendra", "rollNo": "22Y2S002" },
+      { "name": "Selva", "rollNo": "22Y2S003" },
+      { "name": "Ishaan Joshi", "rollNo": "22Y2S004" },
+      { "name": "Mira Patel", "rollNo": "22Y2S005" },
+      { "name": "Rahul Singh", "rollNo": "22Y2S006" },
+      { "name": "Ananya Verma", "rollNo": "22Y2S007" },
+      { "name": "Siddharth Pillai", "rollNo": "22Y2S008" },
+      { "name": "Tanya Kapoor", "rollNo": "22Y2S009" },
+      { "name": "Vikram Desai", "rollNo": "22Y2S010" }
+    ],
+    "year-3": [
+      { "name": "Arjun Kumar", "rollNo": "21Y3S001" },
+      { "name": "Priya Gupta", "rollNo": "21Y3S002" },
+      { "name": "Ravi Chandra", "rollNo": "21Y3S003" }
+    ],
+    "year-4": [
+        { "name": "Deepak Sharma", "rollNo": "20Y4S001" },
+        { "name": "Lakshmi Menon", "rollNo": "20Y4S002" }
+    ]
+  }
+]

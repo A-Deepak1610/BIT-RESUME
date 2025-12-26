@@ -29,7 +29,7 @@ func GetHackathonData(c *gin.Context) {
         FROM certificates_events ce
         JOIN events e ON ce.event_code = e.event_code
         JOIN certificates_type ct ON ct.id = ce.certificate_id
-        WHERE ce.rollno = ? AND ct.status = 'Verified';
+        WHERE ce.rollno = ? AND ct.status = 'Verified' order by ce.submission_date desc
     `
 
 	rows, err := config.DB.Query(query, rollno)
@@ -64,10 +64,14 @@ func GetHackathonData(c *gin.Context) {
 		results = append(results, result)
 	}
 
-	// check if no rows found
-	if len(results) == 0 {
-		c.JSON(http.StatusNotFound, gin.H{"message": "No hackathon data found"})
-		return
+	// Return empty array if no rows found (instead of 404)
+	if results == nil {
+		results = []struct {
+			ImgUrl    string `json:"img_url"`
+			EventName string `json:"event_name"`
+			DidYouWin string `json:"did_you_win"`
+			Summary   string `json:"summary"`
+		}{}
 	}
 
 	c.JSON(http.StatusOK, results)

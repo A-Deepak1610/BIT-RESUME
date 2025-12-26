@@ -9,7 +9,7 @@ import (
 )
 
 func UploadViewDashboard(c *gin.Context) {
-	rollno:=c.GetString("rollNo")
+	rollno := c.GetString("rollNo")
 	query := `
 SELECT *
 FROM (
@@ -26,8 +26,10 @@ FROM (
         END AS status,
         p.created_at AS uploaded_on,
         NULL AS subtype,
-        p.rollno
-    FROM projects p
+        p.rollno,
+        COALESCE(pe.faculty_remarks, '') as faculty_remarks
+    FROM projects p 
+    LEFT JOIN project_evaluation pe ON pe.project_id = p.id
     WHERE p.rollno = ?
 
     UNION ALL
@@ -46,7 +48,8 @@ FROM (
         END AS status,
         i.submitted_on AS uploaded_on,
         NULL AS subtype,
-        i.rollno
+        i.rollno,
+        COALESCE(i.faculty_remarks, '') as faculty_remarks
     FROM internships i
     WHERE i.rollno = ?
 
@@ -66,7 +69,8 @@ FROM (
         END AS status,
         pp.submitted_on AS uploaded_on,
         NULL AS subtype,
-        pp.rollno
+        pp.rollno,
+        COALESCE(pp.faculty_remarks, '') as faculty_remarks
     FROM paperpresentation pp
     WHERE pp.rollno = ?
 
@@ -86,29 +90,10 @@ FROM (
         END AS status,
         pat.submission_date AS uploaded_on,
         NULL AS subtype,
-        pat.rollno
+        pat.rollno,
+        COALESCE(pat.faculty_remarks, '') as faculty_remarks
     FROM patents pat
     WHERE pat.rollno = ?
-
-    UNION ALL
-
-    SELECT
-        w.id,
-        w.title AS title,
-        w.topics_covered AS description,
-        'Workshop' AS type,
-        NULL AS complexity,
-        CASE
-            WHEN w.status = 'Pending' THEN 'Pending'
-            WHEN w.status = 'Approved' THEN 'Verified'
-            WHEN w.status = 'Rejected' THEN 'Rejected'
-            ELSE w.status
-        END AS status,
-        w.submitted_on AS uploaded_on,
-        NULL AS subtype,
-        w.rollno
-    FROM workshops w
-    WHERE w.rollno = ?
 
     UNION ALL
 
@@ -126,7 +111,8 @@ FROM (
         END AS status,
         ct.created_at AS uploaded_on,
         ct.certificate_type AS subtype,
-        ct.rollno
+        ct.rollno,
+        COALESCE(coc.faculty_remarks, '') as faculty_remarks
     FROM certificates_type ct
     JOIN certificate_onlinecourses coc ON ct.id = coc.certiificate_id
     WHERE ct.rollno = ?
@@ -147,7 +133,8 @@ FROM (
         END AS status,
         ce.submission_date AS uploaded_on,
         ct.certificate_type AS subtype,
-        ct.rollno
+        ct.rollno,
+        COALESCE(ce.faculty_remarks, '') as faculty_remarks
     FROM certificates_type ct
     JOIN certificates_events ce ON ct.id = ce.certificate_id
     WHERE ct.rollno = ?
@@ -168,7 +155,8 @@ FROM (
         END AS status,
         cv.submission_date AS uploaded_on,
         ct.certificate_type AS subtype,
-        ct.rollno
+        ct.rollno,
+        COALESCE(cv.faculty_reamrks, '') as faculty_remarks
     FROM certificates_type ct
     JOIN certificates_voluntree cv ON ct.id = cv.certificate_id
     WHERE ct.rollno = ?
@@ -184,7 +172,7 @@ ORDER BY
 
 	`
 
-	rows, err := config.DB.Query(query, rollno, rollno, rollno, rollno, rollno, rollno, rollno, rollno)
+	rows, err := config.DB.Query(query, rollno, rollno, rollno, rollno, rollno, rollno, rollno)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -203,8 +191,9 @@ ORDER BY
 			&u.Complexity,
 			&u.Status,
 			&u.UploadedOn,
-            &u.Subtype,
+			&u.Subtype,
 			&u.RollNo,
+			&u.FacultyRemarks,
 		)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

@@ -13,7 +13,7 @@ import VerifiedOutlinedIcon from "@mui/icons-material/VerifiedOutlined";
 import TuneOutlinedIcon from "@mui/icons-material/TuneOutlined";
 import BarChartOutlinedIcon from "@mui/icons-material/BarChartOutlined";
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 export default function SideBar() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -46,6 +46,7 @@ export default function SideBar() {
     if(path == "/admin-AddUsers") return "addusers";
     if(path == "/uploadview/certificate") return "upload";
     if(path == "/uploadview/paperpresentation") return "upload";
+    if(path == "/admin-reports") return "admin-reports";
     return "";
   }, [location.pathname]);
 
@@ -248,6 +249,16 @@ export default function SideBar() {
                 onClick={() => navigate("/admin-studentsPerformance")}
               >
                 <BarChartOutlinedIcon fontSize="small" /> Student Metrics
+              </li>
+              <li
+                className={`flex items-center gap-3 cursor-pointer p-2 rounded-md transition-all duration-300 ease-in-out ${
+                  activeItem === "admin-reports"
+                    ? "text-white bg-primary w-55"
+                    : "hover:bg-gray-100"
+                }`}
+                onClick={() => navigate("/admin-reports")}
+              >
+                <AutoAwesomeIcon fontSize="small" /> Report Generation
               </li>
               <li
                 className={`flex items-center gap-3 cursor-pointer p-2 rounded-md transition-all duration-300 ease-in-out ${
