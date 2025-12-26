@@ -8,6 +8,8 @@ import PsDataForResume from "./PsDataForResume";
 import MentorMenteeForResume from "./MentorMenteeForResume";
 import AreasOfExpertise from "./AreasOfExpertise";
 import AccomplishmentsForResume from "./AccomplishmentsForResume";
+import PaperPresentationsForResume from "./PaperPresentationsForResume";
+import PatentsForResume from "./PatentsForResume";
 import ActivenessGraphForResume from "../dashboard/graphs/graph1/ActivenessGraphForResume";
 import AchievementsGraphForResume from "../dashboard/graphs/grpah2/AchievementsGraphForResume";
 import A4Page from "./A4Page";
@@ -109,6 +111,12 @@ const ResumeContent = ({ rollno, name, email, info }) => (
       </Section>
       <Section title="Projects">
         <ProjectsForResume rollno={rollno} />
+      </Section>
+      <Section title="Paper Presentations">
+        <PaperPresentationsForResume rollno={rollno} />
+      </Section>
+      <Section title="Patents">
+        <PatentsForResume rollno={rollno} />
       </Section>
     </A4Page>
   </div>

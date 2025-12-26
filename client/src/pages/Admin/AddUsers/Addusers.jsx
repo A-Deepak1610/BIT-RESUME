@@ -476,7 +476,6 @@ export default function Addusers() {
         setSearchTerm("");
         setSelectedUser(null);
     };
-
     const handleOpenAddModal = () => {
         setEditingUser(null);
         setIsModalOpen(true);
