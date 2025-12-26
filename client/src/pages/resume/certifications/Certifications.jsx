@@ -20,7 +20,7 @@ export default function Certifications(props) {
 
       try {
         const response = await fetch(
-          `http://localhost:6001/api/resume/getcertificates/${student_rollno}`,
+          `${import.meta.env.VITE_API_URL}api/resume/getcertificates/${student_rollno}`,
           {
             method: "GET",
             headers: {

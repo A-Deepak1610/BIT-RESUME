@@ -39,7 +39,7 @@ export default function PaperPresentationsForResume(props) {
 
       try {
         const response = await fetch(
-          `http://localhost:6001/api/resume/getpapers/${Student_rollno}`,
+          `${import.meta.env.VITE_API_URL}api/resume/getpapers/${Student_rollno}`,
           {
             method: "GET",
             headers: {

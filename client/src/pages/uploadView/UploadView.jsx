@@ -64,7 +64,7 @@ export default function UploadView() {
 
   const { rollno } = useAuth();
   const navigate = useNavigate();
-
+const API_URL = import.meta.env.VITE_API_URL
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
@@ -80,7 +80,7 @@ export default function UploadView() {
         setLoading(true);
         setError(null);
         const response = await fetch(
-          `http://localhost:6001/api/uploadview/getuploaddetails`,
+          `${API_URL}api/uploadview/getuploaddetails`,
           { credentials: "include" }
         );
 
@@ -166,7 +166,7 @@ export default function UploadView() {
 
     try {
       const response = await fetch(
-        "http://localhost:6001/api/uploadview/deleteupload",
+        `${API_URL}api/uploadview/deleteupload`,
         {
           method: "DELETE",
           credentials: "include",

@@ -150,7 +150,7 @@ export default function PrintableResumeView(props) {
   const getInfo = async () => {
     try {
       const res = await fetch(
-        `http://localhost:6001/api/header/getprofile/${Student_rollno}`,
+        `${import.meta.env.VITE_API_URL}/api/header/getprofile/${Student_rollno}`,
         {
           method: "GET",
           credentials: "include",

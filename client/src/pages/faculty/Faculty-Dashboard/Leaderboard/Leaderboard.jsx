@@ -27,7 +27,7 @@ export default function Leaderboard() {
       setError(null);
       try {
         const response = await fetch(
-          `http://localhost:6001/api/dashboard/leardeardborad/${rollno}`,
+          `${import.meta.env.VITE_API_URL}api/dashboard/leardeardborad/${rollno}`,
           {
             method: "GET",
             credentials: "include",

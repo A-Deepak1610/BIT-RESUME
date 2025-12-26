@@ -14,7 +14,7 @@ export default function InternshipExperience(props) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { rollno } = useAuth();
-
+  const API_URL = import.meta.env.VITE_API_URL
   useEffect(() => {
     // Don't fetch if rollno is not yet available
     if (!rollno) {
@@ -27,7 +27,7 @@ export default function InternshipExperience(props) {
 
       try {
         const response = await fetch(
-          `http://localhost:6001/api/resume/getinternshipdata/${student_rollno}`,
+          `${API_URL}api/resume/getinternshipdata/${student_rollno}`,
           {
             method: "GET",
             headers: {

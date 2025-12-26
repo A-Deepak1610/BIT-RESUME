@@ -92,13 +92,13 @@ export function AwaitingVerification() {
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true); // Set initial loading to true
   const [error, setError] = useState(null);
-
+  const API_URL = import.meta.env.VITE_API_URL
   useEffect(() => {
     const handleVerification = async () => {
       setLoading(true); // Start loading
       setError(null);
       try {
-        const response = await axios.get('http://localhost:6001/api/studentrequests/varifications', {
+        const response = await axios.get(`${API_URL}api/studentrequests/varifications`, {
           withCredentials: true,
         });
         

@@ -13,10 +13,11 @@ export default function StudentDashboardPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const { rollno ,role} = useAuth(); //this is mentor rollno
   console.log(role)
+  const API_URL = import.meta.env.VITE_API_URL;
   const handleStudentsData = async () => {
     if (!rollno) return;
     try {
-      const response = await fetch(`http://localhost:6001/api/studentdata/fetchmentees`, {
+      const response = await fetch(`${API_URL}api/studentdata/fetchmentees`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json" ,

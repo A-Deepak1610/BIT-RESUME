@@ -211,11 +211,11 @@ export default function Reports() {
   useEffect(() => {
     fetchAnalytics();
   }, [selectedYear, selectedRollno, selectedCategory, startDate, endDate]);
-
+  const API_URL = import.meta.env.VITE_API_URL
   const fetchYears = async () => {
     try {
       const res = await fetch(
-        "http://localhost:6001/api/admin/analytics/years",
+        `${API_URL}api/admin/analytics/years`,
         { credentials: "include" }
       );
       if (res.ok) {
@@ -233,7 +233,7 @@ export default function Reports() {
       if (selectedYear) params.append("year", selectedYear);
 
       const res = await fetch(
-        `http://localhost:6001/api/admin/analytics/rollnos?${params}`,
+        `${API_URL}api/admin/analytics/rollnos?${params}`,
         { credentials: "include" }
       );
       if (res.ok) {
@@ -256,8 +256,8 @@ export default function Reports() {
       if (endDate) params.append("end_date", endDate);
 
       const res = await fetch(
-        `http://localhost:6001/api/admin/analytics?${params}`,
-        { credentials: "include" }
+        `${API_URL}api/admin/analytics?${params}`,
+        { credentials: "include"}
       );
       if (res.ok) {
         const data = await res.json();

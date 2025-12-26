@@ -184,7 +184,7 @@ export default function CreateActivityModal({ open, handleClose }) {
         // ======================================================================
 
 
-        const API_URL = 'http://localhost:6001/api/manageactivities/createActivity';
+        const API_URL = `${import.meta.env.VITE_API_URL}api/manageactivities/createActivity`;
         try {
             const response = await axios.post(API_URL, formData, {
                 withCredentials:true,

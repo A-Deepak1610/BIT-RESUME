@@ -49,6 +49,7 @@ const InputField = ({ icon, name, placeholder, value, onChange, error }) => (
 // --- All-in-One Profile Update Card with Validation ---
 const ProfileUpdateCard = ({ user, onClose, onLogout }) => {
     const { rollno } = useAuth();
+    const API_URL = import.meta.env.VITE_API_URL
     const [formData, setFormData] = useState({ domain: '', phone: '', github: '', linkedin: '', location: '' });
     const [errors, setErrors] = useState({});
     const [isSaving, setIsSaving] = useState(false);
@@ -80,7 +81,7 @@ const ProfileUpdateCard = ({ user, onClose, onLogout }) => {
         const getProfileInfo = async () => {
             if (!rollno) return;
             try {
-                const response = await fetch(`http://localhost:6001/api/header/getprofile/-`, {
+                const response = await fetch(`${API_URL}api/header/getprofile/-`, {
                     method: 'GET',
                     headers: { 'Content-Type': 'application/json' },
                     credentials: 'include'
@@ -117,7 +118,7 @@ const ProfileUpdateCard = ({ user, onClose, onLogout }) => {
         if (!validate()) return; // Stop if form is not valid
         setIsSaving(true);
         try {
-            const response = await fetch(`http://localhost:6001/api/header/updateprofile`, {
+            const response = await fetch(`${API_URL}api/header/updateprofile`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData),

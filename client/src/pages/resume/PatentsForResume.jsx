@@ -63,7 +63,7 @@ export default function PatentsForResume(props) {
 
       try {
         const response = await fetch(
-          `http://localhost:6001/api/resume/getpatents/${Student_rollno}`,
+          `${import.meta.env.VITE_API_URL}api/resume/getpatents/${Student_rollno}`,
           {
             method: "GET",
             headers: {

@@ -21,7 +21,7 @@ export default function Info(props) {
   const { rollno } = useAuth();
   const Student_rollno = props.rollno || "-";
   const navigate = useNavigate();
-
+  const API_URL = import.meta.env.VITE_API_URL;
   const [open, setOpen] = useState(false);
   const [profileData, setProfileData] = useState(null);
 
@@ -31,7 +31,7 @@ export default function Info(props) {
       if (!Student_rollno) return;
       try {
         const response = await fetch(
-          `http://localhost:6001/api/header/getprofile/${Student_rollno}`,
+          `${API_URL}api/header/getprofile/${Student_rollno}`,
           {
             method: "GET",
             headers: { "Content-Type": "application/json" },
@@ -70,7 +70,7 @@ export default function Info(props) {
         setIsLoadingSkills(true);
         try {
           const response = await fetch(
-            `http://localhost:6001/api/aresofexpertise/${Student_rollno}`,
+            `${import.meta.env.VITE_API_URL}api/aresofexpertise/${Student_rollno}`,
             {
               method: "GET",
               credentials: "include",

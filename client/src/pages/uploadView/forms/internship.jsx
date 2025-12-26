@@ -974,7 +974,7 @@ const Internship = ({ onBack, initialData = {} }) => {
 
     try {
       const response = await axios.post(
-        "http://localhost:6001/api/internships",
+        `${import.meta.env.VITE_API_URL}api/internships`,
         payload,
         {
           withCredentials: true,

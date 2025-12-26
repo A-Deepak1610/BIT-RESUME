@@ -8,7 +8,7 @@ export default function Patents(props) {
   const [error, setError] = useState(null);
   const { rollno } = useAuth();
   const student_rollno = props.rollno || "-";
-
+const API_URL = import.meta.env.VITE_API_URL
   useEffect(() => {
     if (!rollno) {
       return;
@@ -20,7 +20,7 @@ export default function Patents(props) {
 
       try {
         const response = await fetch(
-          `http://localhost:6001/api/resume/getpatents/${student_rollno}`,
+          `${API_URL}api/resume/getpatents/${student_rollno}`,
           {
             method: "GET",
             headers: {

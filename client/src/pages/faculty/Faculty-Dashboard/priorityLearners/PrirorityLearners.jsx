@@ -61,7 +61,7 @@ export default function PriorityLearners() {
       setError(null);
       try {
         const response = await fetch(
-          `http://localhost:6001/api/dashboard/prioritylearners/${rollno}`,
+          `${import.meta.env.VITE_API_URL}api/dashboard/prioritylearners/${rollno}`,
           {
             method: "GET",
             credentials: "include",

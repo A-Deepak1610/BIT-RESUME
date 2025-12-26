@@ -14,7 +14,7 @@ import axios from 'axios';
 const BulkUploadModal = ({ open, onClose, userType, onUploadSuccess }) => {
     const [file, setFile] = useState(null);
     const [uploading, setUploading] = useState(false);
-
+    const API_URL = import.meta.env.VITE_API_URL;
     const handleFileChange = (event) => {
         const selectedFile = event.target.files[0];
         if (selectedFile && (selectedFile.type === 'application/vnd.ms-excel' || selectedFile.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')) {
@@ -36,7 +36,7 @@ const BulkUploadModal = ({ open, onClose, userType, onUploadSuccess }) => {
         formData.append('userType', userType);
 
         try {  
-            const response = await fetch('http://localhost:6001/api/bulkupload', {
+            const response = await fetch(`${API_URL}api/bulkupload`, {
                 method: 'POST',
                 body: formData,
                 credentials: 'include'
@@ -172,7 +172,7 @@ const MentorMenteeUploadModal = ({ open, onClose, onUploadSuccess }) => {
         formData.append('file', file);
 
         try {  
-            const response = await fetch('http://localhost:6001/api/mentor-mentee-upload', {
+            const response = await fetch(`${API_URL}api/mentor-mentee-upload`, {
                 method: 'POST',
                 body: formData,
                 credentials: 'include'
@@ -289,12 +289,12 @@ const SemesterControlModal = () => {
     const [semesterData, setSemesterData] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-
+    const API_URL = import.meta.env.VITE_API_URL
     const fetchSemesterData = async () => {
         setLoading(true);
         setError(null);
         try {
-            const response = await axios.get("http://localhost:6001/api/handlesem", {
+            const response = await axios.get(`${API_URL}api/handlesem`, {
                 withCredentials: true,
             });
             setSemesterData(response.data);
@@ -325,7 +325,7 @@ const SemesterControlModal = () => {
 
         try {
             const newSem = currentSem + 1;
-            await axios.put("http://localhost:6001/api/updatesem", {
+            await axios.put(`${API_URL}api/updatesem`, {
                 batch: batch,
                 sem: newSem
             }, {

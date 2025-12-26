@@ -60,12 +60,12 @@ export function AwaitingApprovals() {
   const [loading, setLoading] = useState(false); // kept for internal control; no UI change
   const [error, setError] = useState(null); // kept for internal control; no UI change
   const [submissions, setSubmissions] = useState([]);
-
+  const API_BASE = import.meta.env.VITE_API_URL;
   const handleEvents = async () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch(`http://localhost:6001/api/manageactivities/approvels/${rollno}`, {
+      const response = await fetch(`${API_BASE}api/manageactivities/approvels/${rollno}`, {
         method: "GET",
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include'

@@ -137,7 +137,7 @@ export default function Dashboard() {
   const [mentorshipData, setMentorshipData] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:6001/";
+  const API_URL = import.meta.env.VITE_API_URL 
 
   useEffect(() => {
     const fetchDashboardData = async () => {

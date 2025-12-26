@@ -8,7 +8,7 @@ export default function Hackathons(props) {
   const [error, setError] = useState(null);
   const [hoveredIndex, setHoveredIndex] = useState(null);
   const { rollno } = useAuth();
-
+  const API_URL = import.meta.env.VITE_API_URL;
   useEffect(() => {
     if (!rollno) {
       return;
@@ -20,7 +20,7 @@ export default function Hackathons(props) {
 
       try {
         const response = await fetch(
-          `http://localhost:6001/api/resume/gethackathondata/${student_rollno}`,
+          `${API_URL}api/resume/gethackathondata/${student_rollno}`,
           {
             method: "GET",
             headers: {
@@ -79,7 +79,7 @@ export default function Hackathons(props) {
             <div className="w-6 h-6 border flex items-center justify-center border-[#9b9aff] rounded-full flex-shrink-0 overflow-hidden bg-white">
               {hackathon.img_url ? (
                 <img
-                  src={`http://localhost:6001/${hackathon.img_url}`}
+                  src={`${API_URL}${hackathon.img_url}`}
                   alt={hackathon.event_name}
                   className="w-6 h-6 object-cover rounded-full"
                   onError={(e) => {

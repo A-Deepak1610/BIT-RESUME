@@ -153,7 +153,7 @@ export default function GraphVisual({ name, roll }) {
   });
   const [loadingStats, setLoadingStats] = useState(false);
   const navigate = useNavigate();
-
+  const API_URL = import.meta.env.VITE_API_URL
   // Reset when student changes
   useEffect(() => {
     setActiveTab("projects");
@@ -173,22 +173,22 @@ export default function GraphVisual({ name, roll }) {
           papersRes,
           patentsRes,
         ] = await Promise.all([
-          fetch(`http://localhost:6001/api/resume/getprojects/${roll}`, {
+          fetch(`${API_URL}api/resume/getprojects/${roll}`, {
             credentials: "include",
           }),
-          fetch(`http://localhost:6001/api/resume/getcertificates/${roll}`, {
+          fetch(`${API_URL}api/resume/getcertificates/${roll}`, {
             credentials: "include",
           }),
-          fetch(`http://localhost:6001/api/resume/gethackathondata/${roll}`, {
+          fetch(`${API_URL}api/resume/gethackathondata/${roll}`, {
             credentials: "include",
           }),
-          fetch(`http://localhost:6001/api/resume/getinternshipdata/${roll}`, {
+          fetch(`${API_URL}api/resume/getinternshipdata/${roll}`, {
             credentials: "include",
           }),
-          fetch(`http://localhost:6001/api/resume/getpapers/${roll}`, {
+          fetch(`${API_URL}api/resume/getpapers/${roll}`, {
             credentials: "include",
           }),
-          fetch(`http://localhost:6001/api/resume/getpatents/${roll}`, {
+          fetch(`${API_URL}api/resume/getpatents/${roll}`, {
             credentials: "include",
           }),
         ]);

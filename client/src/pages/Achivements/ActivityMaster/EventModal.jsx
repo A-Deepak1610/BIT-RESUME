@@ -51,7 +51,7 @@ const ApplyModal = ({
   const [domain, setDomain] = useState("");
   const [problemStatement, setProblemStatement] = useState("");
   const { rollno } = useAuth();
-
+  const API_URL = import.meta.env.VITE_API_URL
   // --- API SUBMISSION LOGIC ---
   const handleEventsApply = async () => {
     const finalTeamMates =
@@ -61,7 +61,7 @@ const ApplyModal = ({
 
     try {
       const response = await fetch(
-        `http://localhost:6001/api/addregisterevents`,
+        `${API_URL}api/addregisterevents`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -375,7 +375,7 @@ const EventDetailModal = ({ isOpen, onClose, eventData }) => {
   const handleApplied = async () => {
     try {
       const response = await fetch(
-        `http://localhost:6001/api/checkapplied?rollno=${encodeURIComponent(
+        `${API_URL}api/checkapplied?rollno=${encodeURIComponent(
           rollno
         )}&event_code=${encodeURIComponent(eventData.event_code)}`,
         {
