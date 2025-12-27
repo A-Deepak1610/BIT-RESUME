@@ -200,6 +200,18 @@ export default function NavBar() {
     if (path === "/admin-AddUsers") return "addusers";
     if (path === "/admin-reports") return "admin-reports";
     if (path === "/faculty/uploadview") return "faculty/uploadview";
+     if(path == "/faculty/achievements/form/Newsletter") return "faculty/uploadview";
+    if(path == "/faculty/achievements/form/E-Content") return "faculty/uploadview";
+    if(path == "/faculty/achievements/form/Events%20Attended") return "faculty/uploadview";
+    if(path == "/faculty/achievements/form/Events%20Organized") return "faculty/uploadview";
+    if(path == "/faculty/achievements/form/External%20Examiner") return "faculty/uploadview";
+    if(path == "/faculty/achievements/form/Journal%20Reviewer") return "faculty/uploadview";
+    if(path == "/faculty/achievements/form/Guest%20Lectures") return "faculty/uploadview";
+    if(path == "/faculty/achievements/form/International%20Visits") return "faculty/uploadview";
+    if(path == "/faculty/achievements/form/Awards") return "faculty/uploadview";
+    if(path == "/faculty/achievements/form/Online%20Courses") return "faculty/uploadview";
+    if(path == "/faculty/achievements/form/Papers") return "faculty/uploadview";
+    if(path == "/faculty/achievements/form/Resource%20Person") return "faculty/uploadview";
     return "";
   }, [location.pathname]);
 
@@ -258,7 +270,7 @@ export default function NavBar() {
                 }`}
                 onClick={() => navigate("/faculty/uploadview")}
               >
-                <FindInPageOutlinedIcon fontSize="small" /> Faculty Achievements
+                <StarBorderRoundedIcon fontSize="small" /> Faculty Achievements
               </li>
               <li>
                 <div
