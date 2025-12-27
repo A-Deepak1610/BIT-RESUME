@@ -47,6 +47,7 @@ export default function SideBar() {
     if(path == "/uploadview/certificate") return "upload";
     if(path == "/uploadview/paperpresentation") return "upload";
     if(path == "/admin-reports") return "admin-reports";
+    if(path == "/faculty/uploadview") return "faculty/uploadview";
     return "";
   }, [location.pathname]);
 
@@ -87,7 +88,16 @@ export default function SideBar() {
               >
                 <DashboardOutlinedIcon fontSize="small" /> Dashboard
               </li>
-
+              <li
+                className={`flex items-center gap-3 cursor-pointer p-2 rounded-md transition-all duration-300 ease-in-out ${
+                  activeItem === "faculty/uploadview"
+                    ? "text-white bg-primary w-55"
+                    : "hover:bg-gray-100"
+                }`}
+                onClick={() => navigate("/faculty/uploadview")}
+              >
+                <FindInPageOutlinedIcon fontSize="small" /> Faculty Achievements
+              </li>
               <li>
                 <div
                   className={`relative flex items-center gap-1 cursor-pointer p-2 rounded-md text-[14px] transition-all duration-300 ease-in-out ${

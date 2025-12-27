@@ -30,7 +30,7 @@ import AdminDashboard from "../pages/Admin/AdminDashboard/AdminDashboard";
 import Addusers from "../pages/Admin/AddUsers/Addusers";
 import AddActivity from "../pages/faculty/add-activity/AddActivity";
 import Reports from "../pages/Admin/reports/Reports";
-
+import FacultyAchievements from "../pages/faculty/faculty-achievements/FacultyAchievements";
 export default function Applayout() {
   const { fetchUser, user, loading } = useAuth();
   useEffect(() => {
@@ -73,6 +73,7 @@ export default function Applayout() {
               <Route path="/faculty-manageActivity" element={<ManageActivity/>}/>
               <Route path="/faculty-verification" element={<Verification/>}/>
               <Route path="/faculty-approval" element={<Approvals/>}/>
+              <Route path="/faculty/uploadview" element={<FacultyAchievements/>}/>
             </Route>
             <Route path="/student-resume" element={<StudentResume />} />
             
