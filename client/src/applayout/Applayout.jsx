@@ -31,7 +31,18 @@ import Addusers from "../pages/Admin/AddUsers/Addusers";
 import AddActivity from "../pages/faculty/add-activity/AddActivity";
 import Reports from "../pages/Admin/reports/Reports";
 import FacultyAchievements from "../pages/faculty/faculty-achievements/FacultyAchievements";
-import FacultyAchievementForm from "../pages/faculty/faculty-achievements/FacultyAchievementForm";
+import NewsletterForm from "../pages/faculty/faculty-achievements/forms/NewsletterForm";
+import EContentForm from "../pages/faculty/faculty-achievements/forms/EContentForm";
+import EventsAttendedForm from "../pages/faculty/faculty-achievements/forms/EventsAttendedForm";
+import EventsOrganizedForm from "../pages/faculty/faculty-achievements/forms/EventsOrganizedForm";
+import ExternalExaminerForm from "../pages/faculty/faculty-achievements/forms/ExternalExaminerForm";
+import JournalReviewerForm from "../pages/faculty/faculty-achievements/forms/JournalReviewerForm";
+import GuestLectureForm from "../pages/faculty/faculty-achievements/forms/GuestLectureForm";
+import InternationalVisitForm from "../pages/faculty/faculty-achievements/forms/InternationalVisitForm";
+import AwardForm from "../pages/faculty/faculty-achievements/forms/AwardForm";
+import OnlineCourseForm from "../pages/faculty/faculty-achievements/forms/OnlineCourseForm";
+import PaperForm from "../pages/faculty/faculty-achievements/forms/PaperForm";
+import ResourcePersonForm from "../pages/faculty/faculty-achievements/forms/ResourcePersonForm";
 
 export default function Applayout() {
   const { fetchUser, user, loading } = useAuth();
@@ -76,7 +87,20 @@ export default function Applayout() {
               <Route path="/faculty-verification" element={<Verification/>}/>
               <Route path="/faculty-approval" element={<Approvals/>}/>
               <Route path="/faculty/uploadview" element={<FacultyAchievements/>}/>
-              <Route path="/faculty/achievements/form/:type" element={<FacultyAchievementForm/>}/>
+              
+              {/* Specific routes for each achievement form */}
+              <Route path="/faculty/achievements/newsletter" element={<NewsletterForm/>}/>
+              <Route path="/faculty/achievements/e-content" element={<EContentForm/>}/>
+              <Route path="/faculty/achievements/events-attended" element={<EventsAttendedForm/>}/>
+              <Route path="/faculty/achievements/events-organized" element={<EventsOrganizedForm/>}/>
+              <Route path="/faculty/achievements/external-examiner" element={<ExternalExaminerForm/>}/>
+              <Route path="/faculty/achievements/journal-reviewer" element={<JournalReviewerForm/>}/>
+              <Route path="/faculty/achievements/guest-lectures" element={<GuestLectureForm/>}/>
+              <Route path="/faculty/achievements/international-visits" element={<InternationalVisitForm/>}/>
+              <Route path="/faculty/achievements/awards" element={<AwardForm/>}/>
+              <Route path="/faculty/achievements/online-courses" element={<OnlineCourseForm/>}/>
+              <Route path="/faculty/achievements/papers" element={<PaperForm/>}/>
+              <Route path="/faculty/achievements/resource-person" element={<ResourcePersonForm/>}/>
             </Route>
             <Route path="/student-resume" element={<StudentResume />} />
             

@@ -1,12 +1,9 @@
-import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Save, Upload } from "lucide-react";
 
-export default function FacultyAchievementForm() {
-  const { type } = useParams();
+export default function AwardForm() {
   const navigate = useNavigate();
-  const decodedType = decodeURIComponent(type || "");
-
   const [formData, setFormData] = useState({
     title: "",
     date: "",
@@ -25,16 +22,13 @@ export default function FacultyAchievementForm() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Simulate API call
-    console.log("Submitting form for:", decodedType, formData);
-    // Navigate back after submission
+    console.log("Submitting form for: Awards", formData);
     navigate("/faculty/uploadview");
   };
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-6">
       <div className="max-w-3xl mx-auto">
-        {/* Header */}
         <div className="mb-6 flex items-center">
           <button
             onClick={() => navigate(-1)}
@@ -44,7 +38,7 @@ export default function FacultyAchievementForm() {
           </button>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">
-              Add {decodedType} Details
+              Add Awards Details
             </h1>
             <p className="text-sm text-gray-500">
               Fill in the information below to add a new record
@@ -52,11 +46,8 @@ export default function FacultyAchievementForm() {
           </div>
         </div>
 
-        {/* Form Card */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <form onSubmit={handleSubmit} className="p-6 space-y-6">
-            
-            {/* Common Fields */}
             <div className="space-y-4">
               <div>
                 <label
@@ -72,7 +63,7 @@ export default function FacultyAchievementForm() {
                   required
                   value={formData.title}
                   onChange={handleChange}
-                  placeholder={`Enter ${decodedType} title`}
+                  placeholder="Enter title"
                   className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border"
                 />
               </div>
@@ -95,7 +86,6 @@ export default function FacultyAchievementForm() {
                     className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border"
                   />
                 </div>
-                {/* Placeholder for dynamic fields based on type could go here */}
               </div>
 
               <div>
@@ -111,7 +101,7 @@ export default function FacultyAchievementForm() {
                   rows={4}
                   value={formData.description}
                   onChange={handleChange}
-                  placeholder="Provide brief details about this achievement..."
+                  placeholder="Provide brief details..."
                   className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2.5 border"
                 />
               </div>
@@ -152,7 +142,6 @@ export default function FacultyAchievementForm() {
               </div>
             </div>
 
-            {/* Actions */}
             <div className="pt-4 flex items-center justify-end space-x-3 border-t border-gray-100">
               <button
                 type="button"

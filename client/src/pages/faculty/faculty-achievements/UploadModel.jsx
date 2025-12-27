@@ -111,8 +111,27 @@ export default function UploadModel({ open, handleClose }) {
   ];
 
   const handleNavigateToForm = (type) => {
-    // Navigate to a generic form page with the type as a parameter
-    navigate(`/faculty/achievements/form/${encodeURIComponent(type)}`);
+    // Map labels to specific routes
+    const routeMap = {
+      "Newsletter": "/faculty/achievements/newsletter",
+      "E-Content": "/faculty/achievements/e-content",
+      "Events Attended": "/faculty/achievements/events-attended",
+      "Events Organized": "/faculty/achievements/events-organized",
+      "External Examiner": "/faculty/achievements/external-examiner",
+      "Journal Reviewer": "/faculty/achievements/journal-reviewer",
+      "Guest Lectures": "/faculty/achievements/guest-lectures",
+      "International Visits": "/faculty/achievements/international-visits",
+      "Awards": "/faculty/achievements/awards",
+      "Online Courses": "/faculty/achievements/online-courses",
+      "Papers": "/faculty/achievements/papers",
+      "Resource Person": "/faculty/achievements/resource-person",
+    };
+    
+    if (routeMap[type]) {
+        navigate(routeMap[type]);
+    } else {
+        console.error("No route found for type:", type);
+    }
   };
 
   return (
