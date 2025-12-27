@@ -15,7 +15,6 @@ export default function EventsOrganizedForm() {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
-
   const handleFileChange = (e) => {
     setFormData((prev) => ({ ...prev, files: e.target.files[0] }));
   };
