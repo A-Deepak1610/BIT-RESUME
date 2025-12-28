@@ -11,6 +11,7 @@ import (
 	manageactivities "bitresume/api/faculty/ActivityTracker/ManageActivities"
 	studentrequests "bitresume/api/faculty/ActivityTracker/StudentRequests/varifications"
 	addevents "bitresume/api/faculty/AddEvents"
+	facultyAchievements "bitresume/api/faculty/FacultyAchievements"
 	studentdata "bitresume/api/faculty/StudentData"
 	dashBoardfaculty "bitresume/api/faculty/dashboardfaculty"
 	"bitresume/api/login"
@@ -76,6 +77,8 @@ func RegisterRoutes(r *gin.Engine) {
 		facultyOnly.GET("manageactivities/progressgrpah/:rollno", manageactivities.HandleProgressGraph)
 		facultyOnly.POST("/studentrequests/varifications", studentrequests.PostVarification)
 		facultyOnly.GET("/studentdata/fetchmentees", studentdata.HandleMenteesData)
+		facultyOnly.POST("/faculty/newsLetterFormsPost", facultyAchievements.HandleNewsLetterForms)
+		facultyOnly.GET("/faculty/newsLetterFormsGet", facultyAchievements.FetchNewsletters)
 	}
 	bothStudentFacultyAdmin := r.Group("/api")
 	bothStudentFacultyAdmin.Use(middleware.AuthorizeRoles("faculty", "student", "Admin"))

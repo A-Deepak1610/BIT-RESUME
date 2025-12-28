@@ -1,11 +1,14 @@
 import React, {useState, useRef} from "react";
 import {useNavigate} from "react-router-dom";
 import {ArrowLeft, Save, UploadCloud, FileText, X} from "lucide-react";
+import axios from "axios";
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 const MAX_FILE_SIZE_MB = 10;
 const SUPPORTED_FORMATS_LABEL = `Supported formats: PDF, PNG, JPG (max ${MAX_FILE_SIZE_MB}MB)`;
 const ACCEPT_STRING =
-  ". pdf,.png,.jpg,.jpeg,image/png,image/jpeg,application/pdf";
+  ".pdf,.png,.jpg,.jpeg,image/png,image/jpeg,application/pdf";
 
 const RequiredAst = () => <span className="text-red-500 ml-0.5">*</span>;
 
@@ -336,6 +339,7 @@ const FileUploadField = ({
 };
 
 export default function NewsletterForm() {
+  const API_URL=import.meta.env.VITE_API_URL;
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     newsletterCategory: "",
@@ -350,6 +354,7 @@ export default function NewsletterForm() {
     proofDocument: null,
   });
   const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e) => {
     const {name, value} = e.target;
@@ -371,7 +376,7 @@ export default function NewsletterForm() {
     setErrors((prev) => ({...prev, [fieldName]: errorMessage}));
   };
 
-  const validateForm = () => {
+const validateForm = () => {
     const newErrors = {};
 
     if (!formData.newsletterCategory) {
@@ -418,12 +423,33 @@ export default function NewsletterForm() {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (validateForm()) {
-      console.log("Submitting form for:  Newsletter Archive", formData);
-      navigate("/faculty/uploadview");
+      setIsSubmitting(true);
+      const submitData = new FormData();
+      Object.keys(formData).forEach(key => {
+        submitData.append(key, formData[key]);
+      });
+
+      try {
+        const response = await axios.post(`${API_URL}api/faculty/newsLetterFormsPost`, submitData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+          withCredentials: true,
+        });
+
+        if (response.status === 200) {
+          console.log("Submitting form for:  Newsletter Archive", formData);
+          navigate("/faculty/uploadview");
+        }
+      } catch (error) {
+        console.error("Error submitting form", error);
+        alert("Failed to submit form. Please try again.");
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -593,10 +619,17 @@ export default function NewsletterForm() {
               </button>
               <button
                 type="submit"
-                className="px-6 py-3 border border-transparent rounded-lg shadow-md text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus: ring-offset-2 focus: ring-blue-500 flex items-center transition-all duration-200 hover:shadow-lg"
+                disabled={isSubmitting}
+                className={`px-6 py-3 border border-transparent rounded-lg shadow-md text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus: ring-offset-2 focus: ring-blue-500 flex items-center transition-all duration-200 hover:shadow-lg ${isSubmitting ? "opacity-75 cursor-wait" : ""}`}
               >
-                <Save className="h-4 w-4 mr-2" />
-                Save Newsletter
+                {isSubmitting ? (
+                  <span>Submitting...</span>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                     Save Newsletter
+                  </>
+                )}
               </button>
             </div>
           </form>
