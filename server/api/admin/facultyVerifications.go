@@ -12,7 +12,6 @@ import (
 // GetAllFacultySubmissions fetches all faculty submissions for admin verification
 func GetAllFacultySubmissions(c *gin.Context) {
 	var allSubmissions []map[string]interface{}
-
 	// Fetch Newsletters
 	newsletters := fetchNewslettersAdmin()
 	allSubmissions = append(allSubmissions, newsletters...)
