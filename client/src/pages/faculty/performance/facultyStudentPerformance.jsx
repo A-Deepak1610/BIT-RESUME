@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, {useState, useEffect} from "react";
 import StudentPerformance from "./leftPanel";
 import GraphVisual from "./rightPanel";
-import { Search } from "lucide-react";
+import {Search} from "lucide-react";
 import useAuth from "../../../store/UseAuth";
 
 export default function StudentDashboardPage() {
@@ -10,17 +10,17 @@ export default function StudentDashboardPage() {
   const [studentRoll, setStudentRoll] = useState("");
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const { rollno ,role} = useAuth(); //this is mentor rollno
-  console.log(role)
+  const {rollno} = useAuth();
+
   const API_URL = import.meta.env.VITE_API_URL;
+
   const handleStudentsData = async () => {
     if (!rollno) return;
     try {
       const response = await fetch(`${API_URL}api/studentdata/fetchmentees`, {
         method: "GET",
         headers: {
-          "Content-Type": "application/json" ,
+          "Content-Type": "application/json",
         },
         credentials: "include",
       });
@@ -60,18 +60,17 @@ export default function StudentDashboardPage() {
     setIsPanelOpen(false);
   };
 
-  const filteredMentees = mentees.filter(
-    (mentee) =>
-      mentee.user_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      mentee.rollno.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
   return (
     <div className="relative flex flex-col lg:flex-row h-screen bg-slate-50">
-      {/* --- Mobile Header & Search Button --- */}
-      <div className="lg:hidden p-4 border-b border-gray-300 bg-white flex justify-between items-center sticky top-0 z-10">
-        <div className="text-xl font-bold text-gray-800 truncate">
-          {studentName ? `${studentName}` : "Select a Student"}
+      {/* Mobile Header */}
+      <div className="lg:hidden p-4 border-b border-gray-200 bg-white flex justify-between items-center sticky top-0 z-10">
+        <div className="flex-1">
+          <div className="text-xl font-bold text-gray-800 truncate">
+            {studentName ? studentName : "Select a Student"}
+          </div>
+          {studentRoll && (
+            <div className="text-sm text-gray-500">Roll: {studentRoll}</div>
+          )}
         </div>
         <button
           onClick={() => setIsPanelOpen(true)}
@@ -82,32 +81,25 @@ export default function StudentDashboardPage() {
         </button>
       </div>
 
-      {/* --- Left Panel (Sidebar/Modal) --- */}
+      {/* Left Panel (Student List) */}
       <div
         className={`
           transition-transform duration-300 ease-in-out
-          lg:w-[40%] xl:w-[30%] lg:border-r lg:border-gray-300
+          lg:w-[35%] xl:w-[28%] lg:border-r lg:border-gray-200
           ${isPanelOpen ? "block" : "hidden"}
           lg:block
           fixed inset-0 z-30 lg:static lg:z-auto
         `}
       >
-        {/* Modal Backdrop */}
+        {/* Modal Backdrop for Mobile */}
         <div
           className="fixed inset-0 bg-gray-800 bg-opacity-50 lg:hidden"
           onClick={() => setIsPanelOpen(false)}
         ></div>
 
-        <div className="relative w-full max-w-lg lg:max-w-full h-full bg-slate-50">
-          <input
-            type="text"
-            placeholder="Search by name or rollno"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
-          />
+        <div className="relative w-full max-w-lg lg:max-w-full h-full bg-gray-50">
           <StudentPerformance
-            datas={filteredMentees}
+            datas={mentees}
             selectedStudentName={studentName}
             onStudentSelect={handleStudentSelect}
             onClose={() => setIsPanelOpen(false)}
@@ -115,8 +107,8 @@ export default function StudentDashboardPage() {
         </div>
       </div>
 
-      {/* --- Right Panel --- */}
-      <div className="w-full lg:w-[60%] xl:w-[70%] p-4 overflow-y-auto">
+      {/* Right Panel (Student Details) */}
+      <div className="flex-1 lg:w-[65%] xl:w-[72%] overflow-y-auto">
         <GraphVisual name={studentName} roll={studentRoll} />
       </div>
     </div>

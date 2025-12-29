@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo, useEffect } from "react";
+import React, {useState, useRef, useMemo, useEffect} from "react";
 import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
 import StarBorderRoundedIcon from "@mui/icons-material/StarBorderRounded";
 import KeyboardArrowRightRoundedIcon from "@mui/icons-material/KeyboardArrowRightRounded";
@@ -9,174 +9,241 @@ import DarkModeIcon from "@mui/icons-material/DarkMode";
 import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
 import DehazeIcon from "@mui/icons-material/Dehaze";
 import Drawer from "@mui/material/Drawer";
-import { useNavigate, useLocation } from "react-router-dom";
+import {useNavigate, useLocation} from "react-router-dom";
 import logo from "../../assets/logo_bit.jpg";
 import logo_main from "../../assets/bit_logo.png";
 import useAuth from "../../store/UseAuth";
-import { User, Phone, Github, Linkedin, MapPin, Briefcase } from 'lucide-react';
-import GroupWorkOutlinedIcon from '@mui/icons-material/GroupWorkOutlined';
-import ApprovalOutlinedIcon from '@mui/icons-material/ApprovalOutlined';
-import VerifiedOutlinedIcon from '@mui/icons-material/VerifiedOutlined';
-import TuneOutlinedIcon from '@mui/icons-material/TuneOutlined';
-import BarChartOutlinedIcon from '@mui/icons-material/BarChartOutlined';
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
-const InputField = ({ icon, name, placeholder, value, onChange, error }) => (
-    <div>
-        <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                {icon}
-            </div>
-            <input
-                type="text"
-                name={name}
-                placeholder={placeholder}
-                value={value}
-                onChange={onChange}
-                className={`w-full pl-10 pr-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 ${
-                    error 
-                    ? 'border-red-500 focus:ring-red-500' 
-                    : 'border-gray-300 focus:ring-indigo-500'
-                }`}
-                aria-invalid={!!error}
-                aria-describedby={error ? `${name}-error` : undefined}
-            />
-        </div>
-        {error && <p id={`${name}-error`} className="mt-1 text-xs text-red-600">{error}</p>}
+import {User, Phone, Github, Linkedin, MapPin, Briefcase} from "lucide-react";
+import GroupWorkOutlinedIcon from "@mui/icons-material/GroupWorkOutlined";
+import ApprovalOutlinedIcon from "@mui/icons-material/ApprovalOutlined";
+import VerifiedOutlinedIcon from "@mui/icons-material/VerifiedOutlined";
+import TuneOutlinedIcon from "@mui/icons-material/TuneOutlined";
+import BarChartOutlinedIcon from "@mui/icons-material/BarChartOutlined";
+import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
+const InputField = ({icon, name, placeholder, value, onChange, error}) => (
+  <div>
+    <div className="relative">
+      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+        {icon}
+      </div>
+      <input
+        type="text"
+        name={name}
+        placeholder={placeholder}
+        value={value}
+        onChange={onChange}
+        className={`w-full pl-10 pr-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 ${
+          error
+            ? "border-red-500 focus:ring-red-500"
+            : "border-gray-300 focus:ring-indigo-500"
+        }`}
+        aria-invalid={!!error}
+        aria-describedby={error ? `${name}-error` : undefined}
+      />
     </div>
+    {error && (
+      <p id={`${name}-error`} className="mt-1 text-xs text-red-600">
+        {error}
+      </p>
+    )}
+  </div>
 );
 
 // --- All-in-One Profile Update Card with Validation ---
-const ProfileUpdateCard = ({ user, onClose, onLogout }) => {
-    const { rollno } = useAuth();
-    const API_URL = import.meta.env.VITE_API_URL
-    const [formData, setFormData] = useState({ domain: '', phone: '', github: '', linkedin: '', location: '' });
-    const [errors, setErrors] = useState({});
-    const [isSaving, setIsSaving] = useState(false);
+const ProfileUpdateCard = ({user, onClose, onLogout}) => {
+  const {rollno} = useAuth();
+  const API_URL = import.meta.env.VITE_API_URL;
+  const [formData, setFormData] = useState({
+    domain: "",
+    phone: "",
+    github: "",
+    linkedin: "",
+    location: "",
+  });
+  const [errors, setErrors] = useState({});
+  const [isSaving, setIsSaving] = useState(false);
 
-    // --- Validation Logic ---
-    const validate = (fieldValues = formData) => {
-        const tempErrors = {};
-        const urlRegex = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/;
-        const phoneRegex = /^\d{10}$/;
+  // --- Validation Logic ---
+  const validate = (fieldValues = formData) => {
+    const tempErrors = {};
+    const urlRegex =
+      /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/;
+    const phoneRegex = /^\d{10}$/;
 
-        if (!fieldValues.domain) tempErrors.domain = "Domain is required.";
-        if (!fieldValues.phone) tempErrors.phone = "Phone number is required.";
-        else if (!phoneRegex.test(fieldValues.phone)) tempErrors.phone = "Enter a valid 10-digit phone number.";
-        
-        if (!fieldValues.github) tempErrors.github = "GitHub URL is required.";
-        else if (!urlRegex.test(fieldValues.github)) tempErrors.github = "Enter a valid URL.";
-        
-        if (!fieldValues.linkedin) tempErrors.linkedin = "LinkedIn URL is required.";
-        else if (!urlRegex.test(fieldValues.linkedin)) tempErrors.linkedin = "Enter a valid URL.";
-        
-        if (!fieldValues.location) tempErrors.location = "Location is required.";
-        
-        setErrors(tempErrors);
-        return Object.keys(tempErrors).length === 0;
-    };
+    if (!fieldValues.domain) tempErrors.domain = "Domain is required.";
+    if (!fieldValues.phone) tempErrors.phone = "Phone number is required.";
+    else if (!phoneRegex.test(fieldValues.phone))
+      tempErrors.phone = "Enter a valid 10-digit phone number.";
 
-    // --- Data Fetching and Mapping ---
-    useEffect(() => {
-        const getProfileInfo = async () => {
-            if (!rollno) return;
-            try {
-                const response = await fetch(`${API_URL}api/header/getprofile/-`, {
-                    method: 'GET',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include'
-                });
-                if (response.ok) {
-                    const result = await response.json();
-                    const profileData = result.data; // Correctly access the nested data object
-                    setFormData({
-                        domain: profileData.domain || '',
-                        phone: profileData.phone || '',
-                        github: profileData.github || '', // Correct key
-                        linkedin: profileData.linkedin || '', // Correct key
-                        location: profileData.location || ''
-                    });
-                } else {
-                    console.error("Failed to fetch profile info");
-                }
-            } catch (error) {
-                console.error("Error fetching profile info:", error);
-            }
-        };
-        getProfileInfo();
-    }, [rollno]);
+    if (!fieldValues.github) tempErrors.github = "GitHub URL is required.";
+    else if (!urlRegex.test(fieldValues.github))
+      tempErrors.github = "Enter a valid URL.";
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        const newFormData = { ...formData, [name]: value };
-        setFormData(newFormData);
-        validate(newFormData); // Validate on every change for real-time feedback
-    };
+    if (!fieldValues.linkedin)
+      tempErrors.linkedin = "LinkedIn URL is required.";
+    else if (!urlRegex.test(fieldValues.linkedin))
+      tempErrors.linkedin = "Enter a valid URL.";
 
-    const handleUpdateProfile = async (e) => {
-        e.preventDefault();
-        if (!validate()) return; // Stop if form is not valid
-        setIsSaving(true);
-        try {
-            const response = await fetch(`${API_URL}api/header/updateprofile`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData),
-                credentials: 'include'
-            });
-            if (response.ok) {
-                // alert("Profile updated successfully!");
-                onClose();
-            } else {
-                const errorData = await response.json();
-                alert(`Update failed: ${errorData.message}`);
-            }
-        } catch (error) {
-            console.error("Failed to update profile:", error);
-            alert("An error occurred. Please try again.");
-        } finally {
-            setIsSaving(false);
+    if (!fieldValues.location) tempErrors.location = "Location is required.";
+
+    setErrors(tempErrors);
+    return Object.keys(tempErrors).length === 0;
+  };
+
+  // --- Data Fetching and Mapping ---
+  useEffect(() => {
+    const getProfileInfo = async () => {
+      if (!rollno) return;
+      try {
+        const response = await fetch(`${API_URL}api/header/getprofile/-`, {
+          method: "GET",
+          headers: {"Content-Type": "application/json"},
+          credentials: "include",
+        });
+        if (response.ok) {
+          const result = await response.json();
+          const profileData = result.data; // Correctly access the nested data object
+          setFormData({
+            domain: profileData.domain || "",
+            phone: profileData.phone || "",
+            github: profileData.github || "", // Correct key
+            linkedin: profileData.linkedin || "", // Correct key
+            location: profileData.location || "",
+          });
+        } else {
+          console.error("Failed to fetch profile info");
         }
+      } catch (error) {
+        console.error("Error fetching profile info:", error);
+      }
     };
+    getProfileInfo();
+  }, [rollno]);
 
-    return (
-        <div className="absolute top-full right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-100 z-50 animate-fade-in-down">
-            <div className="p-4 border-b border-gray-200">
-                <p className="font-semibold text-gray-800 truncate">Update your profile</p>
-                <p className="text-sm text-black font-bold truncate">{rollno || "User ID"}</p>
-            </div>
-            <form onSubmit={handleUpdateProfile}>
-                <div className="p-4 space-y-4">
-                    <InputField icon={<Briefcase size={16} className="text-gray-400" />} name="domain" placeholder="Your Domain" value={formData.domain} onChange={handleChange} error={errors.domain} />
-                    <InputField icon={<Phone size={16} className="text-gray-400" />} name="phone" placeholder="Phone Number" value={formData.phone} onChange={handleChange} error={errors.phone} />
-                    <InputField icon={<Github size={16} className="text-gray-400" />} name="github" placeholder="GitHub URL" value={formData.github} onChange={handleChange} error={errors.github} />
-                    <InputField icon={<Linkedin size={16} className="text-gray-400" />} name="linkedin" placeholder="LinkedIn URL" value={formData.linkedin} onChange={handleChange} error={errors.linkedin} />
-                    <InputField icon={<MapPin size={16} className="text-gray-400" />} name="location" placeholder="Location" value={formData.location} onChange={handleChange} error={errors.location} />
-                </div>
-                <div className="p-4 bg-gray-50 border-t border-gray-200 rounded-b-lg flex justify-between items-center">
-                    <button type="button" onClick={onClose} className="text-sm cursor-pointer text-gray-600 hover:text-red-600 font-medium">Close</button>
-                    <button type="submit" disabled={isSaving || Object.keys(errors).length > 0} className="px-4 py-2 cursor-pointer bg-indigo-600 text-white text-sm rounded-md hover:bg-indigo-700 font-medium disabled:bg-indigo-300 disabled:cursor-not-allowed">
-                        {isSaving ? 'Saving...' : 'Save Changes'}
-                    </button>
-                </div>
-            </form>
+  const handleChange = (e) => {
+    const {name, value} = e.target;
+    const newFormData = {...formData, [name]: value};
+    setFormData(newFormData);
+    validate(newFormData); // Validate on every change for real-time feedback
+  };
+
+  const handleUpdateProfile = async (e) => {
+    e.preventDefault();
+    if (!validate()) return; // Stop if form is not valid
+    setIsSaving(true);
+    try {
+      const response = await fetch(`${API_URL}api/header/updateprofile`, {
+        method: "PUT",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(formData),
+        credentials: "include",
+      });
+      if (response.ok) {
+        // alert("Profile updated successfully!");
+        onClose();
+      } else {
+        const errorData = await response.json();
+        alert(`Update failed: ${errorData.message}`);
+      }
+    } catch (error) {
+      console.error("Failed to update profile:", error);
+      alert("An error occurred. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <div className="absolute top-full right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-100 z-50 animate-fade-in-down">
+      <div className="p-4 border-b border-gray-200">
+        <p className="font-semibold text-gray-800 truncate">
+          Update your profile
+        </p>
+        <p className="text-sm text-black font-bold truncate">
+          {rollno || "User ID"}
+        </p>
+      </div>
+      <form onSubmit={handleUpdateProfile}>
+        <div className="p-4 space-y-4">
+          <InputField
+            icon={<Briefcase size={16} className="text-gray-400" />}
+            name="domain"
+            placeholder="Your Domain"
+            value={formData.domain}
+            onChange={handleChange}
+            error={errors.domain}
+          />
+          <InputField
+            icon={<Phone size={16} className="text-gray-400" />}
+            name="phone"
+            placeholder="Phone Number"
+            value={formData.phone}
+            onChange={handleChange}
+            error={errors.phone}
+          />
+          <InputField
+            icon={<Github size={16} className="text-gray-400" />}
+            name="github"
+            placeholder="GitHub URL"
+            value={formData.github}
+            onChange={handleChange}
+            error={errors.github}
+          />
+          <InputField
+            icon={<Linkedin size={16} className="text-gray-400" />}
+            name="linkedin"
+            placeholder="LinkedIn URL"
+            value={formData.linkedin}
+            onChange={handleChange}
+            error={errors.linkedin}
+          />
+          <InputField
+            icon={<MapPin size={16} className="text-gray-400" />}
+            name="location"
+            placeholder="Location"
+            value={formData.location}
+            onChange={handleChange}
+            error={errors.location}
+          />
         </div>
-    );
+        <div className="p-4 bg-gray-50 border-t border-gray-200 rounded-b-lg flex justify-between items-center">
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-sm cursor-pointer text-gray-600 hover:text-red-600 font-medium"
+          >
+            Close
+          </button>
+          <button
+            type="submit"
+            disabled={isSaving || Object.keys(errors).length > 0}
+            className="px-4 py-2 cursor-pointer bg-indigo-600 text-white text-sm rounded-md hover:bg-indigo-700 font-medium disabled:bg-indigo-300 disabled:cursor-not-allowed"
+          >
+            {isSaving ? "Saving..." : "Save Changes"}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
 };
 
 // --- NavBar Component (No changes needed below this line) ---
 export default function NavBar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, logout } = useAuth();
+  const {user, logout} = useAuth();
   const [isProfileCardOpen, setIsProfileCardOpen] = useState(false);
   const profileCardRef = useRef(null);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-        if (profileCardRef.current && !profileCardRef.current.contains(event.target)) {
-            setIsProfileCardOpen(false);
-        }
+      if (
+        profileCardRef.current &&
+        !profileCardRef.current.contains(event.target)
+      ) {
+        setIsProfileCardOpen(false);
+      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -184,14 +251,23 @@ export default function NavBar() {
 
   const activeItem = useMemo(() => {
     const path = location.pathname;
-    if (path === "/dashboard" || path === "/faculty-dashboard" || path === "/admin-dashboard") return "dashboard";
+    if (
+      path === "/dashboard" ||
+      path === "/faculty-dashboard" ||
+      path === "/admin-dashboard"
+    )
+      return "dashboard";
     if (path === "/uploadview") return "upload";
     if (path === "/resume") return "resume";
     if (path.includes("/Achivement/ActivityMaster")) return "activityMaster";
     if (path.includes("/Achivement/ActivityLogger")) return "activityLogger";
     if (path === "/faculty-approval") return "projectApprovals";
     if (path === "/faculty-verification") return "certificateVerifications";
-    if (path.includes("/faculty-approval") || path.includes("/faculty-verification")) return "studentRequests";
+    if (
+      path.includes("/faculty-approval") ||
+      path.includes("/faculty-verification")
+    )
+      return "studentRequests";
     if (path === "/faculty-manageActivity") return "manageActivities";
     if (path === "/faculty-studentperformance") return "studentPerformance";
     if (path === "/faculty-resumeDraft") return "resumeDrafts";
@@ -199,19 +275,28 @@ export default function NavBar() {
     if (path === "/admin-studentsPerformance") return "studentsPerformance";
     if (path === "/admin-AddUsers") return "addusers";
     if (path === "/admin-reports") return "admin-reports";
+    if (path === "/admin-facultyVerifications") return "facultyVerifications";
     if (path === "/faculty/uploadview") return "faculty/uploadview";
-    if(path == "/faculty/achievements/newsletter") return "faculty/uploadview";
-    if(path == "/faculty/achievements/e-content") return "faculty/uploadview";
-    if(path == "/faculty/achievements/events-attended") return "faculty/uploadview";
-    if(path == "/faculty/achievements/events-organized") return "faculty/uploadview";
-    if(path == "/faculty/achievements/external-examiner") return "faculty/uploadview";
-    if(path == "/faculty/achievements/journal-reviewer") return "faculty/uploadview";
-    if(path == "/faculty/achievements/guest-lectures") return "faculty/uploadview";
-    if(path == "/faculty/achievements/international-visits") return "faculty/uploadview";
-    if(path == "/faculty/achievements/awards") return "faculty/uploadview";
-    if(path == "/faculty/achievements/online-courses") return "faculty/uploadview";
-    if(path == "/faculty/achievements/papers") return "faculty/uploadview";
-    if(path == "/faculty/achievements/resource-person") return "faculty/uploadview";
+    if (path == "/faculty/achievements/newsletter") return "faculty/uploadview";
+    if (path == "/faculty/achievements/e-content") return "faculty/uploadview";
+    if (path == "/faculty/achievements/events-attended")
+      return "faculty/uploadview";
+    if (path == "/faculty/achievements/events-organized")
+      return "faculty/uploadview";
+    if (path == "/faculty/achievements/external-examiner")
+      return "faculty/uploadview";
+    if (path == "/faculty/achievements/journal-reviewer")
+      return "faculty/uploadview";
+    if (path == "/faculty/achievements/guest-lectures")
+      return "faculty/uploadview";
+    if (path == "/faculty/achievements/international-visits")
+      return "faculty/uploadview";
+    if (path == "/faculty/achievements/awards") return "faculty/uploadview";
+    if (path == "/faculty/achievements/online-courses")
+      return "faculty/uploadview";
+    if (path == "/faculty/achievements/papers") return "faculty/uploadview";
+    if (path == "/faculty/achievements/resource-person")
+      return "faculty/uploadview";
     return "";
   }, [location.pathname]);
 
@@ -240,7 +325,8 @@ export default function NavBar() {
     navigate("/");
   };
 
-  const subMenuTransitionClass = "transition-all overflow-hidden duration-300 ease-in-out";
+  const subMenuTransitionClass =
+    "transition-all overflow-hidden duration-300 ease-in-out";
 
   const renderDrawerContent = () => {
     if (user?.role === "faculty") {
@@ -262,7 +348,7 @@ export default function NavBar() {
               >
                 <DashboardOutlinedIcon fontSize="small" /> Dashboard
               </li>
-                <li
+              <li
                 className={`flex items-center gap-3 cursor-pointer p-2 rounded-md transition-all duration-300 ease-in-out ${
                   activeItem === "faculty/uploadview"
                     ? "text-white bg-primary w-55"
@@ -392,7 +478,10 @@ export default function NavBar() {
           </div>
           <div className="mt-auto">
             <div
-              onClick={() => { handleLogout(); setOpen(false); }}
+              onClick={() => {
+                handleLogout();
+                setOpen(false);
+              }}
               className="flex items-center gap-3 text-[#2e2d2d] font-semibold cursor-pointer transition-all duration-300 ease-in-out hover:bg-gray-100 p-2 rounded-md"
             >
               <LogoutOutlinedIcon fontSize="small" />
@@ -412,7 +501,10 @@ export default function NavBar() {
                     ? "text-white bg-primary w-55"
                     : "hover:bg-gray-100"
                 }`}
-                onClick={() => { navigate("/admin-dashboard"); setOpen(false); }}
+                onClick={() => {
+                  navigate("/admin-dashboard");
+                  setOpen(false);
+                }}
               >
                 <DashboardOutlinedIcon fontSize="small" /> Dashboard
               </li>
@@ -422,7 +514,10 @@ export default function NavBar() {
                     ? "text-white bg-primary w-55"
                     : "hover:bg-gray-100"
                 }`}
-                onClick={() => { navigate("/admin-addactivity"); setOpen(false); }}
+                onClick={() => {
+                  navigate("/admin-addactivity");
+                  setOpen(false);
+                }}
               >
                 <AddCircleOutlineIcon fontSize="small" /> Add Activity
               </li>
@@ -432,7 +527,10 @@ export default function NavBar() {
                     ? "text-white bg-primary w-55"
                     : "hover:bg-gray-100"
                 }`}
-                onClick={() => { navigate("/admin-studentsPerformance"); setOpen(false); }}
+                onClick={() => {
+                  navigate("/admin-studentsPerformance");
+                  setOpen(false);
+                }}
               >
                 <BarChartOutlinedIcon fontSize="small" /> Student Metrics
               </li>
@@ -452,15 +550,34 @@ export default function NavBar() {
                     ? "text-white bg-primary w-55"
                     : "hover:bg-gray-100"
                 }`}
-                onClick={() => { navigate("/admin-AddUsers"); setOpen(false); }}
+                onClick={() => {
+                  navigate("/admin-AddUsers");
+                  setOpen(false);
+                }}
               >
                 <AddCircleOutlineIcon fontSize="small" /> Add Users
+              </li>
+              <li
+                className={`flex items-center gap-3 cursor-pointer p-2 rounded-md transition-all duration-300 ease-in-out ${
+                  activeItem === "facultyVerifications"
+                    ? "text-white bg-primary w-55"
+                    : "hover:bg-gray-100"
+                }`}
+                onClick={() => {
+                  navigate("/admin-facultyVerifications");
+                  setOpen(false);
+                }}
+              >
+                <VerifiedOutlinedIcon fontSize="small" /> Faculty Verifications
               </li>
             </ul>
           </div>
           <div className="mt-auto">
             <div
-              onClick={() => { handleLogout(); setOpen(false); }}
+              onClick={() => {
+                handleLogout();
+                setOpen(false);
+              }}
               className="flex items-center gap-3 text-[#2e2d2d] font-semibold cursor-pointer transition-all duration-300 ease-in-out hover:bg-gray-100 p-2 rounded-md"
             >
               <LogoutOutlinedIcon fontSize="small" />
@@ -550,7 +667,10 @@ export default function NavBar() {
           </div>
           <div className="mt-auto">
             <div
-              onClick={() => { handleLogout(); setOpen(false); }}
+              onClick={() => {
+                handleLogout();
+                setOpen(false);
+              }}
               className="flex items-center gap-3 text-[#2e2d2d] font-semibold cursor-pointer transition-all duration-300 ease-in-out hover:bg-gray-100 p-2 rounded-md"
             >
               <LogoutOutlinedIcon fontSize="small" />
@@ -577,7 +697,7 @@ export default function NavBar() {
   const handleDarkMode = () => {
     document.documentElement.classList.toggle("dark");
   };
-  const {rollno,name}=useAuth();
+  const {rollno, name} = useAuth();
   return (
     <>
       <header className="h-14  bg-white shadow-md flex items-center justify-between ">
@@ -608,22 +728,30 @@ export default function NavBar() {
           <div className="relative" ref={profileCardRef}>
             <div
               className="flex items-center gap-3 cursor-pointer"
-              onClick={() => setIsProfileCardOpen(prev => !prev)}
+              onClick={() => setIsProfileCardOpen((prev) => !prev)}
             >
-                <div className="md:flex flex-col sm:flex hidden items-end justify-center gap-1">
-                    <p className="font-semibold text-[17px] leading-none">{name || "User"}</p>
-                    <p className="text-xs text-gray-600 leading-none font-medium">{rollno || "User ID"}</p>
-                </div>
-                <div className="w-9 h-9 bg-white border border-secondary rounded-full overflow-hidden shadow-md">
-                    <img src={logo} alt="profile" className="w-full h-full object-cover" />
-                </div>
+              <div className="md:flex flex-col sm:flex hidden items-end justify-center gap-1">
+                <p className="font-semibold text-[17px] leading-none">
+                  {name || "User"}
+                </p>
+                <p className="text-xs text-gray-600 leading-none font-medium">
+                  {rollno || "User ID"}
+                </p>
+              </div>
+              <div className="w-9 h-9 bg-white border border-secondary rounded-full overflow-hidden shadow-md">
+                <img
+                  src={logo}
+                  alt="profile"
+                  className="w-full h-full object-cover"
+                />
+              </div>
             </div>
             {isProfileCardOpen && (
-                <ProfileUpdateCard 
-                    user={user}
-                    onLogout={handleLogout}
-                    onClose={() => setIsProfileCardOpen(false)}
-                />
+              <ProfileUpdateCard
+                user={user}
+                onLogout={handleLogout}
+                onClose={() => setIsProfileCardOpen(false)}
+              />
             )}
           </div>
         </div>
