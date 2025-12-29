@@ -77,9 +77,13 @@ func RegisterRoutes(r *gin.Engine) {
 		facultyOnly.GET("manageactivities/progressgrpah/:rollno", manageactivities.HandleProgressGraph)
 		facultyOnly.POST("/studentrequests/varifications", studentrequests.PostVarification)
 		facultyOnly.GET("/studentdata/fetchmentees", studentdata.HandleMenteesData)
+
 		facultyOnly.POST("/faculty/newsLetterFormsPost", facultyAchievements.HandleNewsLetterForms)
 		facultyOnly.GET("/faculty/newsLetterFormsGet", facultyAchievements.FetchNewsletters)
+		facultyOnly.POST("/faculty/eContentFormPost", facultyAchievements.HandleEContentForm)
+		facultyOnly.GET("/faculty/eContentGet", facultyAchievements.FetchEContent)
 	}
+
 	bothStudentFacultyAdmin := r.Group("/api")
 	bothStudentFacultyAdmin.Use(middleware.AuthorizeRoles("faculty", "student", "Admin"))
 	{

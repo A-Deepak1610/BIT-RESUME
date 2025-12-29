@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { 
   ArrowLeft, 
@@ -10,6 +11,8 @@ import {
 } from "lucide-react";
 
 const RequiredAst = () => <span className="text-red-500 ml-0.5">*</span>;
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function EContentForm() {
   const navigate = useNavigate();
@@ -125,11 +128,45 @@ export default function EContentForm() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (validate()) {
-      console.log("Submitting form for: E-Content", formData);
-      navigate("/faculty/uploadview");
+      try {
+        const data = new FormData();
+        data.append("taskID", formData.taskID);
+        data.append("specialLabsInvolved", formData.specialLabsInvolved);
+        data.append("eContentType", formData.eContentType);
+        data.append("topicName", formData.topicName);
+        data.append("publisherName", formData.publisherName);
+        data.append("publisherAddress", formData.publisherAddress);
+        data.append("contactNo", formData.contactNo);
+        data.append("urlOfContent", formData.urlOfContent);
+        data.append("claimedFor", formData.claimedFor);
+         if (formData.claimedFor === "Other") {
+            data.append("otherClaimedFor", formData.otherClaimedFor);
+        }
+        data.append("dateOfPublication", formData.dateOfPublication);
+        data.append("documentProof", formData.documentProof);
+
+        const response = await axios.post(
+          `${API_URL}api/faculty/eContentFormPost`, 
+          data,
+          {
+            withCredentials: true,
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+
+        if (response.status === 200) {
+          alert("E-Content submitted successfully");
+          navigate("/faculty/achievement");
+        }
+      } catch (error) {
+        console.error("Error submitting form:", error);
+        alert("Failed to submit form. Please try again.");
+      }
     }
   };
 
