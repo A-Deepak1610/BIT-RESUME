@@ -15,415 +15,17 @@ import {
   Video,
   FileText,
   UserCheck,
-  Download,
   ExternalLink,
-  Building,
-  MapPin,
-  Clock,
-  Award,
   Globe,
-  BookOpen,
-  GraduationCap,
+  Award,
+  Loader2,
 } from "lucide-react";
 
-// Dummy faculty data
-const dummyFacultyList = [
-  {
-    faculty_id: "FAC001",
-    name: "Dr. John Smith",
-    department: "CSE",
-    designation: "Professor",
-    email: "john.smith@bit.edu",
-    total_achievements: 45,
-  },
-  {
-    faculty_id: "FAC002",
-    name: "Dr. Sarah Johnson",
-    department: "CSE",
-    designation: "Associate Professor",
-    email: "sarah.johnson@bit.edu",
-    total_achievements: 38,
-  },
-  {
-    faculty_id: "FAC003",
-    name: "Prof. Michael Brown",
-    department: "ECE",
-    designation: "Professor",
-    email: "michael.brown@bit.edu",
-    total_achievements: 52,
-  },
-  {
-    faculty_id: "FAC004",
-    name: "Dr. Emily Davis",
-    department: "IT",
-    designation: "Assistant Professor",
-    email: "emily.davis@bit.edu",
-    total_achievements: 28,
-  },
-  {
-    faculty_id: "FAC005",
-    name: "Prof. Robert Wilson",
-    department: "MECH",
-    designation: "Professor",
-    email: "robert.wilson@bit.edu",
-    total_achievements: 41,
-  },
-  {
-    faculty_id: "FAC006",
-    name: "Dr. Jennifer Martinez",
-    department: "EEE",
-    designation: "Associate Professor",
-    email: "jennifer.martinez@bit.edu",
-    total_achievements: 35,
-  },
-  {
-    faculty_id: "FAC007",
-    name: "Dr. David Lee",
-    department: "CIVIL",
-    designation: "Professor",
-    email: "david.lee@bit.edu",
-    total_achievements: 47,
-  },
-  {
-    faculty_id: "FAC008",
-    name: "Prof. Amanda White",
-    department: "AIDS",
-    designation: "Assistant Professor",
-    email: "amanda.white@bit.edu",
-    total_achievements: 22,
-  },
-];
+// API base URL
+// API base URL - remove trailing slash if present
+const API_BASE = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
 
-// Dummy achievements data for each faculty
-const dummyAchievementsData = {
-  FAC001: {
-    newsletterArchive: [
-      {
-        id: 1,
-        title: "Department Newsletter - Spring 2024",
-        publishDate: "2024-03-15",
-        edition: "Vol. 5, Issue 1",
-        description:
-          "Featured article on AI in Education and department achievements",
-        category: "Department",
-      },
-      {
-        id: 2,
-        title: "Research Highlights Newsletter",
-        publishDate: "2024-01-10",
-        edition: "Vol. 4, Issue 4",
-        description: "Summary of faculty research publications and grants",
-        category: "Research",
-      },
-    ],
-    eContentDeveloped: [
-      {
-        id: 1,
-        title: "Machine Learning Fundamentals",
-        type: "Video Course",
-        platform: "NPTEL/Swayam",
-        duration: "12 weeks",
-        developedDate: "2024-02-01",
-        status: "Published",
-        viewCount: 15000,
-        description:
-          "Comprehensive course covering ML algorithms and applications",
-      },
-      {
-        id: 2,
-        title: "Data Structures E-Book",
-        type: "E-Book",
-        platform: "College LMS",
-        developedDate: "2023-08-15",
-        status: "Published",
-        downloads: 5000,
-        description:
-          "Interactive e-book with coding exercises and visualizations",
-      },
-    ],
-    eventsAttended: [
-      {
-        id: 1,
-        eventName: "IEEE International Conference on AI",
-        organizer: "IEEE Computer Society",
-        startDate: "2024-03-10",
-        endDate: "2024-03-12",
-        location: "Singapore",
-        participationType: "Delegate",
-        topics: ["Deep Learning", "Computer Vision", "NLP"],
-      },
-      {
-        id: 2,
-        eventName: "National Workshop on Blockchain",
-        organizer: "IIT Madras",
-        startDate: "2024-01-20",
-        endDate: "2024-01-22",
-        location: "Chennai",
-        participationType: "Participant",
-        topics: ["Smart Contracts", "DeFi", "Web3"],
-      },
-    ],
-    eventsOrganized: [
-      {
-        id: 1,
-        eventName: "National Level Technical Symposium - TechFusion 2024",
-        eventType: "Symposium",
-        role: "Convener",
-        startDate: "2024-02-15",
-        endDate: "2024-02-17",
-        venue: "BIT Campus",
-        participants: 500,
-        sponsors: ["TCS", "Infosys", "Wipro"],
-        budget: "₹5,00,000",
-      },
-    ],
-    externalExaminer: [
-      {
-        id: 1,
-        institution: "Anna University",
-        examType: "PhD Viva Voce",
-        subject: "Computer Science",
-        candidateName: "Research Scholar",
-        examDate: "2024-03-20",
-        role: "External Examiner",
-        thesisTitle: "Deep Learning Approaches for Medical Image Analysis",
-      },
-    ],
-    journalReviewer: [
-      {
-        id: 1,
-        journalName: "IEEE Transactions on Neural Networks",
-        publisher: "IEEE",
-        impactFactor: 14.255,
-        reviewsCompleted: 8,
-        status: "Active",
-        startDate: "2022-06-01",
-        expertise: ["Deep Learning", "Neural Networks", "Computer Vision"],
-      },
-    ],
-    guestLectures: [
-      {
-        id: 1,
-        topic: "Introduction to Generative AI",
-        institution: "PSG College of Technology",
-        date: "2024-03-05",
-        duration: "2 hours",
-        audience: "UG/PG Students",
-        attendees: 200,
-        feedback: "Excellent",
-      },
-      {
-        id: 2,
-        topic: "Career Opportunities in Data Science",
-        institution: "Government Arts College, Coimbatore",
-        date: "2024-02-20",
-        duration: "1.5 hours",
-        audience: "Final Year Students",
-        attendees: 150,
-        feedback: "Very Good",
-      },
-    ],
-    internationalVisits: [
-      {
-        id: 1,
-        institution: "Stanford University",
-        country: "USA",
-        purpose: "Research Collaboration",
-        startDate: "2024-01-15",
-        endDate: "2024-01-30",
-        duration: "15 days",
-        sponsor: "AICTE",
-        outcomes: "Initiated joint research project on AI in Healthcare",
-      },
-    ],
-    notableAchievements: [
-      {
-        id: 1,
-        title: "Best Researcher Award 2024",
-        awardedBy: "Indian Society for Technical Education",
-        date: "2024-02-28",
-        category: "Research Excellence",
-        description: "Recognized for outstanding contributions in AI research",
-        prize: "₹1,00,000",
-      },
-      {
-        id: 2,
-        title: "Patent Grant - Smart Healthcare System",
-        awardedBy: "Indian Patent Office",
-        date: "2024-01-15",
-        category: "Innovation",
-        patentNo: "IN-2024-00123",
-        description:
-          "IoT-based patient monitoring system with AI-powered diagnostics",
-      },
-    ],
-    onlineCourses: [
-      {
-        id: 1,
-        courseName: "Deep Learning Specialization",
-        platform: "Coursera",
-        provider: "DeepLearning.AI",
-        completionDate: "2024-02-10",
-        duration: "5 months",
-        grade: "98%",
-        credentialId: "COURSERA-DL-2024",
-        skills: ["TensorFlow", "Keras", "CNN", "RNN", "Transformers"],
-      },
-    ],
-    paperPresentations: [
-      {
-        id: 1,
-        title: "Transformer-based Approach for Code Generation",
-        conference: "ACM SIGSOFT FSE 2024",
-        location: "San Francisco, USA",
-        date: "2024-03-18",
-        authors: ["Dr. John Smith", "Dr. Johnson"],
-        status: "Presented",
-        award: "Best Paper Award",
-        doi: "10.1145/xxxxx",
-      },
-      {
-        id: 2,
-        title: "Federated Learning for Healthcare Applications",
-        conference: "IEEE EMBC 2024",
-        location: "Orlando, USA",
-        date: "2024-02-25",
-        authors: ["Dr. John Smith", "Research Team"],
-        status: "Presented",
-        doi: "10.1109/xxxxx",
-      },
-    ],
-    resourcePerson: [
-      {
-        id: 1,
-        eventName: "AICTE Sponsored STTP on Machine Learning",
-        organizer: "Amrita University",
-        topic: "Advanced Neural Network Architectures",
-        startDate: "2024-03-01",
-        endDate: "2024-03-05",
-        duration: "5 days",
-        participants: 100,
-        honorarium: "₹25,000",
-      },
-    ],
-  },
-  FAC002: {
-    newsletterArchive: [
-      {
-        id: 1,
-        title: "Women in Tech Newsletter",
-        publishDate: "2024-02-28",
-        edition: "Special Edition",
-        description: "Celebrating women's contributions in technology",
-        category: "Special",
-      },
-    ],
-    eContentDeveloped: [
-      {
-        id: 1,
-        title: "Python for Data Science",
-        type: "Video Course",
-        platform: "YouTube",
-        duration: "8 weeks",
-        developedDate: "2024-01-15",
-        status: "Published",
-        viewCount: 25000,
-        description: "Complete Python programming for data analysis",
-      },
-    ],
-    eventsAttended: [
-      {
-        id: 1,
-        eventName: "Grace Hopper Celebration",
-        organizer: "AnitaB.org",
-        startDate: "2024-09-24",
-        endDate: "2024-09-27",
-        location: "Orlando, USA",
-        participationType: "Speaker",
-        topics: ["Women in Tech", "AI Ethics"],
-      },
-    ],
-    eventsOrganized: [
-      {
-        id: 1,
-        eventName: "Women in Computing Workshop",
-        eventType: "Workshop",
-        role: "Organizer",
-        startDate: "2024-03-08",
-        endDate: "2024-03-08",
-        venue: "BIT Campus",
-        participants: 200,
-        sponsors: ["Google", "Microsoft"],
-        budget: "₹2,00,000",
-      },
-    ],
-    externalExaminer: [],
-    journalReviewer: [
-      {
-        id: 1,
-        journalName: "Journal of Computer Science Education",
-        publisher: "Taylor & Francis",
-        impactFactor: 4.5,
-        reviewsCompleted: 12,
-        status: "Active",
-        startDate: "2021-09-01",
-        expertise: ["CS Education", "Pedagogy", "E-Learning"],
-      },
-    ],
-    guestLectures: [
-      {
-        id: 1,
-        topic: "Breaking Barriers in Tech",
-        institution: "Women's Engineering College",
-        date: "2024-03-08",
-        duration: "2 hours",
-        audience: "Students",
-        attendees: 300,
-        feedback: "Inspiring",
-      },
-    ],
-    internationalVisits: [],
-    notableAchievements: [
-      {
-        id: 1,
-        title: "Outstanding Educator Award",
-        awardedBy: "Computer Society of India",
-        date: "2024-01-26",
-        category: "Teaching Excellence",
-        description: "For innovative teaching methodologies",
-        prize: "₹50,000",
-      },
-    ],
-    onlineCourses: [
-      {
-        id: 1,
-        courseName: "Google Cloud Professional Data Engineer",
-        platform: "Google Cloud",
-        provider: "Google",
-        completionDate: "2024-03-01",
-        duration: "3 months",
-        grade: "Certified",
-        credentialId: "GCP-DE-2024",
-        skills: ["BigQuery", "Dataflow", "Cloud Storage"],
-      },
-    ],
-    paperPresentations: [
-      {
-        id: 1,
-        title: "Gamification in Computer Science Education",
-        conference: "ACM SIGCSE 2024",
-        location: "Portland, USA",
-        date: "2024-03-20",
-        authors: ["Dr. Sarah Johnson"],
-        status: "Presented",
-        doi: "10.1145/xxxxx",
-      },
-    ],
-    resourcePerson: [],
-  },
-};
-
-// Generate default empty achievements for other faculty
+// Get default empty achievements structure
 const getDefaultAchievements = () => ({
   newsletterArchive: [],
   eContentDeveloped: [],
@@ -455,20 +57,6 @@ const tabs = [
   {id: "resourcePerson", label: "Resource Person", icon: UserCheck},
 ];
 
-// Departments list
-const departments = [
-  "All",
-  "CSE",
-  "ECE",
-  "EEE",
-  "MECH",
-  "CIVIL",
-  "IT",
-  "AIDS",
-  "AIML",
-  "CSBS",
-];
-
 // Faculty List Panel Component
 function FacultyListPanel({
   facultyList,
@@ -477,106 +65,73 @@ function FacultyListPanel({
   onClose,
   searchTerm,
   setSearchTerm,
-  selectedDepartment,
-  setSelectedDepartment,
 }) {
   const filteredFaculty = facultyList.filter((faculty) => {
     const matchesSearch =
       faculty.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       faculty.faculty_id.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesDepartment =
-      selectedDepartment === "All" || faculty.department === selectedDepartment;
-    return matchesSearch && matchesDepartment;
+    return matchesSearch;
   });
 
   return (
-    <div className="p-4 bg-gray-100 h-full overflow-y-auto">
-      <div className="flex justify-between items-center mb-5">
-        <h1 className="font-bold text-xl sm:text-2xl text-gray-800">
-          Faculty List
-        </h1>
+    <div className="p-4 bg-white h-full overflow-y-auto">
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="font-semibold text-lg text-gray-800">Faculty</h1>
         <button
           onClick={onClose}
-          className="lg:hidden p-2 text-gray-600 hover:text-gray-900 rounded-full hover:bg-gray-200"
+          className="lg:hidden p-2 text-gray-500 hover:text-gray-700 rounded-lg hover:bg-gray-100"
           aria-label="Close panel"
         >
-          <X size={24} />
+          <X size={20} />
         </button>
       </div>
 
-      {/* Search and Filter */}
-      <div className="bg-white rounded-xl shadow-md p-4 mb-5 space-y-3">
-        <div className="relative w-full">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search className="text-gray-400" size={18} />
-          </div>
-          <input
-            type="text"
-            className="block w-full pl-10 pr-4 py-2.5 rounded-lg bg-gray-50 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm placeholder-gray-500 shadow-sm"
-            placeholder="Search by name or ID..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+      {/* Search */}
+      <div className="relative mb-4">
+        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <Search className="text-gray-400" size={16} />
         </div>
-        <select
-          value={selectedDepartment}
-          onChange={(e) => setSelectedDepartment(e.target.value)}
-          className="w-full p-2.5 rounded-lg bg-gray-50 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
-        >
-          {departments.map((dept) => (
-            <option key={dept} value={dept}>
-              {dept === "All" ? "All Departments" : dept}
-            </option>
-          ))}
-        </select>
+        <input
+          type="text"
+          className="block w-full pl-9 pr-4 py-2 rounded-lg bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm placeholder-gray-400"
+          placeholder="Search faculty..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
       </div>
 
       {/* Faculty Cards */}
       {filteredFaculty.length > 0 ? (
-        <div className="space-y-4">
+        <div className="space-y-2">
           {filteredFaculty.map((faculty) => (
             <div
               key={faculty.faculty_id}
-              className={`bg-white border border-gray-200 rounded-xl p-4 shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out cursor-pointer ${
+              className={`border rounded-lg p-3 cursor-pointer transition-all duration-200 ${
                 selectedFaculty?.faculty_id === faculty.faculty_id
-                  ? "ring-2 ring-indigo-500 border-indigo-500"
-                  : ""
+                  ? "bg-indigo-50 border-indigo-300"
+                  : "bg-gray-50 border-gray-200 hover:bg-gray-100"
               }`}
               onClick={() => onFacultySelect(faculty)}
             >
-              <div className="flex flex-col">
-                <h3 className="text-lg font-semibold text-indigo-700 mb-1">
-                  {faculty.name}
-                </h3>
-                <p className="text-sm text-gray-500 font-medium">
-                  {faculty.faculty_id}
-                </p>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
-                    {faculty.department}
-                  </span>
-                  <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
-                    {faculty.designation}
-                  </span>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-medium text-gray-800 text-sm">
+                    {faculty.name}
+                  </h3>
+                  <p className="text-xs text-gray-500">{faculty.faculty_id}</p>
                 </div>
-                <div className="mt-3 flex items-center text-sm text-gray-600">
-                  <Award size={14} className="mr-1 text-yellow-500" />
-                  <span>{faculty.total_achievements} achievements</span>
-                </div>
+                <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full">
+                  {faculty.total_achievements}
+                </span>
               </div>
             </div>
           ))}
         </div>
       ) : (
-        <div className="text-center py-8 bg-white rounded-xl shadow-md">
-          <UserX size={40} className="mx-auto text-gray-400 mb-3" />
-          <p className="text-gray-600 text-md font-medium mb-1">
-            No Faculty Found
-          </p>
-          <p className="text-gray-500 text-xs">
-            {searchTerm
-              ? "Try adjusting your search term."
-              : "No faculty available."}
+        <div className="text-center py-8">
+          <UserX size={32} className="mx-auto text-gray-300 mb-2" />
+          <p className="text-gray-500 text-sm">
+            {searchTerm ? "No results found" : "No faculty available"}
           </p>
         </div>
       )}
@@ -589,18 +144,61 @@ const NewsletterCard = ({item}) => (
   <div className="bg-white border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow">
     <div className="flex justify-between items-start mb-3">
       <div className="flex-1">
-        <h4 className="font-semibold text-gray-800">{item.title}</h4>
-        <p className="text-indigo-600 text-sm font-medium">{item.edition}</p>
+        <h4 className="font-semibold text-gray-800">
+          {item.newsletter_category} Newsletter
+        </h4>
+        <p className="text-indigo-600 text-sm font-medium">
+          Vol. {item.volume_number}, Issue {item.issue_number}
+        </p>
       </div>
-      <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
-        {item.category}
+      <span
+        className={`px-3 py-1 text-xs rounded-full ${
+          item.status === "approved"
+            ? "bg-green-100 text-green-700"
+            : item.status === "pending"
+            ? "bg-yellow-100 text-yellow-700"
+            : "bg-blue-100 text-blue-700"
+        }`}
+      >
+        {item.status}
       </span>
     </div>
-    <p className="text-gray-600 text-sm mb-3">{item.description}</p>
-    <div className="flex items-center text-gray-500 text-xs">
-      <Calendar size={14} className="mr-1" />
-      {new Date(item.publishDate).toLocaleDateString()}
+    <div className="text-gray-600 text-sm space-y-1 mb-3">
+      <p>
+        <strong>Department:</strong> {item.department}
+      </p>
+      <p>
+        <strong>Academic Year:</strong> {item.academic_year}
+      </p>
+      <p>
+        <strong>Issue Month:</strong> {item.issue_month}
+      </p>
+      <p>
+        <strong>Faculty Editors:</strong> {item.faculty_editor_count} |{" "}
+        <strong>Student Editors:</strong> {item.student_editor_count}
+      </p>
     </div>
+    <div className="flex items-center justify-between text-gray-500 text-xs">
+      <span className="flex items-center">
+        <Calendar size={14} className="mr-1" />
+        Published: {item.date_of_publication}
+      </span>
+      {item.proof_document && (
+        <a
+          href={item.proof_document}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 hover:underline flex items-center"
+        >
+          <ExternalLink size={12} className="mr-1" /> View Proof
+        </a>
+      )}
+    </div>
+    {item.remarks && (
+      <p className="text-gray-500 text-xs mt-2 italic">
+        Remarks: {item.remarks}
+      </p>
+    )}
   </div>
 );
 
@@ -608,63 +206,137 @@ const EContentCard = ({item}) => (
   <div className="bg-white border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow">
     <div className="flex justify-between items-start mb-3">
       <div className="flex-1">
-        <h4 className="font-semibold text-gray-800">{item.title}</h4>
-        <p className="text-indigo-600 text-sm font-medium">{item.platform}</p>
+        <h4 className="font-semibold text-gray-800">{item.topic_name}</h4>
+        <p className="text-indigo-600 text-sm font-medium">
+          {item.e_content_type}
+        </p>
       </div>
       <span
         className={`px-3 py-1 text-xs rounded-full ${
-          item.status === "Published"
+          item.status === "approved"
             ? "bg-green-100 text-green-700"
-            : "bg-yellow-100 text-yellow-700"
+            : item.status === "pending"
+            ? "bg-yellow-100 text-yellow-700"
+            : "bg-blue-100 text-blue-700"
         }`}
       >
         {item.status}
       </span>
     </div>
-    <p className="text-gray-600 text-sm mb-3">{item.description}</p>
-    <div className="flex flex-wrap gap-3 text-gray-500 text-xs">
-      <span className="flex items-center">
-        <BookOpen size={14} className="mr-1" />
-        {item.type}
-      </span>
-      <span className="flex items-center">
-        <Clock size={14} className="mr-1" />
-        {item.duration}
-      </span>
-      {item.viewCount && (
-        <span className="flex items-center">
-          <Users size={14} className="mr-1" />
-          {item.viewCount.toLocaleString()} views
-        </span>
-      )}
+    <div className="text-gray-600 text-sm space-y-1 mb-3">
+      <p>
+        <strong>Publisher:</strong> {item.publisher_name}
+      </p>
+      <p>
+        <strong>Date Published:</strong> {item.date_of_publication}
+      </p>
     </div>
+    {item.url_of_content && (
+      <a
+        href={item.url_of_content}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-blue-600 hover:underline text-xs flex items-center gap-1"
+      >
+        <ExternalLink size={12} /> View Content
+      </a>
+    )}
+    {item.remarks && (
+      <p className="text-gray-500 text-xs mt-2 italic">
+        Remarks: {item.remarks}
+      </p>
+    )}
   </div>
 );
 
 const EventAttendedCard = ({item}) => (
   <div className="bg-white border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow">
-    <h4 className="font-semibold text-gray-800 mb-2">{item.eventName}</h4>
-    <p className="text-indigo-600 text-sm font-medium mb-2">{item.organizer}</p>
-    <div className="flex flex-wrap gap-3 text-gray-500 text-sm mb-3">
-      <span className="flex items-center">
-        <MapPin size={14} className="mr-1" />
-        {item.location}
-      </span>
-      <span className="flex items-center">
-        <Calendar size={14} className="mr-1" />
-        {item.startDate} to {item.endDate}
+    <div className="flex justify-between items-start mb-3">
+      <h4 className="font-semibold text-gray-800 flex-1">{item.event_title}</h4>
+      <span
+        className={`px-3 py-1 text-xs rounded-full ${
+          item.status === "approved"
+            ? "bg-green-100 text-green-700"
+            : item.status === "pending"
+            ? "bg-yellow-100 text-yellow-700"
+            : "bg-blue-100 text-blue-700"
+        }`}
+      >
+        {item.status}
       </span>
     </div>
-    <div className="flex flex-wrap gap-1">
-      {item.topics?.map((topic, idx) => (
-        <span
-          key={idx}
-          className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full"
+    <div className="text-gray-600 text-sm space-y-1 mb-3">
+      <p>
+        <strong>Task ID:</strong> {item.task_id}
+      </p>
+      <p>
+        <strong>Organizer:</strong> {item.event_organizer}
+      </p>
+      <p>
+        <strong>Type:</strong> {item.event_type} | <strong>Level:</strong>{" "}
+        {item.event_level}
+      </p>
+      <p>
+        <strong>Mode:</strong> {item.event_mode} |{" "}
+        <strong>Organizer Type:</strong> {item.organizer_type}
+      </p>
+      <p>
+        <strong>Organization Sector:</strong> {item.organization_sector}
+      </p>
+      <p>
+        <strong>Duration:</strong> {item.event_duration} (
+        {item.duration_in_days} days)
+      </p>
+      <p>
+        <strong>Date:</strong> {item.start_date} to {item.end_date}
+      </p>
+      <p>
+        <strong>Sponsorship:</strong> {item.sponsorship_type}
+      </p>
+      <p>
+        <strong>Outcome:</strong> {item.outcome}
+      </p>
+      <p>
+        <strong>Claimed For:</strong> {item.claimed_for}
+      </p>
+      {item.special_labs_involved && (
+        <p>
+          <strong>Special Labs:</strong> {item.special_labs_involved}
+        </p>
+      )}
+      {item.other_organizer_name && (
+        <p>
+          <strong>Other Organizer:</strong> {item.other_organizer_name}
+        </p>
+      )}
+    </div>
+    <div className="flex gap-2">
+      {item.certificate_proof && (
+        <a
+          href={item.certificate_proof}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 hover:underline text-xs flex items-center gap-1"
         >
-          {topic}
-        </span>
-      ))}
+          <ExternalLink size={12} /> Certificate
+        </a>
+      )}
+      {item.geotag_photos && (
+        <a
+          href={item.geotag_photos}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 hover:underline text-xs flex items-center gap-1"
+        >
+          <ExternalLink size={12} /> Photos
+        </a>
+      )}
     </div>
+    {item.remarks && (
+      <p className="text-gray-500 text-xs mt-2 italic">
+        Remarks: {item.remarks}
+      </p>
+    )}
   </div>
 );
 
@@ -672,56 +344,124 @@ const EventOrganizedCard = ({item}) => (
   <div className="bg-white border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow">
     <div className="flex justify-between items-start mb-3">
       <div className="flex-1">
-        <h4 className="font-semibold text-gray-800">{item.eventName}</h4>
-        <p className="text-indigo-600 text-sm font-medium">Role: {item.role}</p>
+        <h4 className="font-semibold text-gray-800">{item.event_name}</h4>
+        <p className="text-indigo-600 text-sm font-medium">
+          {item.program_type}
+        </p>
       </div>
-      <span className="px-3 py-1 bg-purple-100 text-purple-700 text-xs rounded-full">
-        {item.eventType}
+      <span
+        className={`px-3 py-1 text-xs rounded-full ${
+          item.status === "approved"
+            ? "bg-green-100 text-green-700"
+            : item.status === "pending"
+            ? "bg-yellow-100 text-yellow-700"
+            : "bg-purple-100 text-purple-700"
+        }`}
+      >
+        {item.status}
       </span>
     </div>
-    <div className="flex flex-wrap gap-3 text-gray-500 text-sm mb-3">
-      <span className="flex items-center">
-        <MapPin size={14} className="mr-1" />
-        {item.venue}
-      </span>
-      <span className="flex items-center">
-        <Users size={14} className="mr-1" />
-        {item.participants} participants
-      </span>
+    <div className="text-gray-600 text-sm space-y-1 mb-3">
+      <p>
+        <strong>Type:</strong> {item.event_type} | <strong>Level:</strong>{" "}
+        {item.event_level}
+      </p>
+      <p>
+        <strong>Mode:</strong> {item.event_mode}
+      </p>
+      <p>
+        <strong>Date:</strong> {item.start_date} to {item.end_date}
+      </p>
+      <p>
+        <strong>Duration:</strong> {item.event_duration} days
+      </p>
+      <p>
+        <strong>Internal Students:</strong> {item.internal_students_count} |{" "}
+        <strong>Faculty:</strong> {item.internal_faculty_count}
+      </p>
+      <p>
+        <strong>External Students:</strong> {item.external_students_count} |{" "}
+        <strong>Faculty:</strong> {item.external_faculty_count}
+      </p>
+      {item.total_revenue > 0 && (
+        <p>
+          <strong>Total Revenue:</strong> ₹{item.total_revenue}
+        </p>
+      )}
     </div>
-    {item.sponsors && (
-      <div className="flex flex-wrap gap-1">
-        {item.sponsors.map((sponsor, idx) => (
-          <span
-            key={idx}
-            className="px-2 py-1 bg-blue-50 text-blue-600 text-xs rounded-full"
-          >
-            {sponsor}
-          </span>
-        ))}
-      </div>
+    {item.proof_file && (
+      <a
+        href={item.proof_file}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-blue-600 hover:underline text-xs flex items-center gap-1"
+      >
+        <ExternalLink size={12} /> View Proof
+      </a>
+    )}
+    {item.remarks && (
+      <p className="text-gray-500 text-xs mt-2 italic">
+        Remarks: {item.remarks}
+      </p>
     )}
   </div>
 );
 
 const ExaminerCard = ({item}) => (
   <div className="bg-white border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow">
-    <h4 className="font-semibold text-gray-800 mb-2">{item.institution}</h4>
-    <p className="text-indigo-600 text-sm font-medium mb-2">{item.examType}</p>
-    <div className="text-gray-600 text-sm space-y-1">
+    <div className="flex justify-between items-start mb-3">
+      <h4 className="font-semibold text-gray-800 flex-1">
+        {item.college_name}
+      </h4>
+      <span
+        className={`px-3 py-1 text-xs rounded-full ${
+          item.status === "approved"
+            ? "bg-green-100 text-green-700"
+            : item.status === "pending"
+            ? "bg-yellow-100 text-yellow-700"
+            : "bg-blue-100 text-blue-700"
+        }`}
+      >
+        {item.status}
+      </span>
+    </div>
+    <div className="text-gray-600 text-sm space-y-1 mb-3">
       <p>
-        <strong>Subject:</strong> {item.subject}
+        <strong>Task ID:</strong> {item.task_id}
       </p>
-      {item.thesisTitle && (
+      <p>
+        <strong>Address:</strong> {item.institute_address}
+      </p>
+      <p>
+        <strong>Purpose:</strong> {item.purpose_of_visit}
+      </p>
+      <p>
+        <strong>Duration:</strong> {item.number_of_days} days
+      </p>
+      <p>
+        <strong>Date:</strong> {item.from_date} to {item.to_date}
+      </p>
+      {item.special_labs_involved && (
         <p>
-          <strong>Thesis:</strong> {item.thesisTitle}
+          <strong>Special Labs:</strong> {item.special_labs_involved}
         </p>
       )}
-      <p className="flex items-center text-gray-500 text-xs mt-2">
-        <Calendar size={14} className="mr-1" />
-        {new Date(item.examDate).toLocaleDateString()}
-      </p>
     </div>
+    {item.document_proof && (
+      <a
+        href={item.document_proof}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-blue-600 hover:underline text-xs flex items-center gap-1"
+      >
+        <ExternalLink size={12} /> View Document
+      </a>
+    )}
+    {item.remarks && (
+      <p className="text-gray-500 text-xs mt-2 italic">
+        Remarks: {item.remarks}
+      </p>
+    )}
   </div>
 );
 
@@ -729,93 +469,219 @@ const ReviewerCard = ({item}) => (
   <div className="bg-white border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow">
     <div className="flex justify-between items-start mb-3">
       <div className="flex-1">
-        <h4 className="font-semibold text-gray-800">{item.journalName}</h4>
-        <p className="text-indigo-600 text-sm font-medium">{item.publisher}</p>
+        <h4 className="font-semibold text-gray-800">{item.journal_name}</h4>
+        <p className="text-indigo-600 text-sm font-medium">
+          {item.publisher_name}
+        </p>
       </div>
       <span
         className={`px-3 py-1 text-xs rounded-full ${
-          item.status === "Active"
+          item.status === "approved"
             ? "bg-green-100 text-green-700"
-            : "bg-gray-100 text-gray-600"
+            : item.status === "pending"
+            ? "bg-yellow-100 text-yellow-700"
+            : "bg-blue-100 text-blue-700"
         }`}
       >
         {item.status}
       </span>
     </div>
-    <div className="flex flex-wrap gap-3 text-gray-500 text-sm mb-3">
-      <span>
-        Impact Factor: <strong>{item.impactFactor}</strong>
-      </span>
-      <span>
-        Reviews: <strong>{item.reviewsCompleted}</strong>
-      </span>
+    <div className="text-gray-600 text-sm space-y-1 mb-3">
+      <p>
+        <strong>Task ID:</strong> {item.task_id}
+      </p>
+      <p>
+        <strong>Indexing:</strong> {item.journal_indexing}{" "}
+        {item.other_journal_indexing && `(${item.other_journal_indexing})`}
+      </p>
+      <p>
+        <strong>ISSN:</strong> {item.issn_no}
+      </p>
+      <p>
+        <strong>Impact Factor:</strong> {item.impact_factor}
+      </p>
+      <p>
+        <strong>Recognition Type:</strong> {item.recognition_type}{" "}
+        {item.other_recognition_type && `(${item.other_recognition_type})`}
+      </p>
+      <p>
+        <strong>Papers Reviewed:</strong> {item.number_of_papers_reviewed}
+      </p>
+      <p>
+        <strong>Review Date:</strong> {item.review_date}
+      </p>
+      {item.special_labs_involved && (
+        <p>
+          <strong>Special Labs:</strong> {item.special_labs_involved}
+        </p>
+      )}
     </div>
-    <div className="flex flex-wrap gap-1">
-      {item.expertise?.map((exp, idx) => (
-        <span
-          key={idx}
-          className="px-2 py-1 bg-indigo-50 text-indigo-600 text-xs rounded-full"
-        >
-          {exp}
-        </span>
-      ))}
-    </div>
+    {item.journal_homepage_url && (
+      <a
+        href={item.journal_homepage_url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-blue-600 hover:underline text-xs flex items-center gap-1 mb-2"
+      >
+        <ExternalLink size={12} /> Journal Homepage
+      </a>
+    )}
+    {item.document_proof && (
+      <a
+        href={item.document_proof}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-blue-600 hover:underline text-xs flex items-center gap-1"
+      >
+        <ExternalLink size={12} /> View Document
+      </a>
+    )}
+    {item.remarks && (
+      <p className="text-gray-500 text-xs mt-2 italic">
+        Remarks: {item.remarks}
+      </p>
+    )}
   </div>
 );
 
 const GuestLectureCard = ({item}) => (
   <div className="bg-white border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow">
-    <h4 className="font-semibold text-gray-800 mb-2">{item.topic}</h4>
-    <p className="text-indigo-600 text-sm font-medium mb-2">
-      {item.institution}
-    </p>
-    <div className="flex flex-wrap gap-3 text-gray-500 text-sm mb-3">
-      <span className="flex items-center">
-        <Calendar size={14} className="mr-1" />
-        {new Date(item.date).toLocaleDateString()}
-      </span>
-      <span className="flex items-center">
-        <Clock size={14} className="mr-1" />
-        {item.duration}
-      </span>
-      <span className="flex items-center">
-        <Users size={14} className="mr-1" />
-        {item.attendees} attendees
+    <div className="flex justify-between items-start mb-3">
+      <h4 className="font-semibold text-gray-800 flex-1">{item.topic}</h4>
+      <span
+        className={`px-3 py-1 text-xs rounded-full ${
+          item.status === "approved"
+            ? "bg-green-100 text-green-700"
+            : item.status === "pending"
+            ? "bg-yellow-100 text-yellow-700"
+            : "bg-blue-100 text-blue-700"
+        }`}
+      >
+        {item.status}
       </span>
     </div>
-    {item.feedback && (
-      <span className="px-3 py-1 bg-green-100 text-green-700 text-xs rounded-full">
-        Feedback: {item.feedback}
-      </span>
+    <div className="text-gray-600 text-sm space-y-1 mb-3">
+      <p>
+        <strong>Task ID:</strong> {item.task_id}
+      </p>
+      <p>
+        <strong>Event Name:</strong> {item.event_name}
+      </p>
+      <p>
+        <strong>Event Type:</strong> {item.event_type} | <strong>Level:</strong>{" "}
+        {item.event_level}
+      </p>
+      <p>
+        <strong>Mode:</strong> {item.mode_of_conduct}
+      </p>
+      <p>
+        <strong>Organization Type:</strong> {item.type_of_organization}
+      </p>
+      <p>
+        <strong>Date:</strong> {item.from_date} to {item.to_date}
+      </p>
+      <p>
+        <strong>Participants:</strong> {item.number_of_participants}
+      </p>
+      <p>
+        <strong>Audience Type:</strong> {item.type_of_audience}
+      </p>
+      {item.special_labs_involved && (
+        <p>
+          <strong>Special Labs:</strong> {item.special_labs_involved}
+        </p>
+      )}
+    </div>
+    <div className="flex flex-wrap gap-2">
+      {item.document_proof && (
+        <a
+          href={item.document_proof}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 hover:underline text-xs flex items-center gap-1"
+        >
+          <ExternalLink size={12} /> Document
+        </a>
+      )}
+      {item.apex_proof && (
+        <a
+          href={item.apex_proof}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 hover:underline text-xs flex items-center gap-1"
+        >
+          <ExternalLink size={12} /> Apex Proof
+        </a>
+      )}
+      {item.sample_photographs && (
+        <a
+          href={item.sample_photographs}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 hover:underline text-xs flex items-center gap-1"
+        >
+          <ExternalLink size={12} /> Photos
+        </a>
+      )}
+    </div>
+    {item.remarks && (
+      <p className="text-gray-500 text-xs mt-2 italic">
+        Remarks: {item.remarks}
+      </p>
     )}
   </div>
 );
 
 const InternationalVisitCard = ({item}) => (
   <div className="bg-white border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow">
-    <div className="flex items-start gap-3 mb-3">
-      <Globe className="text-indigo-500 mt-1" size={20} />
-      <div>
-        <h4 className="font-semibold text-gray-800">{item.institution}</h4>
-        <p className="text-indigo-600 text-sm font-medium">{item.country}</p>
+    <div className="flex justify-between items-start mb-3">
+      <div className="flex items-start gap-3">
+        <Globe className="text-indigo-500 mt-1" size={20} />
+        <div>
+          <h4 className="font-semibold text-gray-800">
+            {item.country_visited}
+          </h4>
+          <p className="text-indigo-600 text-sm font-medium">
+            {item.purpose_of_visit}
+          </p>
+        </div>
       </div>
-    </div>
-    <p className="text-gray-600 text-sm mb-3">
-      <strong>Purpose:</strong> {item.purpose}
-    </p>
-    <div className="flex flex-wrap gap-3 text-gray-500 text-sm mb-3">
-      <span className="flex items-center">
-        <Calendar size={14} className="mr-1" />
-        {item.duration}
-      </span>
-      <span className="flex items-center">
-        <Building size={14} className="mr-1" />
-        Sponsor: {item.sponsor}
+      <span
+        className={`px-3 py-1 text-xs rounded-full ${
+          item.status === "approved"
+            ? "bg-green-100 text-green-700"
+            : item.status === "pending"
+            ? "bg-yellow-100 text-yellow-700"
+            : "bg-blue-100 text-blue-700"
+        }`}
+      >
+        {item.status}
       </span>
     </div>
-    {item.outcomes && (
-      <p className="text-gray-600 text-sm">
-        <strong>Outcomes:</strong> {item.outcomes}
+    <div className="text-gray-600 text-sm space-y-1 mb-3">
+      <p>
+        <strong>Task ID:</strong> {item.task_id}
+      </p>
+      <p>
+        <strong>Date:</strong> {item.from_date} to {item.to_date}
+      </p>
+      <p>
+        <strong>Funding:</strong> {item.fund_type}
+      </p>
+    </div>
+    {item.document_proof && (
+      <a
+        href={item.document_proof}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-blue-600 hover:underline text-xs flex items-center gap-1"
+      >
+        <ExternalLink size={12} /> View Document
+      </a>
+    )}
+    {item.remarks && (
+      <p className="text-gray-500 text-xs mt-2 italic">
+        Remarks: {item.remarks}
       </p>
     )}
   </div>
@@ -823,26 +689,90 @@ const InternationalVisitCard = ({item}) => (
 
 const AwardCard = ({item}) => (
   <div className="bg-white border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow">
-    <div className="flex items-start gap-3 mb-3">
-      <Trophy className="text-yellow-500 mt-1" size={24} />
-      <div className="flex-1">
-        <h4 className="font-semibold text-gray-800">{item.title}</h4>
-        <p className="text-indigo-600 text-sm font-medium">{item.awardedBy}</p>
+    <div className="flex justify-between items-start mb-3">
+      <div className="flex items-start gap-3 flex-1">
+        <Trophy className="text-yellow-500 mt-1" size={24} />
+        <div>
+          <h4 className="font-semibold text-gray-800">{item.award_name}</h4>
+          <p className="text-indigo-600 text-sm font-medium">
+            {item.awarding_agency}
+          </p>
+        </div>
       </div>
-      <span className="px-3 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full">
-        {item.category}
+      <span
+        className={`px-3 py-1 text-xs rounded-full ${
+          item.status === "approved"
+            ? "bg-green-100 text-green-700"
+            : item.status === "pending"
+            ? "bg-yellow-100 text-yellow-700"
+            : "bg-blue-100 text-blue-700"
+        }`}
+      >
+        {item.status}
       </span>
     </div>
-    <p className="text-gray-600 text-sm mb-3">{item.description}</p>
-    <div className="flex flex-wrap gap-3 text-gray-500 text-sm">
-      <span className="flex items-center">
-        <Calendar size={14} className="mr-1" />
-        {new Date(item.date).toLocaleDateString()}
-      </span>
-      {item.prize && (
-        <span className="text-green-600 font-medium">{item.prize}</span>
+    <div className="text-gray-600 text-sm space-y-1 mb-3">
+      <p>
+        <strong>Task ID:</strong> {item.task_id}
+      </p>
+      <p>
+        <strong>Recognition Type:</strong> {item.type_of_recognition}{" "}
+        {item.other_type_of_recognition &&
+          `(${item.other_type_of_recognition})`}
+      </p>
+      <p>
+        <strong>Organization Type:</strong> {item.organization_type}{" "}
+        {item.other_organization_type && `(${item.other_organization_type})`}
+      </p>
+      <p>
+        <strong>Level:</strong> {item.level}
+      </p>
+      <p>
+        <strong>Date Received:</strong> {item.received_date}
+      </p>
+      <p>
+        <strong>Nature:</strong> {item.nature_of_recognition}{" "}
+        {item.other_nature_of_recognition &&
+          `(${item.other_nature_of_recognition})`}
+      </p>
+      {item.technical_society && (
+        <p>
+          <strong>Technical Society:</strong> {item.technical_society}
+        </p>
+      )}
+      {item.special_labs_involved && (
+        <p>
+          <strong>Special Labs:</strong> {item.special_labs_involved}
+        </p>
       )}
     </div>
+    <div className="flex flex-wrap gap-2">
+      {item.photo_proofs && (
+        <a
+          href={item.photo_proofs}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 hover:underline text-xs flex items-center gap-1"
+        >
+          <ExternalLink size={12} /> Photos
+        </a>
+      )}
+      {item.document_proof && (
+        <a
+          href={item.document_proof}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 hover:underline text-xs flex items-center gap-1"
+        >
+          <ExternalLink size={12} /> Document
+        </a>
+      )}
+    </div>
+    {item.remarks && (
+      <p className="text-gray-500 text-xs mt-2 italic">
+        Remarks: {item.remarks}
+      </p>
+    )}
   </div>
 );
 
@@ -850,36 +780,87 @@ const OnlineCourseCard = ({item}) => (
   <div className="bg-white border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow">
     <div className="flex justify-between items-start mb-3">
       <div className="flex-1">
-        <h4 className="font-semibold text-gray-800">{item.courseName}</h4>
+        <h4 className="font-semibold text-gray-800">{item.course_name}</h4>
         <p className="text-indigo-600 text-sm font-medium">
-          {item.platform} • {item.provider}
+          {item.organization_name}
         </p>
       </div>
-      <span className="px-3 py-1 bg-green-100 text-green-700 text-xs rounded-full font-medium">
-        {item.grade}
+      <span
+        className={`px-3 py-1 text-xs rounded-full ${
+          item.status === "approved"
+            ? "bg-green-100 text-green-700"
+            : item.status === "pending"
+            ? "bg-yellow-100 text-yellow-700"
+            : "bg-blue-100 text-blue-700"
+        }`}
+      >
+        {item.status}
       </span>
     </div>
-    <div className="flex flex-wrap gap-3 text-gray-500 text-sm mb-3">
-      <span className="flex items-center">
-        <Clock size={14} className="mr-1" />
-        {item.duration}
-      </span>
-      <span className="flex items-center">
-        <GraduationCap size={14} className="mr-1" />
-        {item.credentialId}
-      </span>
+    <div className="text-gray-600 text-sm space-y-1 mb-3">
+      <p>
+        <strong>Task ID:</strong> {item.task_id}
+      </p>
+      <p>
+        <strong>Mode:</strong> {item.mode_of_course}
+      </p>
+      <p>
+        <strong>Course Type:</strong> {item.course_type}{" "}
+        {item.other_course_type && `(${item.other_course_type})`}
+      </p>
+      <p>
+        <strong>Organizer Type:</strong> {item.type_of_organizer}{" "}
+        {item.other_type_of_organizer && `(${item.other_type_of_organizer})`}
+      </p>
+      <p>
+        <strong>Organization Address:</strong> {item.organization_address}
+      </p>
+      <p>
+        <strong>Level:</strong> {item.level_of_event}
+      </p>
+      <p>
+        <strong>Duration:</strong> {item.duration}{" "}
+        {item.other_duration && `(${item.other_duration})`}
+      </p>
+      <p>
+        <strong>Date:</strong> {item.start_date} to {item.end_date}
+      </p>
+      <p>
+        <strong>Category:</strong> {item.course_category}{" "}
+        {item.other_course_category && `(${item.other_course_category})`}
+      </p>
+      <p>
+        <strong>Grade:</strong> {item.grade_obtained}
+      </p>
+      <p>
+        <strong>Sponsorship:</strong> {item.type_of_sponsorship}{" "}
+        {item.other_type_of_sponsorship &&
+          `(${item.other_type_of_sponsorship})`}
+      </p>
+      <p>
+        <strong>Claimed For:</strong> {item.claimed_for}{" "}
+        {item.other_claimed_for && `(${item.other_claimed_for})`}
+      </p>
+      {item.special_labs_involved && (
+        <p>
+          <strong>Special Labs:</strong> {item.special_labs_involved}
+        </p>
+      )}
     </div>
-    {item.skills && (
-      <div className="flex flex-wrap gap-1">
-        {item.skills.map((skill, idx) => (
-          <span
-            key={idx}
-            className="px-2 py-1 bg-blue-50 text-blue-600 text-xs rounded-full"
-          >
-            {skill}
-          </span>
-        ))}
-      </div>
+    {item.document_proof && (
+      <a
+        href={item.document_proof}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-blue-600 hover:underline text-xs flex items-center gap-1"
+      >
+        <ExternalLink size={12} /> View Certificate
+      </a>
+    )}
+    {item.remarks && (
+      <p className="text-gray-500 text-xs mt-2 italic">
+        Remarks: {item.remarks}
+      </p>
     )}
   </div>
 );
@@ -888,64 +869,167 @@ const PaperCard = ({item}) => (
   <div className="bg-white border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow">
     <div className="flex justify-between items-start mb-3">
       <div className="flex-1">
-        <h4 className="font-semibold text-gray-800">{item.title}</h4>
-        <p className="text-indigo-600 text-sm font-medium">{item.conference}</p>
+        <h4 className="font-semibold text-gray-800">{item.paper_title}</h4>
+        <p className="text-indigo-600 text-sm font-medium">
+          {item.conference_name}
+        </p>
       </div>
-      {item.award && (
-        <span className="px-3 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full flex items-center gap-1">
-          <Trophy size={12} />
-          {item.award}
-        </span>
+      <span
+        className={`px-3 py-1 text-xs rounded-full ${
+          item.status === "approved"
+            ? "bg-green-100 text-green-700"
+            : item.status === "pending"
+            ? "bg-yellow-100 text-yellow-700"
+            : "bg-blue-100 text-blue-700"
+        }`}
+      >
+        {item.status}
+      </span>
+    </div>
+    <div className="text-gray-600 text-sm space-y-1 mb-3">
+      <p>
+        <strong>Task ID:</strong> {item.task_id}
+      </p>
+      <p>
+        <strong>Event Mode:</strong> {item.event_mode} | <strong>Level:</strong>{" "}
+        {item.event_level}
+      </p>
+      <p>
+        <strong>Organizer:</strong> {item.event_organizer}{" "}
+        {item.other_event_organizer && `(${item.other_event_organizer})`}
+      </p>
+      <p>
+        <strong>Date:</strong> {item.event_start_date} to {item.event_end_date}
+      </p>
+      <p>
+        <strong>Duration:</strong> {item.event_duration_days} days
+      </p>
+      <p>
+        <strong>Published in Proceedings:</strong>{" "}
+        {item.published_in_proceedings}
+      </p>
+      <p>
+        <strong>Sponsorship:</strong> {item.type_of_sponsorship}{" "}
+        {item.other_type_of_sponsorship &&
+          `(${item.other_type_of_sponsorship})`}
+      </p>
+      {item.other_authors_bit && (
+        <p>
+          <strong>Other BIT Authors:</strong> {item.other_authors_bit}
+        </p>
+      )}
+      {item.faculty_other_institute && (
+        <p>
+          <strong>Faculty from Other Institute:</strong>{" "}
+          {item.faculty_other_institute}
+        </p>
+      )}
+      {item.industrial_person_involved && (
+        <p>
+          <strong>Industrial Person:</strong> {item.industrial_person_involved}
+        </p>
+      )}
+      {item.international_collaboration && (
+        <p>
+          <strong>International Collaboration:</strong>{" "}
+          {item.international_collaboration}
+        </p>
+      )}
+      {item.students_involved && (
+        <p>
+          <strong>Students Involved:</strong> {item.students_involved}
+        </p>
+      )}
+      {item.registration_amount && (
+        <p>
+          <strong>Registration Amount:</strong> {item.registration_amount}
+        </p>
+      )}
+      {item.award_cash_prize_receiver && (
+        <p>
+          <strong>Award/Prize:</strong> {item.award_cash_prize_receiver}
+        </p>
+      )}
+      {item.special_labs_involved && (
+        <p>
+          <strong>Special Labs:</strong> {item.special_labs_involved}
+        </p>
       )}
     </div>
-    <div className="flex flex-wrap gap-3 text-gray-500 text-sm mb-3">
-      <span className="flex items-center">
-        <MapPin size={14} className="mr-1" />
-        {item.location}
-      </span>
-      <span className="flex items-center">
-        <Calendar size={14} className="mr-1" />
-        {new Date(item.date).toLocaleDateString()}
-      </span>
-    </div>
-    <p className="text-gray-600 text-sm">
-      <strong>Authors:</strong> {item.authors?.join(", ")}
-    </p>
-    {item.doi && (
+    {item.document_proof && (
       <a
-        href={`https://doi.org/${item.doi}`}
+        href={item.document_proof}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-blue-600 hover:underline text-xs flex items-center gap-1 mt-2"
+        className="text-blue-600 hover:underline text-xs flex items-center gap-1"
       >
-        <ExternalLink size={12} />
-        DOI: {item.doi}
+        <ExternalLink size={12} /> View Document
       </a>
+    )}
+    {item.remarks && (
+      <p className="text-gray-500 text-xs mt-2 italic">
+        Remarks: {item.remarks}
+      </p>
     )}
   </div>
 );
 
 const ResourcePersonCard = ({item}) => (
   <div className="bg-white border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow">
-    <h4 className="font-semibold text-gray-800 mb-2">{item.eventName}</h4>
-    <p className="text-indigo-600 text-sm font-medium mb-2">{item.organizer}</p>
-    <p className="text-gray-600 text-sm mb-3">
-      <strong>Topic:</strong> {item.topic}
-    </p>
-    <div className="flex flex-wrap gap-3 text-gray-500 text-sm mb-3">
-      <span className="flex items-center">
-        <Clock size={14} className="mr-1" />
-        {item.duration}
-      </span>
-      <span className="flex items-center">
-        <Users size={14} className="mr-1" />
-        {item.participants} participants
+    <div className="flex justify-between items-start mb-3">
+      <h4 className="font-semibold text-gray-800 flex-1">
+        {item.resource_person_category}
+      </h4>
+      <span
+        className={`px-3 py-1 text-xs rounded-full ${
+          item.status === "approved"
+            ? "bg-green-100 text-green-700"
+            : item.status === "pending"
+            ? "bg-yellow-100 text-yellow-700"
+            : "bg-blue-100 text-blue-700"
+        }`}
+      >
+        {item.status}
       </span>
     </div>
-    {item.honorarium && (
-      <span className="text-green-600 font-medium text-sm">
-        Honorarium: {item.honorarium}
-      </span>
+    <div className="text-gray-600 text-sm space-y-1 mb-3">
+      <p>
+        <strong>Task ID:</strong> {item.task_id}
+      </p>
+      <p>
+        <strong>Organization Type:</strong> {item.type_of_organisation}{" "}
+        {item.other_type_of_organisation &&
+          `(${item.other_type_of_organisation})`}
+      </p>
+      <p>
+        <strong>Organization:</strong> {item.organisation_name_and_address}
+      </p>
+      <p>
+        <strong>Duration:</strong> {item.number_of_days} days
+      </p>
+      <p>
+        <strong>Date:</strong> {item.from_date} to {item.to_date}
+      </p>
+      {item.special_labs_involved && (
+        <p>
+          <strong>Special Labs:</strong> {item.special_labs_involved}
+        </p>
+      )}
+    </div>
+    {item.document_proof && (
+      <a
+        href={item.document_proof}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-blue-600 hover:underline text-xs flex items-center gap-1"
+      >
+        <ExternalLink size={12} /> View Document
+      </a>
+    )}
+    {item.remarks && (
+      <p className="text-gray-500 text-xs mt-2 italic">
+        Remarks: {item.remarks}
+      </p>
     )}
   </div>
 );
@@ -962,7 +1046,7 @@ const EmptyState = ({icon: Icon, message}) => (
 );
 
 // Faculty Detail Panel Component
-function FacultyDetailPanel({faculty, achievements}) {
+function FacultyDetailPanel({faculty, achievements, loading}) {
   const [activeTab, setActiveTab] = useState("newsletter");
 
   if (!faculty) {
@@ -976,6 +1060,20 @@ function FacultyDetailPanel({faculty, achievements}) {
           <p className="text-gray-400 text-sm">
             Choose from the list to view their achievements
           </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full bg-gray-50">
+        <div className="text-center">
+          <Loader2
+            size={48}
+            className="mx-auto text-indigo-600 animate-spin mb-4"
+          />
+          <p className="text-gray-600 font-medium">Loading achievements...</p>
         </div>
       </div>
     );
@@ -1145,99 +1243,63 @@ function FacultyDetailPanel({faculty, achievements}) {
   return (
     <div className="p-4 md:p-6 bg-gray-50 h-full overflow-y-auto">
       {/* Header */}
-      <div className="mb-6">
-        <div className="text-2xl md:text-3xl font-bold text-gray-800">
-          {faculty.name}'s Achievements
-        </div>
-        <div className="flex flex-wrap gap-4 mt-2 text-sm text-gray-600">
-          <span>
-            <span className="font-medium text-gray-700">ID:</span>{" "}
-            {faculty.faculty_id}
-          </span>
-          <span>
-            <span className="font-medium text-gray-700">Department:</span>{" "}
-            {faculty.department}
-          </span>
-        </div>
+      <div className="mb-5">
+        <h2 className="text-xl font-semibold text-gray-800">{faculty.name}</h2>
+        <p className="text-sm text-gray-500 mt-1">{faculty.faculty_id}</p>
       </div>
 
-      {/* Tabs - Student Metrics Style */}
-      <div className="bg-slate-100 p-1.5 rounded-xl mb-6 shadow-sm space-y-1">
-        {/* First Row - 6 tabs */}
-        <div className="flex gap-1">
-          {tabs.slice(0, 6).map((tab) => {
+      {/* Tabs */}
+      <div className="bg-gray-100 p-1 rounded-lg mb-4">
+        <div className="flex flex-wrap gap-1">
+          {tabs.map((tab) => {
             const IconComponent = tab.icon;
             const isActive = activeTab === tab.id;
+            const count = getTabCount(tab.id);
             return (
-              <div
+              <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`
-                  flex-1 flex items-center justify-center gap-1.5 py-2 px-2
-                  rounded-lg transition-colors duration-150
-                  text-xs cursor-pointer whitespace-nowrap
+                  flex items-center gap-1.5 py-1.5 px-3
+                  rounded-md transition-all duration-150
+                  text-xs font-medium
                   ${
                     isActive
-                      ? "bg-white text-indigo-700 font-semibold shadow-sm"
-                      : "text-gray-600 hover:bg-slate-200 hover:text-indigo-600"
+                      ? "bg-white text-indigo-600 shadow-sm"
+                      : "text-gray-600 hover:bg-white/50"
                   }
                 `}
               >
-                <IconComponent
-                  size={14}
-                  className={isActive ? "text-indigo-600" : "text-gray-500"}
-                />
-                <span>{tab.label}</span>
-              </div>
-            );
-          })}
-        </div>
-        {/* Second Row - 6 tabs */}
-        <div className="flex gap-1">
-          {tabs.slice(6, 12).map((tab) => {
-            const IconComponent = tab.icon;
-            const isActive = activeTab === tab.id;
-            return (
-              <div
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`
-                  flex-1 flex items-center justify-center gap-1.5 py-2 px-2
-                  rounded-lg transition-colors duration-150
-                  text-xs cursor-pointer whitespace-nowrap
-                  ${
-                    isActive
-                      ? "bg-white text-indigo-700 font-semibold shadow-sm"
-                      : "text-gray-600 hover:bg-slate-200 hover:text-indigo-600"
-                  }
-                `}
-              >
-                <IconComponent
-                  size={14}
-                  className={isActive ? "text-indigo-600" : "text-gray-500"}
-                />
-                <span>{tab.label}</span>
-              </div>
+                <IconComponent size={14} />
+                <span className="hidden sm:inline">{tab.label}</span>
+                {count > 0 && (
+                  <span
+                    className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                      isActive
+                        ? "bg-indigo-100 text-indigo-600"
+                        : "bg-gray-200 text-gray-600"
+                    }`}
+                  >
+                    {count}
+                  </span>
+                )}
+              </button>
             );
           })}
         </div>
       </div>
 
-      {/* Content Box */}
-      <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-md mb-6">
-        <h3 className="text-lg font-semibold text-gray-700 mb-4 capitalize">
-          {tabs.find((t) => t.id === activeTab)?.label} (
-          {getTabCount(activeTab)})
-        </h3>
+      {/* Content */}
+      <div className="bg-white rounded-lg border border-gray-200 p-4">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-medium text-gray-700">
+            {tabs.find((t) => t.id === activeTab)?.label}
+          </h3>
+          <span className="text-sm text-gray-500">
+            {getTabCount(activeTab)} records
+          </span>
+        </div>
         {renderContent()}
-      </div>
-
-      {/* Export Button */}
-      <div className="text-center">
-        <button className="bg-indigo-600 text-white font-semibold py-2 px-6 rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition-all duration-300 flex items-center gap-2 mx-auto">
-          <Download size={18} />
-          Export Report
-        </button>
       </div>
     </div>
   );
@@ -1245,13 +1307,42 @@ function FacultyDetailPanel({faculty, achievements}) {
 
 // Main Component
 export default function FacultyMetrics() {
-  const [facultyList, setFacultyList] = useState(dummyFacultyList);
+  const [facultyList, setFacultyList] = useState([]);
   const [selectedFaculty, setSelectedFaculty] = useState(null);
   const [achievements, setAchievements] = useState(getDefaultAchievements());
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedDepartment, setSelectedDepartment] = useState("All");
+  const [loading, setLoading] = useState(true);
+  const [achievementsLoading, setAchievementsLoading] = useState(false);
+
+  // Fetch faculty list on mount
+  useEffect(() => {
+    const fetchFacultyList = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(
+          `${API_BASE}/api/admin/faculty-metrics/list`,
+          {
+            credentials: "include",
+          }
+        );
+        if (response.ok) {
+          const data = await response.json();
+          setFacultyList(data.faculty || []);
+        } else {
+          console.error("Failed to fetch faculty list");
+          setFacultyList([]);
+        }
+      } catch (error) {
+        console.error("Error fetching faculty list:", error);
+        setFacultyList([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchFacultyList();
+  }, []);
 
   useEffect(() => {
     const checkIsMobile = () => {
@@ -1269,35 +1360,61 @@ export default function FacultyMetrics() {
     }
   }, [isMobile, facultyList]);
 
-  const handleFacultySelect = (faculty) => {
+  const handleFacultySelect = async (faculty) => {
     setSelectedFaculty(faculty);
-    // Get achievements for selected faculty (use dummy data or default empty)
-    const facultyAchievements =
-      dummyAchievementsData[faculty.faculty_id] || getDefaultAchievements();
-    setAchievements(facultyAchievements);
     setIsPanelOpen(false);
+
+    // Fetch achievements for selected faculty from API
+    try {
+      setAchievementsLoading(true);
+      const response = await fetch(
+        `${API_BASE}/api/admin/faculty-metrics/achievements/${faculty.faculty_id}`,
+        {credentials: "include"}
+      );
+      if (response.ok) {
+        const data = await response.json();
+        setAchievements(data.achievements || getDefaultAchievements());
+      } else {
+        console.error("Failed to fetch achievements");
+        setAchievements(getDefaultAchievements());
+      }
+    } catch (error) {
+      console.error("Error fetching achievements:", error);
+      setAchievements(getDefaultAchievements());
+    } finally {
+      setAchievementsLoading(false);
+    }
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-slate-50">
+        <div className="text-center">
+          <Loader2
+            size={48}
+            className="mx-auto text-indigo-600 animate-spin mb-4"
+          />
+          <p className="text-gray-600 font-medium">Loading faculty data...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="relative flex flex-col lg:flex-row h-screen bg-slate-50">
+    <div className="relative flex flex-col lg:flex-row h-screen bg-gray-50">
       {/* Mobile Header */}
-      <div className="lg:hidden p-4 border-b border-gray-300 bg-white flex justify-between items-center sticky top-0 z-10">
+      <div className="lg:hidden p-3 border-b border-gray-200 bg-white flex justify-between items-center sticky top-0 z-10">
         <div className="flex-1">
-          <div className="text-xl font-bold text-gray-800 truncate">
-            {selectedFaculty ? selectedFaculty.name : "Select Faculty"}
-          </div>
-          {selectedFaculty && (
-            <div className="text-sm text-gray-500">
-              {selectedFaculty.department} • {selectedFaculty.designation}
-            </div>
-          )}
+          <p className="font-medium text-gray-800 truncate">
+            {selectedFaculty ? selectedFaculty.name : "Faculty Metrics"}
+          </p>
         </div>
         <button
           onClick={() => setIsPanelOpen(true)}
-          className="p-2 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 shadow-lg"
+          className="p-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700"
           aria-label="Search faculty"
         >
-          <Search size={20} />
+          <Search size={18} />
         </button>
       </div>
 
@@ -1305,7 +1422,7 @@ export default function FacultyMetrics() {
       <div
         className={`
           transition-transform duration-300 ease-in-out
-          lg:w-[35%] xl:w-[28%] lg:border-r lg:border-gray-300
+          lg:w-72 xl:w-80 lg:border-r lg:border-gray-200
           ${isPanelOpen ? "block" : "hidden"}
           lg:block
           fixed inset-0 z-30 lg:static lg:z-auto
@@ -1313,11 +1430,11 @@ export default function FacultyMetrics() {
       >
         {/* Modal Backdrop for Mobile */}
         <div
-          className="fixed inset-0 bg-gray-800 bg-opacity-50 lg:hidden"
+          className="fixed inset-0 bg-black/40 lg:hidden"
           onClick={() => setIsPanelOpen(false)}
         ></div>
 
-        <div className="relative w-full max-w-lg lg:max-w-full h-full bg-slate-50">
+        <div className="relative w-full max-w-sm lg:max-w-full h-full bg-white">
           <FacultyListPanel
             facultyList={facultyList}
             selectedFaculty={selectedFaculty}
@@ -1325,17 +1442,16 @@ export default function FacultyMetrics() {
             onClose={() => setIsPanelOpen(false)}
             searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}
-            selectedDepartment={selectedDepartment}
-            setSelectedDepartment={setSelectedDepartment}
           />
         </div>
       </div>
 
       {/* Right Panel (Faculty Details) */}
-      <div className="flex-1 lg:w-[65%] xl:w-[72%] overflow-hidden">
+      <div className="flex-1 overflow-hidden">
         <FacultyDetailPanel
           faculty={selectedFaculty}
           achievements={achievements}
+          loading={achievementsLoading}
         />
       </div>
     </div>

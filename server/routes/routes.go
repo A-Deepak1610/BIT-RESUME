@@ -128,6 +128,9 @@ func RegisterRoutes(r *gin.Engine) {
 		// Admin Faculty Verifications
 		adminOnly.GET("/admin/faculty-verifications", admin.GetAllFacultySubmissions)
 		adminOnly.PUT("/admin/faculty-verifications/update-status", admin.UpdateFacultySubmissionStatus)
+		// Admin Faculty Metrics
+		adminOnly.GET("/admin/faculty-metrics/list", admin.GetFacultyList)
+		adminOnly.GET("/admin/faculty-metrics/achievements/:facultyId", admin.GetFacultyAchievements)
 	}
 	r.GET("/api/activitymaster/fetch", addevents.FetchEvents)
 	//both student and faculty
