@@ -1,5 +1,5 @@
-import React, {useEffect} from "react";
-import {Routes, Route, Navigate} from "react-router-dom";
+import React, { useEffect } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
 import DashboardLayout from "../components/layout/DashboardLayout"; // This is your layout with NavBar and SideBar
 import Dashboard from "../pages/dashboard/Dashboard"; // Student Dashboard
 import Resume from "../pages/resume/Resume";
@@ -30,7 +30,7 @@ import AdminDashboard from "../pages/Admin/AdminDashboard/AdminDashboard";
 import Addusers from "../pages/Admin/AddUsers/Addusers";
 import AddActivity from "../pages/faculty/add-activity/AddActivity";
 import Reports from "../pages/Admin/reports/Reports";
-import FacultyMetrics from "../pages/Admin/FacultyMetrics/FacultyMetrics";
+import FacultyMetricsNew from "../pages/Admin/FacultyMetrics/FacultyMetricsNew";
 import FacultyVerifications from "../pages/Admin/FacultyVerifications";
 import FacultyAchievements from "../pages/faculty/faculty-achievements/FacultyAchievements";
 import NewsletterForm from "../pages/faculty/faculty-achievements/forms/NewsletterForm";
@@ -47,7 +47,7 @@ import PaperForm from "../pages/faculty/faculty-achievements/forms/PaperForm";
 import ResourcePersonForm from "../pages/faculty/faculty-achievements/forms/ResourcePersonForm";
 
 export default function Applayout() {
-  const {fetchUser, user, loading} = useAuth();
+  const { fetchUser, user, loading } = useAuth();
   useEffect(() => {
     if (!user && loading) {
       fetchUser();
@@ -181,7 +181,7 @@ export default function Applayout() {
               />
               <Route
                 path="/admin-facultyMetrics"
-                element={<FacultyMetrics />}
+                element={<FacultyMetricsNew />}
               />
               <Route
                 path="/admin-facultyVerifications"

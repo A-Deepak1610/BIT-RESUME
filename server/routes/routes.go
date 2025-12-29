@@ -87,6 +87,20 @@ func RegisterRoutes(r *gin.Engine) {
 		facultyOnly.GET("/faculty/eventsOrganizedGet", facultyAchievements.FetchEventsOrganized)
 		facultyOnly.POST("/faculty/externalExaminerPost", facultyAchievements.HandleExternalExaminerForm)
 		facultyOnly.GET("/faculty/externalExaminerGet", facultyAchievements.FetchExternalExaminer)
+		facultyOnly.POST("/faculty/journalReviewerPost", facultyAchievements.HandleJournalReviewerForm)
+		facultyOnly.GET("/faculty/journalReviewerGet", facultyAchievements.FetchJournalReviewer)
+		facultyOnly.POST("/faculty/guestLecturePost", facultyAchievements.HandleGuestLectureForm)
+		facultyOnly.GET("/faculty/guestLectureGet", facultyAchievements.FetchGuestLecture)
+		facultyOnly.POST("/faculty/internationalVisitPost", facultyAchievements.HandleInternationalVisitForm)
+		facultyOnly.GET("/faculty/internationalVisitGet", facultyAchievements.FetchInternationalVisit)
+		facultyOnly.POST("/faculty/awardPost", facultyAchievements.HandleAwardForm)
+		facultyOnly.GET("/faculty/awardGet", facultyAchievements.FetchAward)
+		facultyOnly.POST("/faculty/onlineCoursePost", facultyAchievements.HandleOnlineCourseForm)
+		facultyOnly.GET("/faculty/onlineCourseGet", facultyAchievements.FetchOnlineCourse)
+		facultyOnly.POST("/faculty/paperPresentationPost", facultyAchievements.HandlePaperPresentationForm)
+		facultyOnly.GET("/faculty/paperPresentationGet", facultyAchievements.FetchPaperPresentation)
+		facultyOnly.POST("/faculty/resourcePersonPost", facultyAchievements.HandleResourcePersonForm)
+		facultyOnly.GET("/faculty/resourcePersonGet", facultyAchievements.FetchResourcePerson)
 	}
 
 	bothStudentFacultyAdmin := r.Group("/api")
@@ -128,6 +142,9 @@ func RegisterRoutes(r *gin.Engine) {
 		// Admin Faculty Verifications
 		adminOnly.GET("/admin/faculty-verifications", admin.GetAllFacultySubmissions)
 		adminOnly.PUT("/admin/faculty-verifications/update-status", admin.UpdateFacultySubmissionStatus)
+		// Admin Faculty Metrics
+		adminOnly.GET("/admin/faculty-metrics/list", admin.GetFacultyList)
+		adminOnly.GET("/admin/faculty-metrics/:facultyId", admin.GetFacultyAchievements)
 	}
 	r.GET("/api/activitymaster/fetch", addevents.FetchEvents)
 	//both student and faculty
