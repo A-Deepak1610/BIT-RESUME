@@ -1,4 +1,4 @@
-import React, {useState, useMemo, useEffect} from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   Search,
   ChevronDown,
@@ -32,7 +32,7 @@ const ICONS = {
   DocumentGeneric: () => (
     <FileText className="w-6 h-6 text-indigo-500" strokeWidth={1.5} />
   ),
-  Chevron: ({expanded}) => (
+  Chevron: ({ expanded }) => (
     <ChevronDown
       strokeWidth={2}
       className={`w-5 h-5 transition-transform duration-200 ${
@@ -121,7 +121,7 @@ const getStatusClasses = (status) => {
 const formatDate = (dateString) =>
   dateString ? new Date(dateString).toLocaleDateString() : "N/A";
 
-const DetailItem = ({icon, label, value, isLink, isTag, isList}) => {
+const DetailItem = ({ icon, label, value, isLink, isTag, isList }) => {
   if (!value && value !== 0) return null;
   return (
     <div>
@@ -194,7 +194,7 @@ const SearchBarAndSort = ({
   </div>
 );
 
-const FilterTabs = ({activeTab, setActiveTab, tabsConfig}) => (
+const FilterTabs = ({ activeTab, setActiveTab, tabsConfig }) => (
   <div className="mb-6 border-b border-gray-200">
     <nav className="flex space-x-1 -mb-px overflow-x-auto pb-px">
       {tabsConfig.map((tab) => (
@@ -225,7 +225,7 @@ const FilterTabs = ({activeTab, setActiveTab, tabsConfig}) => (
   </div>
 );
 
-const AttachmentPill = ({fileUrl, fileName}) => {
+const AttachmentPill = ({ fileUrl, fileName }) => {
   if (!fileUrl || !fileName) return null;
   return (
     <a
@@ -239,7 +239,7 @@ const AttachmentPill = ({fileUrl, fileName}) => {
   );
 };
 
-const ActionButtons = ({submission, onAction, children}) => (
+const ActionButtons = ({ submission, onAction, children }) => (
   <div className="flex flex-col sm:flex-row justify-end sm:space-x-3 sm:items-end mt-6">
     <div className="flex-grow mb-3 sm:mb-0">{children}</div>
     <div className="flex-grow-[2]">
@@ -273,7 +273,7 @@ const ActionButtons = ({submission, onAction, children}) => (
   </div>
 );
 
-const CardBase = ({submission, onToggleExpand, children}) => (
+const CardBase = ({ submission, onToggleExpand, children }) => (
   <div className="bg-white shadow-lg rounded-lg mb-5 overflow-hidden border border-gray-200 transition-all duration-300">
     <div
       className="flex items-center justify-between p-4 border-b border-gray-200 cursor-pointer hover:bg-gray-50"
@@ -322,41 +322,52 @@ const CardBase = ({submission, onToggleExpand, children}) => (
 
 // --- Specific Card Components for Faculty Submissions ---
 
-const NewsletterCard = ({submission, onAction}) => (
+const NewsletterCard = ({ submission, onAction }) => (
   <div className="space-y-4">
     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
       <DetailItem
         icon={<ICONS.BookOpen />}
-        label="Newsletter Title"
-        value={submission.details.newsletter_title}
+        label="Newsletter Category"
+        value={submission.details?.newsletter_category}
       />
       <DetailItem
         icon={<ICONS.Calendar />}
         label="Publication Date"
-        value={formatDate(submission.details.publication_date)}
-      />
-      <DetailItem
-        icon={<ICONS.Building />}
-        label="Publisher"
-        value={submission.details.publisher}
+        value={formatDate(submission.details?.date_of_publication)}
       />
       <DetailItem
         icon={<ICONS.Star />}
-        label="Edition"
-        value={submission.details.edition}
+        label="Academic Year"
+        value={submission.details?.academic_year}
+      />
+      <DetailItem
+        icon={<ICONS.FileText />}
+        label="Volume / Issue"
+        value={`Vol ${submission.details?.volume_number || ""}, Issue ${
+          submission.details?.issue_number || ""
+        }`}
+      />
+      <DetailItem
+        icon={<ICONS.Calendar />}
+        label="Issue Month"
+        value={submission.details?.issue_month}
+      />
+      <DetailItem
+        icon={<ICONS.Users />}
+        label="Faculty Editors"
+        value={submission.details?.faculty_editor_count}
+      />
+      <DetailItem
+        icon={<ICONS.Users />}
+        label="Student Editors"
+        value={submission.details?.student_editor_count}
       />
     </div>
-    <DetailItem
-      icon={<ICONS.Summary />}
-      label="Description"
-      value={submission.details.description}
-      isTag
-    />
     <div>
       <h4 className="text-sm font-semibold text-gray-700 mb-2">Attachments</h4>
       <AttachmentPill
-        fileName={submission.attachments[0]?.name}
-        fileUrl={submission.attachments[0]?.url}
+        fileName={submission.attachments?.[0]?.name}
+        fileUrl={submission.attachments?.[0]?.url}
       />
     </div>
     {submission.status === "Awaiting" && (
@@ -365,90 +376,129 @@ const NewsletterCard = ({submission, onAction}) => (
   </div>
 );
 
-const EContentCard = ({submission, onAction}) => (
+const EContentCard = ({ submission, onAction }) => (
   <div className="space-y-4">
     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
       <DetailItem
         icon={<ICONS.FileText />}
-        label="Content Title"
-        value={submission.details.content_title}
+        label="Topic Name"
+        value={submission.title}
       />
       <DetailItem
         icon={<ICONS.Star />}
         label="Content Type"
-        value={submission.details.content_type}
+        value={submission.details?.e_content_type}
       />
       <DetailItem
         icon={<ICONS.Building />}
-        label="Platform"
-        value={submission.details.platform}
+        label="Publisher"
+        value={submission.details?.publisher_name}
+      />
+      <DetailItem
+        icon={<ICONS.MapPin />}
+        label="Publisher Address"
+        value={submission.details?.publisher_address}
       />
       <DetailItem
         icon={<ICONS.Calendar />}
-        label="Upload Date"
-        value={formatDate(submission.details.upload_date)}
+        label="Publication Date"
+        value={formatDate(submission.details?.date_of_publication)}
+      />
+      <DetailItem
+        icon={<ICONS.Star />}
+        label="Claimed For"
+        value={submission.details?.claimed_for}
       />
       <div className="md:col-span-2">
         <DetailItem
           icon={<ICONS.Link2 />}
-          label="Content Link"
-          value={submission.details.content_link}
+          label="Content URL"
+          value={submission.details?.url_of_content}
           isLink
         />
       </div>
     </div>
-    <DetailItem
-      icon={<ICONS.Summary />}
-      label="Description"
-      value={submission.details.description}
-      isTag
-    />
+    <div>
+      <h4 className="text-sm font-semibold text-gray-700 mb-2">Attachments</h4>
+      <AttachmentPill
+        fileName={submission.attachments?.[0]?.name}
+        fileUrl={submission.attachments?.[0]?.url}
+      />
+    </div>
     {submission.status === "Awaiting" && (
       <ActionButtons submission={submission} onAction={onAction} />
     )}
   </div>
 );
 
-const EventsAttendedCard = ({submission, onAction}) => (
+const EventsAttendedCard = ({ submission, onAction }) => (
   <div className="space-y-4">
     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
       <DetailItem
         icon={<ICONS.Star />}
-        label="Event Name"
-        value={submission.details.event_name}
+        label="Event Title"
+        value={submission.title}
       />
       <DetailItem
         icon={<ICONS.Building />}
-        label="Organizer"
-        value={submission.details.organizer}
-      />
-      <DetailItem
-        icon={<ICONS.MapPin />}
-        label="Location"
-        value={submission.details.location}
+        label="Event Organizer"
+        value={submission.details?.event_organizer}
       />
       <DetailItem
         icon={<ICONS.Star />}
         label="Event Type"
-        value={submission.details.event_type}
+        value={submission.details?.event_type}
+      />
+      <DetailItem
+        icon={<ICONS.Star />}
+        label="Event Level"
+        value={submission.details?.event_level}
+      />
+      <DetailItem
+        icon={<ICONS.Star />}
+        label="Event Mode"
+        value={submission.details?.event_mode}
       />
       <DetailItem
         icon={<ICONS.Calendar />}
         label="Start Date"
-        value={formatDate(submission.details.start_date)}
+        value={formatDate(submission.details?.start_date)}
       />
       <DetailItem
         icon={<ICONS.Calendar />}
         label="End Date"
-        value={formatDate(submission.details.end_date)}
+        value={formatDate(submission.details?.end_date)}
+      />
+      <DetailItem
+        icon={<ICONS.Star />}
+        label="Duration (Days)"
+        value={submission.details?.duration_days}
+      />
+      <DetailItem
+        icon={<ICONS.Star />}
+        label="Sponsorship Type"
+        value={submission.details?.sponsorship_type}
+      />
+      <DetailItem
+        icon={<ICONS.Star />}
+        label="Outcome"
+        value={submission.details?.outcome}
       />
     </div>
     <div>
-      <h4 className="text-sm font-semibold text-gray-700 mb-2">Certificate</h4>
-      <AttachmentPill
-        fileName={submission.attachments[0]?.name}
-        fileUrl={submission.attachments[0]?.url}
-      />
+      <h4 className="text-sm font-semibold text-gray-700 mb-2">Attachments</h4>
+      <div className="flex flex-wrap gap-2">
+        <AttachmentPill
+          fileName={submission.attachments?.[0]?.name}
+          fileUrl={submission.attachments?.[0]?.url}
+        />
+        {submission.attachments?.[1] && (
+          <AttachmentPill
+            fileName={submission.attachments?.[1]?.name}
+            fileUrl={submission.attachments?.[1]?.url}
+          />
+        )}
+      </div>
     </div>
     {submission.status === "Awaiting" && (
       <ActionButtons submission={submission} onAction={onAction} />
@@ -456,57 +506,84 @@ const EventsAttendedCard = ({submission, onAction}) => (
   </div>
 );
 
-const EventsOrganizedCard = ({submission, onAction}) => (
+const EventsOrganizedCard = ({ submission, onAction }) => (
   <div className="space-y-4">
     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
       <DetailItem
         icon={<ICONS.Star />}
         label="Event Name"
-        value={submission.details.event_name}
+        value={submission.title}
+      />
+      <DetailItem
+        icon={<ICONS.Star />}
+        label="Program Type"
+        value={submission.details?.program_type}
       />
       <DetailItem
         icon={<ICONS.Star />}
         label="Event Type"
-        value={submission.details.event_type}
+        value={submission.details?.event_type}
       />
       <DetailItem
-        icon={<ICONS.MapPin />}
-        label="Venue"
-        value={submission.details.venue}
+        icon={<ICONS.Star />}
+        label="Event Level"
+        value={submission.details?.event_level}
+      />
+      <DetailItem
+        icon={<ICONS.Star />}
+        label="Event Mode"
+        value={submission.details?.event_mode}
+      />
+      <DetailItem
+        icon={<ICONS.Calendar />}
+        label="Start Date"
+        value={formatDate(submission.details?.start_date)}
+      />
+      <DetailItem
+        icon={<ICONS.Calendar />}
+        label="End Date"
+        value={formatDate(submission.details?.end_date)}
+      />
+      <DetailItem
+        icon={<ICONS.Star />}
+        label="Duration (Days)"
+        value={submission.details?.event_duration}
       />
       <DetailItem
         icon={<ICONS.Users />}
-        label="Participants"
-        value={submission.details.participants}
+        label="Internal Students"
+        value={submission.details?.internal_students_count}
       />
       <DetailItem
-        icon={<ICONS.Calendar />}
-        label="Start Date"
-        value={formatDate(submission.details.start_date)}
+        icon={<ICONS.Users />}
+        label="External Students"
+        value={submission.details?.external_students_count}
       />
       <DetailItem
-        icon={<ICONS.Calendar />}
-        label="End Date"
-        value={formatDate(submission.details.end_date)}
+        icon={<ICONS.Star />}
+        label="Total Revenue"
+        value={submission.details?.total_revenue}
       />
       <DetailItem
-        icon={<ICONS.UserCheck />}
-        label="Role"
-        value={submission.details.role}
+        icon={<ICONS.Star />}
+        label="Sponsorship Type"
+        value={submission.details?.sponsorship_type}
       />
     </div>
-    <DetailItem
-      icon={<ICONS.Summary />}
-      label="Description"
-      value={submission.details.description}
-      isTag
-    />
     <div>
       <h4 className="text-sm font-semibold text-gray-700 mb-2">Attachments</h4>
-      <AttachmentPill
-        fileName={submission.attachments[0]?.name}
-        fileUrl={submission.attachments[0]?.url}
-      />
+      <div className="flex flex-wrap gap-2">
+        <AttachmentPill
+          fileName={submission.attachments?.[0]?.name}
+          fileUrl={submission.attachments?.[0]?.url}
+        />
+        {submission.attachments?.[1] && (
+          <AttachmentPill
+            fileName={submission.attachments?.[1]?.name}
+            fileUrl={submission.attachments?.[1]?.url}
+          />
+        )}
+      </div>
     </div>
     {submission.status === "Awaiting" && (
       <ActionButtons submission={submission} onAction={onAction} />
@@ -514,35 +591,45 @@ const EventsOrganizedCard = ({submission, onAction}) => (
   </div>
 );
 
-const ExternalExaminerCard = ({submission, onAction}) => (
+const ExternalExaminerCard = ({ submission, onAction }) => (
   <div className="space-y-4">
     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
       <DetailItem
         icon={<ICONS.Building />}
-        label="Institution"
-        value={submission.details.institution}
+        label="College Name"
+        value={submission.details?.college_name}
       />
       <DetailItem
-        icon={<ICONS.GraduationCap />}
-        label="Examination Type"
-        value={submission.details.examination_type}
+        icon={<ICONS.MapPin />}
+        label="Institute Address"
+        value={submission.details?.institute_address}
       />
       <DetailItem
         icon={<ICONS.Star />}
-        label="Subject"
-        value={submission.details.subject}
+        label="Purpose of Visit"
+        value={submission.details?.purpose_of_visit}
       />
       <DetailItem
         icon={<ICONS.Calendar />}
-        label="Date"
-        value={formatDate(submission.details.date)}
+        label="From Date"
+        value={formatDate(submission.details?.from_date)}
+      />
+      <DetailItem
+        icon={<ICONS.Calendar />}
+        label="To Date"
+        value={formatDate(submission.details?.to_date)}
+      />
+      <DetailItem
+        icon={<ICONS.Star />}
+        label="Number of Days"
+        value={submission.details?.number_of_days}
       />
     </div>
     <div>
       <h4 className="text-sm font-semibold text-gray-700 mb-2">Attachments</h4>
       <AttachmentPill
-        fileName={submission.attachments[0]?.name}
-        fileUrl={submission.attachments[0]?.url}
+        fileName={submission.attachments?.[0]?.name}
+        fileUrl={submission.attachments?.[0]?.url}
       />
     </div>
     {submission.status === "Awaiting" && (
@@ -551,34 +638,49 @@ const ExternalExaminerCard = ({submission, onAction}) => (
   </div>
 );
 
-const JournalReviewerCard = ({submission, onAction}) => (
+const JournalReviewerCard = ({ submission, onAction }) => (
   <div className="space-y-4">
     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
       <DetailItem
         icon={<ICONS.BookOpen />}
         label="Journal Name"
-        value={submission.details.journal_name}
-      />
-      <DetailItem
-        icon={<ICONS.Building />}
-        label="Publisher"
-        value={submission.details.publisher}
+        value={submission.title}
       />
       <DetailItem
         icon={<ICONS.Star />}
-        label="Paper Title"
-        value={submission.details.paper_title}
+        label="Journal Indexing"
+        value={submission.details?.journal_indexing}
+      />
+      <DetailItem
+        icon={<ICONS.Star />}
+        label="ISSN Number"
+        value={submission.details?.issn_no}
+      />
+      <DetailItem
+        icon={<ICONS.Star />}
+        label="Impact Factor"
+        value={submission.details?.impact_factor}
+      />
+      <DetailItem
+        icon={<ICONS.Star />}
+        label="Recognition Type"
+        value={submission.details?.recognition_type}
+      />
+      <DetailItem
+        icon={<ICONS.Star />}
+        label="Number of Papers Reviewed"
+        value={submission.details?.number_of_papers_reviewed}
       />
       <DetailItem
         icon={<ICONS.Calendar />}
         label="Review Date"
-        value={formatDate(submission.details.review_date)}
+        value={formatDate(submission.details?.review_date)}
       />
       <div className="md:col-span-2">
         <DetailItem
           icon={<ICONS.Link2 />}
-          label="Journal Link"
-          value={submission.details.journal_link}
+          label="Journal Homepage URL"
+          value={submission.details?.journal_homepage_url}
           isLink
         />
       </div>
@@ -586,8 +688,8 @@ const JournalReviewerCard = ({submission, onAction}) => (
     <div>
       <h4 className="text-sm font-semibold text-gray-700 mb-2">Attachments</h4>
       <AttachmentPill
-        fileName={submission.attachments[0]?.name}
-        fileUrl={submission.attachments[0]?.url}
+        fileName={submission.attachments?.[0]?.name}
+        fileUrl={submission.attachments?.[0]?.url}
       />
     </div>
     {submission.status === "Awaiting" && (
@@ -596,47 +698,87 @@ const JournalReviewerCard = ({submission, onAction}) => (
   </div>
 );
 
-const GuestLectureCard = ({submission, onAction}) => (
+const GuestLectureCard = ({ submission, onAction }) => (
   <div className="space-y-4">
     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
       <DetailItem
         icon={<ICONS.Mic />}
-        label="Lecture Topic"
-        value={submission.details.topic}
+        label="Event Name"
+        value={submission.title}
+      />
+      <DetailItem
+        icon={<ICONS.Star />}
+        label="Topic"
+        value={submission.details?.topic}
+      />
+      <DetailItem
+        icon={<ICONS.Star />}
+        label="Event Type"
+        value={submission.details?.event_type}
+      />
+      <DetailItem
+        icon={<ICONS.Star />}
+        label="Mode of Conduct"
+        value={submission.details?.mode_of_conduct}
+      />
+      <DetailItem
+        icon={<ICONS.Star />}
+        label="Event Level"
+        value={submission.details?.event_level}
       />
       <DetailItem
         icon={<ICONS.Building />}
-        label="Institution"
-        value={submission.details.institution}
+        label="Organization Type"
+        value={submission.details?.type_of_organization}
+      />
+      <DetailItem
+        icon={<ICONS.Building />}
+        label="Organization Name"
+        value={submission.details?.organization_name}
       />
       <DetailItem
         icon={<ICONS.MapPin />}
-        label="Location"
-        value={submission.details.location}
+        label="Organization Address"
+        value={submission.details?.organization_address}
       />
       <DetailItem
         icon={<ICONS.Calendar />}
-        label="Date"
-        value={formatDate(submission.details.date)}
+        label="From Date"
+        value={formatDate(submission.details?.from_date)}
+      />
+      <DetailItem
+        icon={<ICONS.Calendar />}
+        label="To Date"
+        value={formatDate(submission.details?.to_date)}
+      />
+      <DetailItem
+        icon={<ICONS.Star />}
+        label="Number of Hours"
+        value={submission.details?.number_of_hours}
       />
       <DetailItem
         icon={<ICONS.Users />}
-        label="Audience"
-        value={submission.details.audience}
+        label="Number of Participants"
+        value={submission.details?.number_of_participants}
+      />
+      <DetailItem
+        icon={<ICONS.Users />}
+        label="Type of Audience"
+        value={submission.details?.type_of_audience}
       />
     </div>
-    <DetailItem
-      icon={<ICONS.Summary />}
-      label="Description"
-      value={submission.details.description}
-      isTag
-    />
     <div>
       <h4 className="text-sm font-semibold text-gray-700 mb-2">Attachments</h4>
-      <AttachmentPill
-        fileName={submission.attachments[0]?.name}
-        fileUrl={submission.attachments[0]?.url}
-      />
+      <div className="flex flex-wrap gap-2">
+        <AttachmentPill
+          fileName="APEX Proof"
+          fileUrl={submission.details?.apex_proof}
+        />
+        <AttachmentPill
+          fileName="Sample Photographs"
+          fileUrl={submission.details?.sample_photographs}
+        />
+      </div>
     </div>
     {submission.status === "Awaiting" && (
       <ActionButtons submission={submission} onAction={onAction} />
@@ -644,46 +786,45 @@ const GuestLectureCard = ({submission, onAction}) => (
   </div>
 );
 
-const InternationalVisitCard = ({submission, onAction}) => (
+const InternationalVisitCard = ({ submission, onAction }) => (
   <div className="space-y-4">
     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
       <DetailItem
         icon={<ICONS.Globe />}
-        label="Country"
-        value={submission.details.country}
-      />
-      <DetailItem
-        icon={<ICONS.Building />}
-        label="Institution Visited"
-        value={submission.details.institution}
+        label="Country Visited"
+        value={submission.details?.country_visited}
       />
       <DetailItem
         icon={<ICONS.Star />}
-        label="Purpose"
-        value={submission.details.purpose}
+        label="Purpose of Visit"
+        value={submission.details?.purpose_of_visit}
+      />
+      <DetailItem
+        icon={<ICONS.Star />}
+        label="Fund Type"
+        value={submission.details?.fund_type}
       />
       <DetailItem
         icon={<ICONS.Calendar />}
-        label="Start Date"
-        value={formatDate(submission.details.start_date)}
+        label="From Date"
+        value={formatDate(submission.details?.from_date)}
       />
       <DetailItem
         icon={<ICONS.Calendar />}
-        label="End Date"
-        value={formatDate(submission.details.end_date)}
+        label="To Date"
+        value={formatDate(submission.details?.to_date)}
+      />
+      <DetailItem
+        icon={<ICONS.Star />}
+        label="Number of Days"
+        value={submission.details?.number_of_days}
       />
     </div>
-    <DetailItem
-      icon={<ICONS.Summary />}
-      label="Description"
-      value={submission.details.description}
-      isTag
-    />
     <div>
       <h4 className="text-sm font-semibold text-gray-700 mb-2">Attachments</h4>
       <AttachmentPill
-        fileName={submission.attachments[0]?.name}
-        fileUrl={submission.attachments[0]?.url}
+        fileName={submission.attachments?.[0]?.name}
+        fileUrl={submission.attachments?.[0]?.url}
       />
     </div>
     {submission.status === "Awaiting" && (
@@ -692,41 +833,55 @@ const InternationalVisitCard = ({submission, onAction}) => (
   </div>
 );
 
-const AwardsCard = ({submission, onAction}) => (
+const AwardsCard = ({ submission, onAction }) => (
   <div className="space-y-4">
     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
       <DetailItem
         icon={<ICONS.Award />}
-        label="Award Title"
-        value={submission.details.award_title}
-      />
-      <DetailItem
-        icon={<ICONS.Building />}
-        label="Awarding Body"
-        value={submission.details.awarding_body}
+        label="Award Name"
+        value={submission.details?.award_name}
       />
       <DetailItem
         icon={<ICONS.Star />}
-        label="Category"
-        value={submission.details.category}
+        label="Type of Recognition"
+        value={submission.details?.type_of_recognition}
+      />
+      <DetailItem
+        icon={<ICONS.Building />}
+        label="Technical Society"
+        value={submission.details?.technical_society}
+      />
+      <DetailItem
+        icon={<ICONS.Building />}
+        label="Organization Type"
+        value={submission.details?.organization_type}
+      />
+      <DetailItem
+        icon={<ICONS.Building />}
+        label="Awarding Agency"
+        value={submission.details?.awarding_agency}
+      />
+      <DetailItem
+        icon={<ICONS.Star />}
+        label="Level"
+        value={submission.details?.level}
       />
       <DetailItem
         icon={<ICONS.Calendar />}
-        label="Date"
-        value={formatDate(submission.details.date)}
+        label="Received Date"
+        value={formatDate(submission.details?.received_date)}
+      />
+      <DetailItem
+        icon={<ICONS.Star />}
+        label="Nature of Recognition"
+        value={submission.details?.nature_of_recognition}
       />
     </div>
-    <DetailItem
-      icon={<ICONS.Summary />}
-      label="Description"
-      value={submission.details.description}
-      isTag
-    />
     <div>
-      <h4 className="text-sm font-semibold text-gray-700 mb-2">Certificate</h4>
+      <h4 className="text-sm font-semibold text-gray-700 mb-2">Attachments</h4>
       <AttachmentPill
-        fileName={submission.attachments[0]?.name}
-        fileUrl={submission.attachments[0]?.url}
+        fileName="Photo Proofs"
+        fileUrl={submission.details?.photo_proofs}
       />
     </div>
     {submission.status === "Awaiting" && (
@@ -735,43 +890,75 @@ const AwardsCard = ({submission, onAction}) => (
   </div>
 );
 
-const OnlineCourseCard = ({submission, onAction}) => (
+const OnlineCourseCard = ({ submission, onAction }) => (
   <div className="space-y-4">
     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
       <DetailItem
         icon={<ICONS.BookOpen />}
         label="Course Name"
-        value={submission.details.course_name}
+        value={submission.title}
+      />
+      <DetailItem
+        icon={<ICONS.Star />}
+        label="Mode of Course"
+        value={submission.details?.mode_of_course}
+      />
+      <DetailItem
+        icon={<ICONS.Star />}
+        label="Type of Organizer"
+        value={submission.details?.type_of_organizer}
       />
       <DetailItem
         icon={<ICONS.Building />}
-        label="Platform"
-        value={submission.details.platform}
+        label="Organization Name"
+        value={submission.details?.organization_name}
       />
       <DetailItem
-        icon={<ICONS.Calendar />}
-        label="Completion Date"
-        value={formatDate(submission.details.completion_date)}
+        icon={<ICONS.Star />}
+        label="Level of Event"
+        value={submission.details?.level_of_event}
       />
       <DetailItem
         icon={<ICONS.Star />}
         label="Duration"
-        value={submission.details.duration}
+        value={submission.details?.duration}
       />
-      <div className="md:col-span-2">
-        <DetailItem
-          icon={<ICONS.Link2 />}
-          label="Course Link"
-          value={submission.details.course_link}
-          isLink
-        />
-      </div>
+      <DetailItem
+        icon={<ICONS.Star />}
+        label="Course Category"
+        value={submission.details?.course_category}
+      />
+      <DetailItem
+        icon={<ICONS.Star />}
+        label="Grade Obtained"
+        value={submission.details?.grade_obtained}
+      />
+      <DetailItem
+        icon={<ICONS.Calendar />}
+        label="Start Date"
+        value={formatDate(submission.details?.start_date)}
+      />
+      <DetailItem
+        icon={<ICONS.Calendar />}
+        label="End Date"
+        value={formatDate(submission.details?.end_date)}
+      />
+      <DetailItem
+        icon={<ICONS.Star />}
+        label="Sponsorship Type"
+        value={submission.details?.sponsorship_type}
+      />
+      <DetailItem
+        icon={<ICONS.Star />}
+        label="Outcome"
+        value={submission.details?.outcome}
+      />
     </div>
     <div>
-      <h4 className="text-sm font-semibold text-gray-700 mb-2">Certificate</h4>
+      <h4 className="text-sm font-semibold text-gray-700 mb-2">Attachments</h4>
       <AttachmentPill
-        fileName={submission.attachments[0]?.name}
-        fileUrl={submission.attachments[0]?.url}
+        fileName="Certificate"
+        fileUrl={submission.details?.certificate_file}
       />
     </div>
     {submission.status === "Awaiting" && (
@@ -780,60 +967,70 @@ const OnlineCourseCard = ({submission, onAction}) => (
   </div>
 );
 
-const PapersCard = ({submission, onAction}) => (
+const PapersCard = ({ submission, onAction }) => (
   <div className="space-y-4">
     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
       <DetailItem
         icon={<ICONS.FileText />}
         label="Paper Title"
-        value={submission.details.paper_title}
+        value={submission.title}
       />
       <DetailItem
         icon={<ICONS.BookOpen />}
-        label="Journal/Conference"
-        value={submission.details.journal_conference}
+        label="Conference Name"
+        value={submission.details?.conference_name}
       />
       <DetailItem
         icon={<ICONS.Building />}
-        label="Publisher"
-        value={submission.details.publisher}
-      />
-      <DetailItem
-        icon={<ICONS.Calendar />}
-        label="Publication Date"
-        value={formatDate(submission.details.publication_date)}
+        label="Event Organizer"
+        value={submission.details?.event_organizer}
       />
       <DetailItem
         icon={<ICONS.Star />}
-        label="Impact Factor"
-        value={submission.details.impact_factor}
+        label="Event Level"
+        value={submission.details?.event_level}
+      />
+      <DetailItem
+        icon={<ICONS.Star />}
+        label="Event Mode"
+        value={submission.details?.event_mode}
+      />
+      <DetailItem
+        icon={<ICONS.Calendar />}
+        label="Start Date"
+        value={formatDate(submission.details?.start_date)}
+      />
+      <DetailItem
+        icon={<ICONS.Calendar />}
+        label="End Date"
+        value={formatDate(submission.details?.end_date)}
+      />
+      <DetailItem
+        icon={<ICONS.Star />}
+        label="Duration (Days)"
+        value={submission.details?.duration_days}
+      />
+      <DetailItem
+        icon={<ICONS.Star />}
+        label="Published in Proceedings"
+        value={submission.details?.published_in_proceedings}
+      />
+      <DetailItem
+        icon={<ICONS.Star />}
+        label="Sponsorship"
+        value={submission.details?.sponsorship}
       />
       <DetailItem
         icon={<ICONS.Users />}
-        label="Co-Authors"
-        value={submission.details.co_authors}
-        isList
+        label="Students Involved"
+        value={submission.details?.students_involved}
       />
-      <div className="md:col-span-2">
-        <DetailItem
-          icon={<ICONS.Link2 />}
-          label="Paper Link"
-          value={submission.details.paper_link}
-          isLink
-        />
-      </div>
     </div>
-    <DetailItem
-      icon={<ICONS.Summary />}
-      label="Abstract"
-      value={submission.details.abstract}
-      isTag
-    />
     <div>
       <h4 className="text-sm font-semibold text-gray-700 mb-2">Attachments</h4>
       <AttachmentPill
-        fileName={submission.attachments[0]?.name}
-        fileUrl={submission.attachments[0]?.url}
+        fileName={submission.attachments?.[0]?.name}
+        fileUrl={submission.attachments?.[0]?.url}
       />
     </div>
     {submission.status === "Awaiting" && (
@@ -842,51 +1039,45 @@ const PapersCard = ({submission, onAction}) => (
   </div>
 );
 
-const ResourcePersonCard = ({submission, onAction}) => (
+const ResourcePersonCard = ({ submission, onAction }) => (
   <div className="space-y-4">
     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
       <DetailItem
-        icon={<ICONS.Mic />}
-        label="Session Topic"
-        value={submission.details.topic}
-      />
-      <DetailItem
         icon={<ICONS.Star />}
-        label="Event Name"
-        value={submission.details.event_name}
+        label="Resource Person Category"
+        value={submission.details?.resource_person_category}
       />
       <DetailItem
         icon={<ICONS.Building />}
-        label="Organizer"
-        value={submission.details.organizer}
+        label="Organization Type"
+        value={submission.details?.type_of_organisation}
       />
       <DetailItem
         icon={<ICONS.MapPin />}
-        label="Location"
-        value={submission.details.location}
+        label="Organization Name & Address"
+        value={submission.details?.organisation_name_address}
       />
       <DetailItem
         icon={<ICONS.Calendar />}
-        label="Date"
-        value={formatDate(submission.details.date)}
+        label="From Date"
+        value={formatDate(submission.details?.from_date)}
       />
       <DetailItem
-        icon={<ICONS.Users />}
-        label="Participants"
-        value={submission.details.participants}
+        icon={<ICONS.Calendar />}
+        label="To Date"
+        value={formatDate(submission.details?.to_date)}
+      />
+      <DetailItem
+        icon={<ICONS.Star />}
+        label="Number of Days"
+        value={submission.details?.number_of_days}
       />
     </div>
-    <DetailItem
-      icon={<ICONS.Summary />}
-      label="Description"
-      value={submission.details.description}
-      isTag
-    />
     <div>
       <h4 className="text-sm font-semibold text-gray-700 mb-2">Attachments</h4>
       <AttachmentPill
-        fileName={submission.attachments[0]?.name}
-        fileUrl={submission.attachments[0]?.url}
+        fileName={submission.attachments?.[0]?.name}
+        fileUrl={submission.attachments?.[0]?.url}
       />
     </div>
     {submission.status === "Awaiting" && (
@@ -900,7 +1091,7 @@ const transformApiData = (apiData) => {
   if (!Array.isArray(apiData)) return [];
 
   return apiData.map((item) => {
-    const {upload_type, faculty_name, ...details} = item;
+    const { upload_type, faculty_name, ...details } = item;
     const normalizedUploadType = upload_type?.toLowerCase() || "unknown";
 
     const idForReact = `${normalizedUploadType}-${details.id}`;
@@ -1034,21 +1225,37 @@ export default function FacultyVerifications() {
       try {
         const response = await axios.get(
           `${API_URL}api/admin/faculty-verifications`,
-          {withCredentials: true}
+          { withCredentials: true }
         );
 
-        if (!response.data || !Array.isArray(response.data)) {
-          console.warn("API did not return an array. Received:", response.data);
+        console.log("Faculty Verifications API Response:", response.data);
+
+        // API returns { submissions: [...] } with pre-formatted data
+        const submissions = response.data?.submissions;
+        if (!submissions || !Array.isArray(submissions)) {
+          console.warn(
+            "API did not return expected format. Received:",
+            response.data
+          );
           setError("Unexpected data format from the server.");
           setAllSubmissions([]);
         } else {
-          const transformedData = transformApiData(response.data);
-          setAllSubmissions(transformedData);
+          // Data is already formatted from backend, just add isExpanded and unique id
+          const formattedData = submissions.map((item, idx) => ({
+            ...item,
+            id: `${item.type}-${item.id}`,
+            originalId: item.id,
+            isExpanded: false,
+          }));
+          console.log("Formatted submissions:", formattedData);
+          setAllSubmissions(formattedData);
         }
       } catch (e) {
         console.error("Failed to fetch submissions:", e);
-        // Use dummy data for development
-        setAllSubmissions(getDummyData());
+        setError(
+          "Failed to fetch submissions from server. Please try again later."
+        );
+        setAllSubmissions([]);
       } finally {
         setIsLoading(false);
       }
@@ -1059,7 +1266,7 @@ export default function FacultyVerifications() {
   const handleToggleExpand = (id) => {
     setAllSubmissions((prev) =>
       prev.map((sub) =>
-        sub.id === id ? {...sub, isExpanded: !sub.isExpanded} : sub
+        sub.id === id ? { ...sub, isExpanded: !sub.isExpanded } : sub
       )
     );
   };
@@ -1073,32 +1280,40 @@ export default function FacultyVerifications() {
 
     const feedbackInput = document.getElementById(`feedback-${submission.id}`);
     const feedback = feedbackInput ? feedbackInput.value : "";
-    const formData = new FormData();
 
-    formData.append("upload_type", submission.type);
-    formData.append("id", submission.details.id);
-    formData.append("feedback", feedback);
-    formData.append("verified", actionType === "verify");
-    formData.append("rejected", actionType === "reject");
+    // Map action type to backend status
+    const newStatus = actionType === "verify" ? "verified" : "rejected";
+
+    const payload = {
+      id: submission.originalId, // Use the original database ID
+      type: submission.type, // Type like "newsletter", "econtent", etc.
+      status: newStatus, // "verified" or "rejected"
+      remarks: feedback,
+    };
 
     console.log("--- Sending Data to Backend ---");
-    for (let [key, value] of formData.entries()) {
-      console.log(`${key}:`, value);
-    }
+    console.log("Payload:", payload);
 
     try {
-      const response = await axios.post(
-        `${API_URL}api/admin/faculty-verifications`,
-        formData,
-        {withCredentials: true}
+      const response = await axios.put(
+        `${API_URL}api/admin/faculty-verifications/update-status`,
+        payload,
+        {
+          withCredentials: true,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
       );
 
       console.log("Backend API response:", response.data);
 
-      const newStatus = actionType === "verify" ? "Verified" : "Rejected";
+      const displayStatus = actionType === "verify" ? "Verified" : "Rejected";
       setAllSubmissions((prev) =>
         prev.map((s) =>
-          s.id === reactId ? {...s, status: newStatus, isExpanded: false} : s
+          s.id === reactId
+            ? { ...s, status: displayStatus, isExpanded: false }
+            : s
         )
       );
     } catch (error) {
@@ -1106,21 +1321,15 @@ export default function FacultyVerifications() {
         "Error updating submission status:",
         error.response || error
       );
-      // Optimistic UI update for development
-      const newStatus = actionType === "verify" ? "Verified" : "Rejected";
-      setAllSubmissions((prev) =>
-        prev.map((s) =>
-          s.id === reactId ? {...s, status: newStatus, isExpanded: false} : s
-        )
-      );
+      alert("Failed to update submission status. Please try again.");
     }
   };
 
   const handleSearchChange = (event) => setSearchTerm(event.target.value);
   const handleSortChange = (event) => setSortBy(event.target.value);
 
-  const {tabsConfig, processedSubmissions} = useMemo(() => {
-    const counts = {All: 0, Awaiting: 0, Verified: 0, Rejected: 0};
+  const { tabsConfig, processedSubmissions } = useMemo(() => {
+    const counts = { All: 0, Awaiting: 0, Verified: 0, Rejected: 0 };
     allSubmissions.forEach((sub) => {
       counts.All++;
       if (counts[sub.status] !== undefined) {
@@ -1129,10 +1338,10 @@ export default function FacultyVerifications() {
     });
 
     const TABS_CONFIG = [
-      {name: "All", count: counts.All},
-      {name: "Awaiting", count: counts.Awaiting},
-      {name: "Verified", count: counts.Verified},
-      {name: "Rejected", count: counts.Rejected},
+      { name: "All", count: counts.All },
+      { name: "Awaiting", count: counts.Awaiting },
+      { name: "Verified", count: counts.Verified },
+      { name: "Rejected", count: counts.Rejected },
     ];
 
     const filtered = allSubmissions.filter((submission) => {
@@ -1160,35 +1369,35 @@ export default function FacultyVerifications() {
       }
     });
 
-    return {tabsConfig: TABS_CONFIG, processedSubmissions: sorted};
+    return { tabsConfig: TABS_CONFIG, processedSubmissions: sorted };
   }, [allSubmissions, activeTab, searchTerm, sortBy]);
 
   const renderCard = (submission) => {
-    const cardProps = {submission, onAction: handleAction};
+    const cardProps = { submission, onAction: handleAction };
     switch (submission.type) {
       case "newsletter":
         return <NewsletterCard {...cardProps} />;
-      case "e-content":
+      case "econtent":
         return <EContentCard {...cardProps} />;
-      case "events_attended":
+      case "eventsAttended":
         return <EventsAttendedCard {...cardProps} />;
-      case "events_organized":
+      case "eventsOrganized":
         return <EventsOrganizedCard {...cardProps} />;
-      case "external_examiner":
+      case "examiner":
         return <ExternalExaminerCard {...cardProps} />;
-      case "journal_reviewer":
+      case "reviewer":
         return <JournalReviewerCard {...cardProps} />;
-      case "guest_lecture":
+      case "guestLecture":
         return <GuestLectureCard {...cardProps} />;
-      case "international_visit":
+      case "internationalVisit":
         return <InternationalVisitCard {...cardProps} />;
       case "awards":
         return <AwardsCard {...cardProps} />;
-      case "online_course":
+      case "onlineCourse":
         return <OnlineCourseCard {...cardProps} />;
       case "papers":
         return <PapersCard {...cardProps} />;
-      case "resource_person":
+      case "resourcePerson":
         return <ResourcePersonCard {...cardProps} />;
       default:
         return (
@@ -1269,7 +1478,7 @@ function getDummyData() {
       typeDisplay: "Newsletter",
       status: "Awaiting",
       isExpanded: false,
-      attachments: [{name: "newsletter_q4.pdf", url: "#"}],
+      attachments: [{ name: "newsletter_q4.pdf", url: "#" }],
       details: {
         id: 1,
         newsletter_title: "Department Newsletter - Q4 2024",
@@ -1289,7 +1498,7 @@ function getDummyData() {
       typeDisplay: "Papers",
       status: "Awaiting",
       isExpanded: false,
-      attachments: [{name: "ml_healthcare_paper.pdf", url: "#"}],
+      attachments: [{ name: "ml_healthcare_paper.pdf", url: "#" }],
       details: {
         id: 2,
         paper_title: "Machine Learning in Healthcare: A Comprehensive Review",
@@ -1312,7 +1521,7 @@ function getDummyData() {
       typeDisplay: "Guest Lecture",
       status: "Verified",
       isExpanded: false,
-      attachments: [{name: "lecture_certificate.pdf", url: "#"}],
+      attachments: [{ name: "lecture_certificate.pdf", url: "#" }],
       details: {
         id: 3,
         topic: "Industry 4.0 and IoT: Transforming Manufacturing",
@@ -1333,7 +1542,7 @@ function getDummyData() {
       typeDisplay: "Awards",
       status: "Awaiting",
       isExpanded: false,
-      attachments: [{name: "award_certificate.pdf", url: "#"}],
+      attachments: [{ name: "award_certificate.pdf", url: "#" }],
       details: {
         id: 4,
         award_title: "Best Researcher Award 2024",
@@ -1353,7 +1562,7 @@ function getDummyData() {
       typeDisplay: "Online Course",
       status: "Rejected",
       isExpanded: false,
-      attachments: [{name: "coursera_certificate.pdf", url: "#"}],
+      attachments: [{ name: "coursera_certificate.pdf", url: "#" }],
       details: {
         id: 5,
         course_name: "Deep Learning Specialization",
@@ -1372,7 +1581,7 @@ function getDummyData() {
       typeDisplay: "Events Organized",
       status: "Awaiting",
       isExpanded: false,
-      attachments: [{name: "event_report.pdf", url: "#"}],
+      attachments: [{ name: "event_report.pdf", url: "#" }],
       details: {
         id: 6,
         event_name: "National Workshop on Cybersecurity",

@@ -88,7 +88,7 @@ func RegisterRoutes(r *gin.Engine) {
 		facultyOnly.POST("/faculty/externalExaminerPost", facultyAchievements.HandleExternalExaminerForm)
 		facultyOnly.GET("/faculty/externalExaminerGet", facultyAchievements.FetchExternalExaminer)
 	}
-	
+
 	bothStudentFacultyAdmin := r.Group("/api")
 	bothStudentFacultyAdmin.Use(middleware.AuthorizeRoles("faculty", "student", "Admin"))
 	{
@@ -125,6 +125,9 @@ func RegisterRoutes(r *gin.Engine) {
 		adminOnly.GET("/admin/analytics", admin.GetAnalytics)
 		adminOnly.GET("/admin/analytics/years", admin.GetYearsList)
 		adminOnly.GET("/admin/analytics/rollnos", admin.GetRollnosList)
+		// Admin Faculty Verifications
+		adminOnly.GET("/admin/faculty-verifications", admin.GetAllFacultySubmissions)
+		adminOnly.PUT("/admin/faculty-verifications/update-status", admin.UpdateFacultySubmissionStatus)
 	}
 	r.GET("/api/activitymaster/fetch", addevents.FetchEvents)
 	//both student and faculty

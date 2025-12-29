@@ -9,9 +9,7 @@ const MAX_FILE_SIZE_MB = 10;
 const SUPPORTED_FORMATS_LABEL = `Supported formats: PDF, PNG, JPG (max ${MAX_FILE_SIZE_MB}MB)`;
 const ACCEPT_STRING =
   ".pdf,.png,.jpg,.jpeg,image/png,image/jpeg,application/pdf";
-
 const RequiredAst = () => <span className="text-red-500 ml-0.5">*</span>;
-
 // Options
 const NEWSLETTER_CATEGORIES = [
   "Choose an option",

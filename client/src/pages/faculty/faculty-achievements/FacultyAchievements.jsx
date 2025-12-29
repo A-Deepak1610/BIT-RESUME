@@ -31,11 +31,9 @@ import {
 } from "lucide-react";
 import useAuth from "../../../store/UseAuth";
 import UploadModel from "./UploadModel";
-
 const API_URL = import.meta.env.VITE_API_URL;
-
 const FacultyAchievements = () => {
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState("newsletter");
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
   const [openModal, setOpenModal] = useState(false);
@@ -381,7 +379,6 @@ const FacultyAchievements = () => {
   }, [rollno]);
 
   const tabs = [
-    { id: "overview", label: "Overview", icon: TrendingUp },
     { id: "newsletter", label: "Newsletter", icon: Newspaper },
     { id: "econtent", label: "E-Content", icon: Monitor },
     { id: "eventsAttended", label: "Events Attended", icon: Users },
@@ -411,7 +408,7 @@ const FacultyAchievements = () => {
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-              <button 
+              <button
                 onClick={() => setOpenModal(true)}
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center justify-center sm:justify-start"
               >
@@ -459,22 +456,31 @@ const FacultyAchievements = () => {
                   Recent Papers
                 </h3>
                 <div className="space-y-4">
-                  {achievements.paperPresentations
-                    .slice(0, 3)
-                    .map((paper, index) => (
-                      <div key={index} className="flex items-start">
-                        <div className="w-2 h-2 bg-blue-500 rounded-full mr-4 mt-2"></div>
-                        <div>
-                          <p className="font-medium text-gray-900">
-                            {paper.title}
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            {paper.conference} •{" "}
-                            {new Date(paper.date).toLocaleDateString()}
-                          </p>
+                  {achievements.paperPresentations.length === 0 ? (
+                    <p className="text-sm text-gray-500">
+                      No paper presentations yet
+                    </p>
+                  ) : (
+                    achievements.paperPresentations
+                      .slice(0, 3)
+                      .map((paper, index) => (
+                        <div key={index} className="flex items-start">
+                          <div className="w-2 h-2 bg-blue-500 rounded-full mr-4 mt-2"></div>
+                          <div>
+                            <p className="font-medium text-gray-900">
+                              {paper.paper_title || "Untitled Paper"}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              {paper.conference_name} •{" "}
+                              {paper.event_start_date &&
+                                new Date(
+                                  paper.event_start_date
+                                ).toLocaleDateString()}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))
+                  )}
                 </div>
               </div>
 
@@ -509,171 +515,205 @@ const FacultyAchievements = () => {
         {activeTab === "newsletter" && (
           <div>
             <div className="flex justify-between items-center mb-6">
-                 <h2 className="text-2xl font-bold text-gray-900">
+              <h2 className="text-2xl font-bold text-gray-900">
                 Newsletter Archive
-                </h2>
-                {loading && <Loader2 className="animate-spin text-blue-600" />}
+              </h2>
+              {loading && <Loader2 className="animate-spin text-blue-600" />}
             </div>
-           
+
             {achievements.newsletterArchive.length === 0 && !loading ? (
-                <div className="text-center py-10 text-gray-500 bg-white rounded-lg border border-gray-200">
-                    <Newspaper className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                    <p>No newsletter records found.</p>
-                </div>
+              <div className="text-center py-10 text-gray-500 bg-white rounded-lg border border-gray-200">
+                <Newspaper className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                <p>No newsletter records found.</p>
+              </div>
             ) : (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {achievements.newsletterArchive.map((newsletter) => (
-                    <div
+                  <div
                     key={newsletter.id}
                     className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow"
-                    >
+                  >
                     <div className="flex flex-col sm:flex-row justify-between items-start gap-2 mb-4">
-                        <div className="flex-1">
+                      <div className="flex-1">
                         <h3 className="text-lg font-semibold text-gray-900 capitalize">
-                            {newsletter.department ? `${newsletter.department} Department Newsletter` : "Institution Newsletter"}
+                          {newsletter.department
+                            ? `${newsletter.department} Department Newsletter`
+                            : "Institution Newsletter"}
                         </h3>
                         <p className="text-blue-600 font-medium">
-                            Vol. {newsletter.volume_number}, Issue {newsletter.issue_number} ({newsletter.issue_month})
+                          Vol. {newsletter.volume_number}, Issue{" "}
+                          {newsletter.issue_number} ({newsletter.issue_month})
                         </p>
-                        </div>
-                        <div className="flex flex-col items-end gap-2">
-                             <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium capitalize">
-                                {newsletter.newsletter_category.replace(/-/g, ' ')}
-                            </span>
-                            <span className={`px-3 py-1 rounded-full text-xs font-medium border ${
-                                newsletter.status === 'verified' ? 'bg-green-50 text-green-700 border-green-200' :
-                                newsletter.status === 'rejected' ? 'bg-red-50 text-red-700 border-red-200' :
-                                'bg-yellow-50 text-yellow-700 border-yellow-200'
-                            }`}>
-                                {newsletter.status.charAt(0).toUpperCase() + newsletter.status.slice(1)}
-                            </span>
-                        </div>
+                      </div>
+                      <div className="flex flex-col items-end gap-2">
+                        <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium capitalize">
+                          {newsletter.newsletter_category.replace(/-/g, " ")}
+                        </span>
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-medium border ${
+                            newsletter.status === "verified"
+                              ? "bg-green-50 text-green-700 border-green-200"
+                              : newsletter.status === "rejected"
+                              ? "bg-red-50 text-red-700 border-red-200"
+                              : "bg-yellow-50 text-yellow-700 border-yellow-200"
+                          }`}
+                        >
+                          {newsletter.status.charAt(0).toUpperCase() +
+                            newsletter.status.slice(1)}
+                        </span>
+                      </div>
                     </div>
                     {newsletter.academic_year && (
-                        <p className="text-gray-600 text-sm mb-2">
-                            <strong>Academic Year:</strong> {newsletter.academic_year}
-                        </p>
+                      <p className="text-gray-600 text-sm mb-2">
+                        <strong>Academic Year:</strong>{" "}
+                        {newsletter.academic_year}
+                      </p>
                     )}
-                     <div className="text-gray-500 text-sm mb-4 space-y-1">
-                        {newsletter.faculty_editor_count && <p>Faculty Editors: {newsletter.faculty_editor_count}</p>}
-                        {newsletter.student_editor_count && <p>Student Editors: {newsletter.student_editor_count}</p>}
+                    <div className="text-gray-500 text-sm mb-4 space-y-1">
+                      {newsletter.faculty_editor_count && (
+                        <p>
+                          Faculty Editors: {newsletter.faculty_editor_count}
+                        </p>
+                      )}
+                      {newsletter.student_editor_count && (
+                        <p>
+                          Student Editors: {newsletter.student_editor_count}
+                        </p>
+                      )}
                     </div>
 
                     <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                        <span className="text-sm text-gray-500">
+                      <span className="text-sm text-gray-500">
                         <Calendar className="h-4 w-4 inline mr-1" />
-                        Published: {new Date(newsletter.date_of_publication).toLocaleDateString()}
-                        </span>
-                        {newsletter.proof_document && (
-                             <a
-                             href={`${API_URL}${newsletter.proof_document}`}
-                             target="_blank"
-                             rel="noopener noreferrer"
-                             className="text-blue-600 hover:text-blue-800 text-sm flex items-center font-medium"
-                             >
-                             <Download className="h-4 w-4 mr-1" /> View/Download
-                             </a>
-                        )}
-                       
+                        Published:{" "}
+                        {new Date(
+                          newsletter.date_of_publication
+                        ).toLocaleDateString()}
+                      </span>
+                      {newsletter.proof_document && (
+                        <a
+                          href={`${API_URL}${newsletter.proof_document}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-800 text-sm flex items-center font-medium"
+                        >
+                          <Download className="h-4 w-4 mr-1" /> View/Download
+                        </a>
+                      )}
                     </div>
-                    </div>
+                  </div>
                 ))}
-                </div>
+              </div>
             )}
           </div>
         )}
-
 
         {/* E-Content Developed Tab */}
         {activeTab === "econtent" && (
           <div>
             <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">
+              <h2 className="text-2xl font-bold text-gray-900">
                 E-Content Developed
-                </h2>
-                {loading && <Loader2 className="animate-spin text-blue-600" />}
+              </h2>
+              {loading && <Loader2 className="animate-spin text-blue-600" />}
             </div>
 
             {achievements.eContentDeveloped.length === 0 && !loading ? (
-                <div className="text-center py-10 text-gray-500 bg-white rounded-lg border border-gray-200">
-                    <Monitor className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                    <p>No E-Content records found.</p>
-                </div>
+              <div className="text-center py-10 text-gray-500 bg-white rounded-lg border border-gray-200">
+                <Monitor className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                <p>No E-Content records found.</p>
+              </div>
             ) : (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {achievements.eContentDeveloped.map((content) => (
-                    <div
+                  <div
                     key={content.id}
                     className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow"
-                    >
+                  >
                     <div className="flex flex-col sm:flex-row justify-between items-start gap-2 mb-4">
-                        <div className="flex-1">
+                      <div className="flex-1">
                         <h3 className="text-lg font-semibold text-gray-900 capitalize">
-                            {content.topic_name || "Untitled Topic"}
+                          {content.topic_name || "Untitled Topic"}
                         </h3>
                         {content.publisher_name && (
-                            <p className="text-blue-600 font-medium text-sm">
+                          <p className="text-blue-600 font-medium text-sm">
                             {content.publisher_name}
-                            </p>
+                          </p>
                         )}
-                        </div>
-                         <div className="flex flex-col items-end gap-2">
-                             <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium capitalize">
-                                {content.e_content_type}
-                            </span>
-                             <span className={`px-3 py-1 rounded-full text-xs font-medium border ${
-                                content.status === 'verified' ? 'bg-green-50 text-green-700 border-green-200' :
-                                content.status === 'rejected' ? 'bg-red-50 text-red-700 border-red-200' :
-                                'bg-yellow-50 text-yellow-700 border-yellow-200'
-                            }`}>
-                                {content.status ? (content.status.charAt(0).toUpperCase() + content.status.slice(1)) : 'Pending'}
-                            </span>
-                        </div>
+                      </div>
+                      <div className="flex flex-col items-end gap-2">
+                        <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium capitalize">
+                          {content.e_content_type}
+                        </span>
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-medium border ${
+                            content.status === "verified"
+                              ? "bg-green-50 text-green-700 border-green-200"
+                              : content.status === "rejected"
+                              ? "bg-red-50 text-red-700 border-red-200"
+                              : "bg-yellow-50 text-yellow-700 border-yellow-200"
+                          }`}
+                        >
+                          {content.status
+                            ? content.status.charAt(0).toUpperCase() +
+                              content.status.slice(1)
+                            : "Pending"}
+                        </span>
+                      </div>
                     </div>
 
                     <div className="space-y-2 text-sm text-gray-600 mb-4">
-                         <p>
+                      <p>
                         <strong>Claimed For:</strong> {content.claimed_for}
-                        </p>
-                         {content.task_id && (
+                      </p>
+                      {content.task_id && (
                         <p>
-                        <strong>Task ID:</strong> {content.task_id}
+                          <strong>Task ID:</strong> {content.task_id}
                         </p>
-                        )}
-                        {content.url_of_content && (
-                           <p className="truncate flex items-center">
-                            <strong>URL:</strong> 
-                            <a href={content.url_of_content} target="_blank" rel="noreferrer" className="ml-1 text-indigo-600 hover:underline flex items-center">
-                                Link <ExternalLink className="h-3 w-3 ml-0.5" />
-                            </a>
-                           </p>
-                        )}
-                         {content.remarks && (
-                            <div className="mt-2 p-2 bg-gray-50 rounded text-xs text-gray-700 border border-gray-200">
-                                <strong>Remarks:</strong> {content.remarks}
-                            </div>
-                        )}
+                      )}
+                      {content.url_of_content && (
+                        <p className="truncate flex items-center">
+                          <strong>URL:</strong>
+                          <a
+                            href={content.url_of_content}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="ml-1 text-indigo-600 hover:underline flex items-center"
+                          >
+                            Link <ExternalLink className="h-3 w-3 ml-0.5" />
+                          </a>
+                        </p>
+                      )}
+                      {content.remarks && (
+                        <div className="mt-2 p-2 bg-gray-50 rounded text-xs text-gray-700 border border-gray-200">
+                          <strong>Remarks:</strong> {content.remarks}
+                        </div>
+                      )}
                     </div>
 
                     <div className="flex items-center justify-between pt-4 border-t border-gray-100 text-sm text-gray-500">
-                        <span>
-                         <Calendar className="h-4 w-4 inline mr-1" />
-                        {content.date_of_publication ? new Date(content.date_of_publication).toLocaleDateString() : "Date N/A"}
-                        </span>
-                         {content.proof_document && (
-                             <a
-                             href={`${API_URL}${content.proof_document}`}
-                             target="_blank"
-                             rel="noopener noreferrer"
-                             className="text-blue-600 hover:text-blue-800 text-sm flex items-center font-medium"
-                             >
-                             <Download className="h-4 w-4 mr-1" /> View/Download
-                             </a>
-                        )}
+                      <span>
+                        <Calendar className="h-4 w-4 inline mr-1" />
+                        {content.date_of_publication
+                          ? new Date(
+                              content.date_of_publication
+                            ).toLocaleDateString()
+                          : "Date N/A"}
+                      </span>
+                      {content.proof_document && (
+                        <a
+                          href={`${API_URL}${content.proof_document}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-800 text-sm flex items-center font-medium"
+                        >
+                          <Download className="h-4 w-4 mr-1" /> View/Download
+                        </a>
+                      )}
                     </div>
-                    </div>
+                  </div>
                 ))}
-                </div>
+              </div>
             )}
           </div>
         )}
