@@ -1,12 +1,16 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import {
-  ArrowLeft,
-  Save,
-  UploadCloud,
-  FileText,
-  X
-} from "lucide-react";
+import React, {useState, useRef} from "react";
+import {useNavigate} from "react-router-dom";
+import {ArrowLeft, Save, UploadCloud, FileText, X} from "lucide-react";
+import axios from "axios";
+
+const API_URL = import.meta.env.VITE_API_URL;
+
+const MAX_FILE_SIZE_MB = 10;
+const SUPPORTED_FORMATS_LABEL = `Supported formats: PDF, PNG, JPG (max ${MAX_FILE_SIZE_MB}MB)`;
+const ACCEPT_STRING =
+  ".pdf,.png,.jpg,.jpeg,image/png,image/jpeg,application/pdf";
+
+const RequiredAst = () => <span className="text-red-500 ml-0.5">*</span>;
 
 // Options
 const NEWSLETTER_CATEGORIES = [
@@ -35,9 +39,10 @@ const EDITOR_COUNTS = [
   "Choose an option", "1", "2", "3", "4", "5", "6+"
 ];
 
-const RequiredAst = () => <span className="text-red-500 ml-0.5">*</span>;
+// const RequiredAst = () => <span className="text-red-500 ml-0.5">*</span>;
 
 export default function NewsletterForm() {
+  const API_URL=import.meta.env.VITE_API_URL;
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     newsletterCategory: "",
@@ -53,7 +58,7 @@ export default function NewsletterForm() {
   });
 
   const [errors, setErrors] = useState({});
-  const [dragActive, setDragActive] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -85,34 +90,7 @@ export default function NewsletterForm() {
     setFormData((prev) => ({ ...prev, proofDocument: null }));
   };
 
-  // Drag and drop handlers
-  const handleDrag = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
-    }
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      setFormData((prev) => ({ ...prev, proofDocument: e.dataTransfer.files[0] }));
-      if (errors.proofDocument) {
-        setErrors(prev => {
-          const newErrors = { ...prev };
-          delete newErrors.proofDocument;
-          return newErrors;
-        });
-      }
-    }
-  };
-
-  const validate = () => {
+const validateForm = () => {
     const newErrors = {};
     if (!formData.newsletterCategory || formData.newsletterCategory === "Choose an option") newErrors.newsletterCategory = "Category is required";
     if (formData.newsletterCategory === "department-newsletter" && (!formData.department || formData.department === "Click to choose")) {
@@ -130,12 +108,33 @@ export default function NewsletterForm() {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (validate()) {
-      console.log("Submitting form: Newsletter", formData);
-      navigate("/faculty/uploadview");
+    if (validateForm()) {
+      setIsSubmitting(true);
+      const submitData = new FormData();
+      Object.keys(formData).forEach(key => {
+        submitData.append(key, formData[key]);
+      });
+
+      try {
+        const response = await axios.post(`${API_URL}api/faculty/newsLetterFormsPost`, submitData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+          withCredentials: true,
+        });
+
+        if (response.status === 200) {
+          console.log("Submitting form for:  Newsletter Archive", formData);
+          navigate("/faculty/uploadview");
+        }
+      } catch (error) {
+        console.error("Error submitting form", error);
+        alert("Failed to submit form. Please try again.");
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -409,10 +408,17 @@ export default function NewsletterForm() {
               </button>
               <button
                 type="submit"
-                className="px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 flex items-center"
+                disabled={isSubmitting}
+                className={`px-6 py-3 border border-transparent rounded-lg shadow-md text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus: ring-offset-2 focus: ring-blue-500 flex items-center transition-all duration-200 hover:shadow-lg ${isSubmitting ? "opacity-75 cursor-wait" : ""}`}
               >
-                <Save className="h-4 w-4 mr-2" />
-                Save Newsletter
+                {isSubmitting ? (
+                  <span>Submitting...</span>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                     Save Newsletter
+                  </>
+                )}
               </button>
             </div>
           </form>
