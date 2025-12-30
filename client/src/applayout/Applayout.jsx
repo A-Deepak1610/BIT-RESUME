@@ -30,7 +30,6 @@ import AdminDashboard from "../pages/Admin/AdminDashboard/AdminDashboard";
 import Addusers from "../pages/Admin/AddUsers/Addusers";
 import AddActivity from "../pages/faculty/add-activity/AddActivity";
 import Reports from "../pages/Admin/reports/Reports";
-import FacultyMetricsNew from "../pages/Admin/FacultyMetrics/FacultyMetricsNew";
 import FacultyVerifications from "../pages/Admin/FacultyVerifications";
 import FacultyAchievements from "../pages/faculty/faculty-achievements/FacultyAchievements";
 import NewsletterForm from "../pages/faculty/faculty-achievements/forms/NewsletterForm";
@@ -45,6 +44,7 @@ import AwardForm from "../pages/faculty/faculty-achievements/forms/AwardForm";
 import OnlineCourseForm from "../pages/faculty/faculty-achievements/forms/OnlineCourseForm";
 import PaperForm from "../pages/faculty/faculty-achievements/forms/PaperForm";
 import ResourcePersonForm from "../pages/faculty/faculty-achievements/forms/ResourcePersonForm";
+import FacultyMetrics from "../pages/Admin/FacultyMetrics/FacultyMetrics";
 
 export default function Applayout() {
   const { fetchUser, user, loading } = useAuth();
@@ -181,7 +181,7 @@ export default function Applayout() {
               />
               <Route
                 path="/admin-facultyMetrics"
-                element={<FacultyMetricsNew />}
+                element={<FacultyMetrics/>}
               />
               <Route
                 path="/admin-facultyVerifications"
