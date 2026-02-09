@@ -19,7 +19,7 @@ const AccomplishmentsForResume = (props) => {
   const { rollno } = useAuth();
   console.log("AccomplishmentsForResume rollno from auth:", props.rollno);
   const student_rollno = props.rollno || '-'
-  const API_URL = "http://localhost:6001";
+  const API_URL = import.meta.env.VITE_API_URL;
   // State for each data type
   const [internships, setInternships] = useState([]);
   const [certifications, setCertifications] = useState([]);

@@ -10,7 +10,7 @@ export default function ManageActivity() {
     const [activities, setActivities] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const API_URL = `http://localhost:6001/api/manageactivities/receiveActivities`;
+    const API_URL = `${import.meta.env.VITE_API_URL}api/manageactivities/receiveActivities`;
     useEffect(() => {
         const fetchActivities = async () => {
             console.log("fetchActivities called");

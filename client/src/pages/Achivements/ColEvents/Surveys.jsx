@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import SurveyCard from "./surveyCard";
-import initialSurveyData from "../../../dummydatas/Survey.json"; // Make sure this path is correct
+// import initialSurveyData from "../../../dummydatas/Survey.json"; // Make sure this path is correct
 import { Search, ChevronDown } from "lucide-react";
 
 const Surveys = () => {

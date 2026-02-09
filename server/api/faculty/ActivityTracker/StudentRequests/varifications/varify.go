@@ -13,11 +13,11 @@ import (
 func PostVarification(c *gin.Context) {
 	feedback := c.PostForm("feedback")
 	id := c.PostForm("id")
-	rejected,_ := strconv.ParseBool(c.PostForm("rejected"))
+	rejected, _ := strconv.ParseBool(c.PostForm("rejected"))
 	upload_type := c.PostForm("upload_type")
-	verified,_ := strconv.ParseBool(c.PostForm("verified"))
+	verified, _ := strconv.ParseBool(c.PostForm("verified"))
 
-	if upload_type == "patents"{
+	if upload_type == "patents" {
 		fmt.Println("Varified: ", verified)
 		fmt.Print("Rejected: ", rejected)
 
@@ -38,7 +38,7 @@ func PostVarification(c *gin.Context) {
 
 		_, err := config.DB.Exec(query, status, feedback, id)
 		if err != nil {
-			fmt.Print("error:",err.Error())
+			fmt.Print("error:", err.Error())
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": "Failed to update patent status",
 			})
@@ -48,7 +48,7 @@ func PostVarification(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "Patent status updated successfully",
 		})
-	}else if upload_type == "certificate"{
+	} else if upload_type == "certificate" {
 		var status string
 		if verified == true {
 			status = "Verified"
@@ -58,6 +58,7 @@ func PostVarification(c *gin.Context) {
 			status = "Pending"
 		}
 
+		// Update certificates_type status
 		query := `
 			UPDATE certificates_type
 			SET status = ?
@@ -66,17 +67,25 @@ func PostVarification(c *gin.Context) {
 
 		_, err := config.DB.Exec(query, status, id)
 		if err != nil {
-			fmt.Print("error:",err.Error())
+			fmt.Print("error:", err.Error())
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "Failed to update patent status",
+				"error": "Failed to update certificate status",
 			})
 			return
 		}
 
+		// Update faculty_remarks in related certificate tables
+		// Try to update certificate_onlinecourses
+		config.DB.Exec(`UPDATE certificate_onlinecourses SET faculty_remarks = ? WHERE certiificate_id = ?`, feedback, id)
+		// Try to update certificates_events
+		config.DB.Exec(`UPDATE certificates_events SET faculty_remarks = ? WHERE certificate_id = ?`, feedback, id)
+		// Try to update certificates_voluntree
+		config.DB.Exec(`UPDATE certificates_voluntree SET faculty_reamrks = ? WHERE certificate_id = ?`, feedback, id)
+
 		c.JSON(http.StatusOK, gin.H{
-			"message": "Patent status updated successfully",
+			"message": "Certificate status updated successfully",
 		})
-	}else if upload_type == "paperpresentation"{
+	} else if upload_type == "paperpresentation" {
 		var status string
 		if verified == true {
 			status = "Approved"
@@ -88,23 +97,23 @@ func PostVarification(c *gin.Context) {
 
 		query := `
 			UPDATE paperpresentation
-			SET approval_status = ?
+			SET approval_status = ?, faculty_remarks = ?
 			WHERE id = ?
 		`
 
-		_, err := config.DB.Exec(query, status, id)
+		_, err := config.DB.Exec(query, status, feedback, id)
 		if err != nil {
-			fmt.Print("error:",err.Error())
+			fmt.Print("error:", err.Error())
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "Failed to update patent status",
+				"error": "Failed to update paper presentation status",
 			})
 			return
 		}
 
 		c.JSON(http.StatusOK, gin.H{
-			"message": "Patent status updated successfully",
+			"message": "Paper presentation status updated successfully",
 		})
-	}else if upload_type == "workshop"{
+	} else if upload_type == "workshop" {
 		var status string
 		if verified == true {
 			status = "Approved"
@@ -116,23 +125,23 @@ func PostVarification(c *gin.Context) {
 
 		query := `
 			UPDATE workshops
-			SET status = ?
+			SET status = ?, faculty_remarks = ?
 			WHERE id = ?
 		`
 
-		_, err := config.DB.Exec(query, status, id)
+		_, err := config.DB.Exec(query, status, feedback, id)
 		if err != nil {
-			fmt.Print("error:",err.Error())
+			fmt.Print("error:", err.Error())
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "Failed to update patent status",
+				"error": "Failed to update workshop status",
 			})
 			return
 		}
 
 		c.JSON(http.StatusOK, gin.H{
-			"message": "Patent status updated successfully",
+			"message": "Workshop status updated successfully",
 		})
-	}else if upload_type == "internship"{
+	} else if upload_type == "internship" {
 		var status string
 		if verified == true {
 			status = "Approved"
@@ -150,7 +159,7 @@ func PostVarification(c *gin.Context) {
 
 		_, err := config.DB.Exec(query, status, feedback, id)
 		if err != nil {
-			fmt.Print("error:",err.Error())
+			fmt.Print("error:", err.Error())
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": "Failed to update patent status",
 			})
@@ -160,7 +169,7 @@ func PostVarification(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "Patent status updated successfully",
 		})
-	}else if upload_type == "project"{
+	} else if upload_type == "project" {
 		tier := c.PostForm("tier")
 		feedback := c.PostForm("feedback")
 		projectId := c.PostForm("id")
@@ -182,7 +191,7 @@ func PostVarification(c *gin.Context) {
 
 		_, err := config.DB.Exec(query, status, tier, id)
 		if err != nil {
-			fmt.Print("error:",err.Error())
+			fmt.Print("error:", err.Error())
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": "Failed to update patent status",
 			})
@@ -197,9 +206,9 @@ func PostVarification(c *gin.Context) {
 			) values (?,?,?)
 		`
 
-		_,err = config.DB.Exec(query, projectId,feedback,time.Now().Format("2006-01-02"))
+		_, err = config.DB.Exec(query, projectId, feedback, time.Now().Format("2006-01-02"))
 		if err != nil {
-			fmt.Println("Error: ",err.Error())
+			fmt.Println("Error: ", err.Error())
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update project status"})
 		}
 

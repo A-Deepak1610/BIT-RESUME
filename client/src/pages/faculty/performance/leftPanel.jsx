@@ -1,131 +1,83 @@
-import React, { useState } from "react";
-import { Search, UserX, X } from "lucide-react";
-
-const getRankBadgeColor = (rank) => {
-    switch (rank?.toLowerCase()) {
-        case "titanium":
-            return "bg-blue-100 text-blue-700 border border-blue-300";
-        case "gold":
-            return "bg-yellow-100 text-yellow-800 border border-yellow-300";
-        case "silver":
-            return "bg-gray-200 text-gray-800 border border-gray-400";
-        default:
-            return "bg-indigo-100 text-indigo-700 border border-indigo-300";
-    }
-};
+import React, {useState} from "react";
+import {Search, UserX, X} from "lucide-react";
 
 export default function StudentPerformance({
-    datas = [],
-    selectedStudentName,
-    onStudentSelect,
-    onClose
+  datas = [],
+  selectedStudentName,
+  onStudentSelect,
+  onClose,
 }) {
-    const [searchTerm, setSearchTerm] = useState("");    
-    const filteredStudents = datas.filter((student) =>
-        student.user_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        student.rollno.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+  const [searchTerm, setSearchTerm] = useState("");
+  const filteredStudents = datas.filter(
+    (student) =>
+      student.user_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      student.rollno.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-    const handleClickOnLeft = (student) => {
-        if (onStudentSelect) {
-            onStudentSelect(student);
-        }
-    };
+  const handleClickOnLeft = (student) => {
+    if (onStudentSelect) {
+      onStudentSelect(student);
+    }
+  };
 
-    return (
-        <div className="p-4 bg-gray-100 h-full overflow-y-auto">
-            <div className="flex justify-between items-center mb-5">
-                <h1 className="font-bold text-xl sm:text-2xl text-gray-800">
-                    Student Performance
-                </h1>
-                <button
-                    onClick={onClose}
-                    className="lg:hidden p-2 text-gray-600 hover:text-gray-900 rounded-full hover:bg-gray-200"
-                    aria-label="Close panel"
-                >
-                    <X size={24} />
-                </button>
-            </div>
+  return (
+    <div className="p-4 bg-gray-50 h-full overflow-y-auto">
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="font-bold text-xl text-gray-800">Students</h1>
+        <button
+          onClick={onClose}
+          className="lg:hidden p-2 text-gray-600 hover:text-gray-900 rounded-full hover:bg-gray-200"
+          aria-label="Close panel"
+        >
+          <X size={24} />
+        </button>
+      </div>
 
-            <div className="bg-white rounded-xl shadow-md p-4 mb-5">
-                <div className="relative w-full">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Search className="text-gray-400" size={18} />
-                    </div>
-                    <input
-                        type="text"
-                        className="block w-full pl-10 pr-4 py-2.5 rounded-lg bg-gray-50 border border-gray-300
+      <div className="bg-white rounded-lg shadow-sm p-3 mb-4">
+        <div className="relative w-full">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search className="text-gray-400" size={16} />
+          </div>
+          <input
+            type="text"
+            className="block w-full pl-9 pr-4 py-2 rounded-lg bg-gray-50 border border-gray-200
                            focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500
-                           text-sm placeholder-gray-500 shadow-sm"
-                        placeholder="Search by name or roll number..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                </div>
-            </div>
-
-            {filteredStudents.length > 0 ? (
-                <div className="space-y-4">
-                    {filteredStudents.map((item, index) => (
-                        <div
-                            key={item.rollno || index}
-                            className={`bg-white border border-gray-200 rounded-xl p-4 shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out cursor-pointer
-                                        ${selectedStudentName === item.user_name ? 'ring-2 ring-indigo-500 border-indigo-500' : ''} `}
-                            onClick={() => handleClickOnLeft(item)}
-                        >
-                            <div className="flex flex-col sm:flex-row justify-between sm:items-start mb-3">
-                                <div className="flex flex-col">
-                                    <h3 className="text-lg font-semibold text-indigo-700 mb-1">
-                                        {item.user_name}
-                                    </h3>
-                                    <p className="text-sm text-gray-500 font-medium">
-                                        Roll: {item.rollno}
-                                    </p>
-                                </div>
-                                <span
-                                    className={`px-3 py-1 text-xs font-medium rounded-full whitespace-nowrap mt-2 sm:mt-0 ${getRankBadgeColor(
-                                        item.current_rank
-                                    )}`}
-                                >
-                                    {item.current_rank}
-                                </span>
-                            </div>
-
-                            <div className="flex flex-col sm:flex-row gap-5">
-                                <div className="bg-indigo-50 p-3 rounded-lg shadow-inner w-full">
-                                    <p className="text-xs text-indigo-500 font-medium mb-0.5">
-                                        Cumulative Points
-                                    </p>
-                                    <p className="text-xl font-bold text-indigo-600">
-                                        {item.cummulative_points}
-                                    </p>
-                                </div>
-                                <div className="bg-green-50 p-3 rounded-lg shadow-inner w-full">
-                                    <p className="text-xs text-green-500 font-medium mb-0.5">
-                                        Current Points
-                                    </p>
-                                    <p className="text-md font-semibold text-green-700">
-                                        {item.current_point}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            ) : (
-                <div className="text-center py-8 bg-white rounded-xl shadow-md">
-                    <UserX
-                        size={40}
-                        className="mx-auto text-gray-400 mb-3"
-                    />
-                    <p className="text-gray-600 text-md font-medium mb-1">
-                        No Students Found
-                    </p>
-                    <p className="text-gray-500 text-xs">
-                        {searchTerm ? "Try adjusting your search term." : "No students available."}
-                    </p>
-                </div>
-            )}
+                           text-sm placeholder-gray-400"
+            placeholder="Search students..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </div>
-    );
+      </div>
+
+      {filteredStudents.length > 0 ? (
+        <div className="space-y-3">
+          {filteredStudents.map((item, index) => (
+            <div
+              key={item.rollno || index}
+              className={`bg-white border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow duration-200 cursor-pointer
+                                        ${
+                                          selectedStudentName === item.user_name
+                                            ? "ring-2 ring-indigo-500 border-indigo-500"
+                                            : ""
+                                        }`}
+              onClick={() => handleClickOnLeft(item)}
+            >
+              <h3 className="text-base font-semibold text-indigo-700">
+                {item.user_name}
+              </h3>
+              <p className="text-sm text-gray-500">{item.rollno}</p>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-8 bg-white rounded-lg">
+          <UserX size={36} className="mx-auto text-gray-300 mb-2" />
+          <p className="text-gray-500 text-sm">
+            {searchTerm ? "No matching students" : "No students found"}
+          </p>
+        </div>
+      )}
+    </div>
+  );
 }

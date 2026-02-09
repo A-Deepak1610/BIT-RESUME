@@ -1,19 +1,20 @@
-import React, { useState, useRef, useMemo } from "react";
+import React, {useState, useRef, useMemo} from "react";
 import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
 import StarBorderRoundedIcon from "@mui/icons-material/StarBorderRounded";
 import KeyboardArrowRightRoundedIcon from "@mui/icons-material/KeyboardArrowRightRounded";
 import FindInPageOutlinedIcon from "@mui/icons-material/FindInPageOutlined";
 import ArticleOutlinedIcon from "@mui/icons-material/ArticleOutlined";
 import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
-import { useNavigate, useLocation } from "react-router-dom";
+import {useNavigate, useLocation} from "react-router-dom";
 import useAuth from "../../store/UseAuth";
 import GroupWorkOutlinedIcon from "@mui/icons-material/GroupWorkOutlined";
 import ApprovalOutlinedIcon from "@mui/icons-material/ApprovalOutlined";
 import VerifiedOutlinedIcon from "@mui/icons-material/VerifiedOutlined";
 import TuneOutlinedIcon from "@mui/icons-material/TuneOutlined";
 import BarChartOutlinedIcon from "@mui/icons-material/BarChartOutlined";
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-
+import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
+import TaskAltOutlinedIcon from "@mui/icons-material/TaskAltOutlined";
 export default function SideBar() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -25,25 +26,64 @@ export default function SideBar() {
   const studentRequestsRef = useRef(null);
   const activityTrackerRef = useRef(null);
 
-  const { user, logout } = useAuth();
+  const {user, logout} = useAuth();
   const activeItem = useMemo(() => {
     const path = location.pathname;
-    if (path === "/dashboard" || path === "/faculty-dashboard" || path == "/admin-dashboard") return "dashboard";
+    if (
+      path === "/dashboard" ||
+      path === "/faculty-dashboard" ||
+      path == "/admin-dashboard"
+    )
+      return "dashboard";
     if (path === "/uploadview") return "upload";
     if (path === "/resume") return "resume";
     if (path.includes("/Achivement/ActivityMaster")) return "activityMaster";
     if (path.includes("/Achivement/ActivityLogger")) return "activityLogger";
     if (path === "/faculty-approval") return "projectApprovals";
     if (path === "/faculty-verification") return "certificateVerifications";
-    if (path.includes("/faculty-approval") || path.includes("/faculty-verification")) return "studentRequests";
+    if (
+      path.includes("/faculty-approval") ||
+      path.includes("/faculty-verification")
+    )
+      return "studentRequests";
     if (path === "/faculty/tracker/all-events-log") return "allEventsLog";
     if (path === "/faculty-manageActivity") return "manageActivities";
-    if (path.includes("/faculty/tracker") || path.includes("/faculty-manageActivity")) return "activityTracker";
+    if (
+      path.includes("/faculty/tracker") ||
+      path.includes("/faculty-manageActivity")
+    )
+      return "activityTracker";
     if (path === "/faculty-studentperformance") return "studentPerformance";
     if (path === "/faculty-resumeDraft") return "resumeDrafts";
     if (path === "/admin-addactivity") return "addactivity";
-    if(path == "/admin-studentsPerformance") return "studentsPerformance";
-    if(path == "/admin-AddUsers") return "addusers";
+    if (path == "/admin-studentsPerformance") return "studentsPerformance";
+    if (path == "/admin-facultyMetrics") return "facultyMetrics";
+    if (path == "/admin-facultyVerifications") return "facultyVerifications";
+    if (path == "/admin-AddUsers") return "addusers";
+    if (path == "/uploadview/certificate") return "upload";
+    if (path == "/uploadview/paperpresentation") return "upload";
+    if (path == "/admin-reports") return "admin-reports";
+    if (path == "/faculty/uploadview") return "faculty/uploadview";
+    if (path == "/faculty/achievements/newsletter") return "faculty/uploadview";
+    if (path == "/faculty/achievements/e-content") return "faculty/uploadview";
+    if (path == "/faculty/achievements/events-attended")
+      return "faculty/uploadview";
+    if (path == "/faculty/achievements/events-organized")
+      return "faculty/uploadview";
+    if (path == "/faculty/achievements/external-examiner")
+      return "faculty/uploadview";
+    if (path == "/faculty/achievements/journal-reviewer")
+      return "faculty/uploadview";
+    if (path == "/faculty/achievements/guest-lectures")
+      return "faculty/uploadview";
+    if (path == "/faculty/achievements/international-visits")
+      return "faculty/uploadview";
+    if (path == "/faculty/achievements/awards") return "faculty/uploadview";
+    if (path == "/faculty/achievements/online-courses")
+      return "faculty/uploadview";
+    if (path == "/faculty/achievements/papers") return "faculty/uploadview";
+    if (path == "/faculty/achievements/resource-person")
+      return "faculty/uploadview";
     return "";
   }, [location.pathname]);
 
@@ -63,7 +103,8 @@ export default function SideBar() {
     navigate("/");
   };
 
-  const subMenuTransitionClass = "transition-all overflow-hidden duration-300 ease-in-out";
+  const subMenuTransitionClass =
+    "transition-all overflow-hidden duration-300 ease-in-out";
 
   const renderSidebarContent = () => {
     if (user?.role === "faculty") {
@@ -84,7 +125,17 @@ export default function SideBar() {
               >
                 <DashboardOutlinedIcon fontSize="small" /> Dashboard
               </li>
-
+              <li
+                className={`flex items-center gap-3 cursor-pointer p-2 rounded-md transition-all duration-300 ease-in-out ${
+                  activeItem === "faculty/uploadview"
+                    ? "text-white bg-primary w-55"
+                    : "hover:bg-gray-100"
+                }`}
+                onClick={() => navigate("/faculty/uploadview")}
+              >
+                <StarBorderRoundedIcon fontSize="small" />
+                Faculty Achievements
+              </li>
               <li>
                 <div
                   className={`relative flex items-center gap-1 cursor-pointer p-2 rounded-md text-[14px] transition-all duration-300 ease-in-out ${
@@ -157,7 +208,7 @@ export default function SideBar() {
                 </ul>
               </li>
 
-                  <li
+              {/* <li
                     className={`flex items-center gap-3 cursor-pointer p-2 mt-3 rounded-md transition-all duration-300 ease-in-out ${
                   activeItem === "manageActivities"
                     ? "text-white bg-primary w-55"
@@ -170,8 +221,7 @@ export default function SideBar() {
                   >
                     <TuneOutlinedIcon fontSize="small" className="mr-1" />{" "}
                     Manage Activities
-                  </li>
-
+                  </li> */}
 
               <li
                 className={`flex items-center gap-3 cursor-pointer p-2 mt-3 rounded-md transition-all duration-300 ease-in-out ${
@@ -246,6 +296,36 @@ export default function SideBar() {
                 onClick={() => navigate("/admin-studentsPerformance")}
               >
                 <BarChartOutlinedIcon fontSize="small" /> Student Metrics
+              </li>
+              <li
+                className={`flex items-center gap-3 cursor-pointer p-2 rounded-md transition-all duration-300 ease-in-out ${
+                  activeItem === "facultyMetrics"
+                    ? "text-white bg-primary w-55"
+                    : "hover:bg-gray-100"
+                }`}
+                onClick={() => navigate("/admin-facultyMetrics")}
+              >
+                <BarChartOutlinedIcon fontSize="small" /> Faculty Metrics
+              </li>
+              <li
+                className={`flex items-center gap-3 cursor-pointer p-2 rounded-md transition-all duration-300 ease-in-out ${
+                  activeItem === "facultyVerifications"
+                    ? "text-white bg-primary"
+                    : "hover:bg-gray-100"
+                }`}
+                onClick={() => navigate("/admin-facultyVerifications")}
+              >
+                <VerifiedOutlinedIcon fontSize="small" /> Faculty Verifications
+              </li>
+              <li
+                className={`flex items-center gap-3 cursor-pointer p-2 rounded-md transition-all duration-300 ease-in-out ${
+                  activeItem === "admin-reports"
+                    ? "text-white bg-primary w-55"
+                    : "hover:bg-gray-100"
+                }`}
+                onClick={() => navigate("/admin-reports")}
+              >
+                <AutoAwesomeIcon fontSize="small" /> Report Generation
               </li>
               <li
                 className={`flex items-center gap-3 cursor-pointer p-2 rounded-md transition-all duration-300 ease-in-out ${

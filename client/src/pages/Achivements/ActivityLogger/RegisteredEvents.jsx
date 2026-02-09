@@ -13,14 +13,14 @@ const RegisteredEvents = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedEventData, setSelectedEventData] = useState(null);
   const { rollno } = useAuth();
-
+  const API_URL = import.meta.env.VITE_API_URL
   // Current date for status calculations
   const currentDate = new Date('2025-08-07T18:58:20Z');
 
   const handleRequestedEvents = async () => {
     console.log("Fetching requested events for rollno:", rollno);
     try {
-      const response = await fetch(`http://localhost:6001/api/events/requested_events/${rollno}`,{
+      const response = await fetch(`${API_URL}api/events/requested_events/${rollno}`,{
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -131,7 +131,7 @@ const RegisteredEvents = () => {
     console.log("Fetching registered events for rollno:", rollno);
     try {
       const response = await fetch(
-        `http://localhost:6001/api/events/registered_events`,
+        `${API_URL}api/events/registered_events`,
         {
           method: "GET",
           headers: {

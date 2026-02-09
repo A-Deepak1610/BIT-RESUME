@@ -2,6 +2,7 @@ package routes
 
 import (
 	activitymaster "bitresume/api/ActivityMaster"
+	"bitresume/api/admin"
 	auth "bitresume/api/auth"
 	achievementgraph "bitresume/api/dashboard/achievement_graph"
 	activitygraph "bitresume/api/dashboard/activity_graph"
@@ -10,6 +11,7 @@ import (
 	manageactivities "bitresume/api/faculty/ActivityTracker/ManageActivities"
 	studentrequests "bitresume/api/faculty/ActivityTracker/StudentRequests/varifications"
 	addevents "bitresume/api/faculty/AddEvents"
+	facultyAchievements "bitresume/api/faculty/FacultyAchievements"
 	studentdata "bitresume/api/faculty/StudentData"
 	dashBoardfaculty "bitresume/api/faculty/dashboardfaculty"
 	"bitresume/api/login"
@@ -28,6 +30,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 )
+
 func RegisterRoutes(r *gin.Engine) {
 	authGroup := r.Group("/api/auth")
 	authGroup.GET("/google/login", auth.GoogleLogin)
@@ -61,7 +64,7 @@ func RegisterRoutes(r *gin.Engine) {
 		studentOnly.PUT("/header/updateprofile", headerdetails.UpdateProfile)
 	}
 	facultyOnly := r.Group("/api")
-	facultyOnly.Use(middleware.AuthorizeRoles("faculty","student","Admin"))
+	facultyOnly.Use(middleware.AuthorizeRoles("faculty", "student", "Admin"))
 	{
 		facultyOnly.GET("/manageactivities", manageactivities.GetActivityData)
 		facultyOnly.GET("/manageactivities/approvels/:rollno", manageactivities.HandleActivityApprovals)
@@ -74,31 +77,74 @@ func RegisterRoutes(r *gin.Engine) {
 		facultyOnly.GET("manageactivities/progressgrpah/:rollno", manageactivities.HandleProgressGraph)
 		facultyOnly.POST("/studentrequests/varifications", studentrequests.PostVarification)
 		facultyOnly.GET("/studentdata/fetchmentees", studentdata.HandleMenteesData)
+		facultyOnly.POST("/faculty/newsLetterFormsPost", facultyAchievements.HandleNewsLetterForms)
+		facultyOnly.GET("/faculty/newsLetterFormsGet", facultyAchievements.FetchNewsletters)
+		facultyOnly.POST("/faculty/eContentFormPost", facultyAchievements.HandleEContentForm)
+		facultyOnly.GET("/faculty/eContentGet", facultyAchievements.FetchEContent)
+		facultyOnly.POST("/faculty/eventsAttendedPost", facultyAchievements.HandleEventsAttendedForm)
+		facultyOnly.GET("/faculty/eventsAttendedGet", facultyAchievements.FetchEventsAttended)
+		facultyOnly.POST("/faculty/eventsOrganizedPost", facultyAchievements.HandleEventsOrganizedForm)
+		facultyOnly.GET("/faculty/eventsOrganizedGet", facultyAchievements.FetchEventsOrganized)
+		facultyOnly.POST("/faculty/externalExaminerPost", facultyAchievements.HandleExternalExaminerForm)
+		facultyOnly.GET("/faculty/externalExaminerGet", facultyAchievements.FetchExternalExaminer)
+		facultyOnly.POST("/faculty/journalReviewerPost", facultyAchievements.HandleJournalReviewerForm)
+		facultyOnly.GET("/faculty/journalReviewerGet", facultyAchievements.FetchJournalReviewer)
+		facultyOnly.POST("/faculty/guestLecturePost", facultyAchievements.HandleGuestLectureForm)
+		facultyOnly.GET("/faculty/guestLectureGet", facultyAchievements.FetchGuestLecture)
+		facultyOnly.POST("/faculty/internationalVisitPost", facultyAchievements.HandleInternationalVisitForm)
+		facultyOnly.GET("/faculty/internationalVisitGet", facultyAchievements.FetchInternationalVisit)
+		facultyOnly.POST("/faculty/awardPost", facultyAchievements.HandleAwardForm)
+		facultyOnly.GET("/faculty/awardGet", facultyAchievements.FetchAward)
+		facultyOnly.POST("/faculty/onlineCoursePost", facultyAchievements.HandleOnlineCourseForm)
+		facultyOnly.GET("/faculty/onlineCourseGet", facultyAchievements.FetchOnlineCourse)
+		facultyOnly.POST("/faculty/paperPresentationPost", facultyAchievements.HandlePaperPresentationForm)
+		facultyOnly.GET("/faculty/paperPresentationGet", facultyAchievements.FetchPaperPresentation)
+		facultyOnly.POST("/faculty/resourcePersonPost", facultyAchievements.HandleResourcePersonForm)
+		facultyOnly.GET("/faculty/resourcePersonGet", facultyAchievements.FetchResourcePerson)
 	}
+
 	bothStudentFacultyAdmin := r.Group("/api")
-	bothStudentFacultyAdmin.Use(middleware.AuthorizeRoles("faculty","student","Admin"))
+	bothStudentFacultyAdmin.Use(middleware.AuthorizeRoles("faculty", "student", "Admin"))
 	{
 		bothStudentFacultyAdmin.GET("/activity_graph/fetchData/:rollno", activitygraph.FetchActivityGraphData)
 		bothStudentFacultyAdmin.GET("/achievement_graph/institute_avg/fetchData/:rollno", achievementgraph.HandleFetchInstituteAvg)
 		bothStudentFacultyAdmin.GET("/achievement_graph/fetchData/:rollno", achievementgraph.HandleFetchAchievementGraph)
 		bothStudentFacultyAdmin.GET("/ps/levels_status/:rollno", pointshandlers.HandleFetchPsLevels)
-		bothStudentFacultyAdmin.GET("/ps/metorships/:rollno",dataUploadPs.GetMentorShips)
+		bothStudentFacultyAdmin.GET("/ps/metorships/:rollno", dataUploadPs.GetMentorShips)
 		bothStudentFacultyAdmin.GET("/resume/getprojects/:rollno", resume.GetProjectsData)
 		bothStudentFacultyAdmin.GET("/resume/getcertificates/:rollno", resume.GetCertificatesData)
 		bothStudentFacultyAdmin.GET("/resume/gethackathondata/:rollno", resume.GetHackathonData)
 		bothStudentFacultyAdmin.GET("/resume/getinternshipdata/:rollno", resume.GetInternshipData)
-		bothStudentFacultyAdmin.GET("/aresofexpertise/:rollno",resume.GetAreasOfExpertise)
+		bothStudentFacultyAdmin.GET("/resume/getpapers/:rollno", resume.GetPapersData)
+		bothStudentFacultyAdmin.GET("/resume/getpatents/:rollno", resume.GetPatentsData)
+		bothStudentFacultyAdmin.GET("/resume/dashboardstats/:rollno", resume.GetDashboardStats)
+		bothStudentFacultyAdmin.GET("/aresofexpertise/:rollno", resume.GetAreasOfExpertise)
 		bothStudentFacultyAdmin.GET("/header/getprofile/:rollno", headerdetails.GetProfileDetails)
 	}
 	adminOnly := r.Group("/api")
 	adminOnly.Use(middleware.AuthorizeRoles("Admin"))
 	{
-	 	adminOnly.DELETE("/deleteevents/:id", addevents.DeleteEvent)
-	 	adminOnly.POST("/addevents/create", addevents.AddEvents)
-	 	adminOnly.GET("/events/fetchregisteredteams/:eventcode", registerevents.HandleRegisteredTeams)
-	 	adminOnly.GET("/studentdata/fetchstudentdata", studentdata.HandleMenteesData)
-	 	adminOnly.POST("/mentor-mentee-upload",dataUploadPs.UploadMentorMentee)
-	 	adminOnly.POST("/addusers",login.AddUsers)
+		adminOnly.DELETE("/deleteevents/:id", addevents.DeleteEvent)
+		adminOnly.POST("/addevents/create", addevents.AddEvents)
+		adminOnly.GET("/events/fetchregisteredteams/:eventcode", registerevents.HandleRegisteredTeams)
+		adminOnly.GET("/studentdata/fetchstudentdata", studentdata.HandleMenteesData)
+		adminOnly.POST("/mentor-mentee-upload", dataUploadPs.UploadMentorMentee)
+		adminOnly.POST("/addusers", login.AddUsers)
+		// Admin Dashboard Stats
+		adminOnly.GET("/admin/dashboard/stats", admin.GetDashboardStats)
+		adminOnly.GET("/admin/dashboard/category-summary", admin.GetCategorySummary)
+		adminOnly.GET("/admin/dashboard/user-stats", admin.GetUserStats)
+		adminOnly.GET("/admin/dashboard/faculty-performance", admin.GetFacultyPerformance)
+		// Admin Analytics
+		adminOnly.GET("/admin/analytics", admin.GetAnalytics)
+		adminOnly.GET("/admin/analytics/years", admin.GetYearsList)
+		adminOnly.GET("/admin/analytics/rollnos", admin.GetRollnosList)
+		// Admin Faculty Verifications
+		adminOnly.GET("/admin/faculty-verifications", admin.GetAllFacultySubmissions)
+		adminOnly.PUT("/admin/faculty-verifications/update-status", admin.UpdateFacultySubmissionStatus)
+		// Admin Faculty Metrics
+		adminOnly.GET("/admin/faculty-metrics/list", admin.GetFacultyList)
+		adminOnly.GET("/admin/faculty-metrics/achievements/:facultyId", admin.GetFacultyAchievements)
 	}
 	r.GET("/api/activitymaster/fetch", addevents.FetchEvents)
 	//both student and faculty
@@ -108,7 +154,7 @@ func RegisterRoutes(r *gin.Engine) {
 	r.GET("/api/sem_wise_totaldays", pointshandlers.HandleSemDays)
 	r.GET("/api/handlesem", pointshandlers.HandleSem)
 	r.PUT("/api/updatesem", pointshandlers.HandleUpdateSem)
-	r.DELETE("/api/uploadview/deleteupload",Uploadsdelete.Uploadsdelete)
-	r.GET("/api/getpsdata/:rollno",dataUploadPs.GetPsStatus)
-	r.POST("/api/bulkupload",dataUploadPs.BulkUploadHandler)
+	r.DELETE("/api/uploadview/deleteupload", Uploadsdelete.Uploadsdelete)
+	r.GET("/api/getpsdata/:rollno", dataUploadPs.GetPsStatus)
+	r.POST("/api/bulkupload", dataUploadPs.BulkUploadHandler)
 }

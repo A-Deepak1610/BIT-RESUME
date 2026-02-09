@@ -19,7 +19,6 @@ export default function AddedActivityCard({ activity }) {
     if (!activity) {
         return null;
     }
-
     const {
         event_name,
         image_url, // Assuming the API returns a URL for the uploaded image
@@ -29,9 +28,7 @@ export default function AddedActivityCard({ activity }) {
         team_size,
         event_code
     } = activity;
-
     const domainList = domains ? domains.split(',').map(d => d.trim()) : [];
-
     return (
         <div className="bg-white rounded-xl shadow-lg flex flex-col border border-gray-200 hover:shadow-xl transition-shadow duration-300 overflow-hidden">
             {/* Image Section */}

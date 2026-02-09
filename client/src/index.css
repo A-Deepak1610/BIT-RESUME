@@ -74,3 +74,20 @@
   }
 }
 
+/* Hide elements during print */
+@media print {
+  .print-hide {
+    display: none !important;
+  }
+}
+
+/* table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  border: 1px solid #000;
+  padding: 4px 6px;
+  vertical-align: top;
+} */

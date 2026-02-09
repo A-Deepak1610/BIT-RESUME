@@ -1,52 +1,55 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import html2canvas from "html2canvas-pro";
+import jsPDF from "jspdf";
 import logo from "../../assets/logo_bit.jpg";
-import { Phone, Mail, Linkedin, Github, MapPin, Printer } from "lucide-react";
+import { Phone, Mail, Linkedin, Github, MapPin, Download } from "lucide-react";
 import ProjectsForResume from "./projects/ProjectsForResume";
 import PsDataForResume from "./PsDataForResume";
 import MentorMenteeForResume from "./MentorMenteeForResume";
 import AreasOfExpertise from "./AreasOfExpertise";
 import AccomplishmentsForResume from "./AccomplishmentsForResume";
+import PaperPresentationsForResume from "./PaperPresentationsForResume";
+import PatentsForResume from "./PatentsForResume";
 import ActivenessGraphForResume from "../dashboard/graphs/graph1/ActivenessGraphForResume";
 import AchievementsGraphForResume from "../dashboard/graphs/grpah2/AchievementsGraphForResume";
-import A4Page from "./A4Page"; // Your A4Page component from above
-import QRCode from "react-qr-code"; // <-- CORRECTED IMPORT for the new library
-import bit_logo from '../../assets/bit_logo.png'
+import A4Page from "./A4Page";
+import QRCode from "react-qr-code";
 import useAuth from "../../store/UseAuth";
 const Section = ({ title, children, className }) => (
-  <section className={`mb-5 ${className || ""}`}>
+  <section className={`mb-3 ${className || ""}`}>
     {title && (
-      <h2 className="text-sm font-bold text-blue-800 uppercase tracking-wider border-b-2 border-gray-300 pb-1 mb-4">
+      <h2 className="text-sm font-bold text-blue-800 uppercase tracking-wider border-b-2 border-gray-300 pb-1 mb-2">
         {title}
       </h2>
     )}
     {children}
   </section>
 );
-  
-const ResumeContent = ({rollno,name,email,info}) => (
-  <>
-    <A4Page>
-      <header className="flex items-start justify-between w-full mb-5">
+
+const ResumeContent = ({ rollno, name, email, info }) => (
+  <div className="resume-flow">
+    <A4Page className="h-auto min-h-0">
+      <header className="flex items-start justify-between w-full mb-3">
         <div className="flex-1">
-          <h1 className="text-4xl font-bold text-gray-800">{name}</h1>
-          <p className="text-lg font-medium text-blue-800">
-            Computer Science & Engineering Student
+          <h1 className="text-3xl font-bold text-gray-800">{name}</h1>
+          <p className="text-base font-medium text-blue-800">
+            {info.department || "Computer Science & Engineering"} Student
           </p>
-          <div className="flex items-center text-xs text-gray-600 mt-2 space-x-4 flex-wrap">
+          <div className="flex items-center text-xs text-gray-600 mt-1.5 space-x-4 flex-wrap">
             <div className="flex items-center">
               <Mail size={12} className="mr-1.5" />
               <span>{email}</span>
             </div>
             <div className="flex items-center">
               <Phone size={12} className="mr-1.5" />
-              <span>+91 {info.phone}</span>
+              <span>+91 {info.phone || "N/A"}</span>
             </div>
             <div className="flex items-center">
               <MapPin size={12} className="mr-1.5" />
-              <span>{info.location}</span>
+              <span>{info.location || "N/A"}</span>
             </div>
           </div>
-          <div className="flex items-center text-xs text-gray-600 mt-1.5 space-x-4 flex-wrap">
+          <div className="flex items-center text-xs text-gray-600 mt-1 space-x-4 flex-wrap">
             <a
               href={info.github}
               target="_blank"
@@ -54,7 +57,7 @@ const ResumeContent = ({rollno,name,email,info}) => (
               className="flex items-center hover-text-blue-600"
             >
               <Github size={12} className="mr-1.5" />
-              <span>{info.gihub}</span>
+              <span>{info.github || "github.com"}</span>
             </a>
             <a
               href={info.linkedin}
@@ -63,22 +66,15 @@ const ResumeContent = ({rollno,name,email,info}) => (
               className="flex items-center hover-text-blue-600"
             >
               <Linkedin size={12} className="mr-1.5" />
-              <span>linkedin.com</span>
+              <span>{info.linkedin || "linkedin.com"}</span>
             </a>
           </div>
         </div>
-        <div className="mt-2 p-1 bg-white"> 
-            <QRCode
-              value="https://myresume.com/resume/selva"
-              size={80}
-              viewBox={`0 0 256 256`} 
-            />
-          </div>
         <div className="flex flex-col items-center ml-4">
           <img
             src={logo}
             alt="profile"
-            className="rounded-full w-24 h-24 object-cover border-2 border-gray-300"
+            className="rounded-full w-20 h-20 object-cover border-2 border-gray-300"
           />
         </div>
       </header>
@@ -86,11 +82,10 @@ const ResumeContent = ({rollno,name,email,info}) => (
       <Section title="Education">
         <div className="flex justify-between items-start text-sm">
           <div>
-            <div className="flex items-center space-x-2 mb-1">
-            <p className="font-semibold text-gray-800">
-              Bannari Amman Institute of Technology 
-            </p>
-            {/* <img src={bit_logo} className="ml-70 mt-[35px] w-20 h-20 absolute" alt="BIT" /> */}
+            <div className="flex items-center space-x-2 mb-0.5">
+              <p className="font-semibold text-gray-800">
+                Bannari Amman Institute of Technology
+              </p>
             </div>
             <p className="text-gray-600">
               Bachelor of Engineering - Computer Science
@@ -102,50 +97,49 @@ const ResumeContent = ({rollno,name,email,info}) => (
           </div>
         </div>
       </Section>
-      <div className="flex justify-between items-start gap-6 mb-5">
-        <div className="w-1/2">
-          <ActivenessGraphForResume  rollno={rollno}/>
-        </div>
-        <div className="w-1/2">
-          <AchievementsGraphForResume rollno={rollno} />
-        </div>
-      </div>       
-      <div className="text-sm text-gray-700 -mt-2 mb-5">
-          <p> 
-            <span className="font-semibold">Activeness Graph</span> - Illustrates
-          consistent engagement and participation across academic semesters.
-        </p>
-        <p>
-          <span className="font-semibold">Achievement Graph</span> - Highlights
-          personal growth compared to the institutional average over time.
-        </p>
-      </div>
       <Section title="Areas of Expertise">
-        <AreasOfExpertise />
+        <AreasOfExpertise rollno={rollno} />
+      </Section>
+      <Section title="Personal Skills">
+        <PsDataForResume rollno={rollno} />
       </Section>
       <Section title="Accomplishments">
         <AccomplishmentsForResume rollno={rollno} />
       </Section>
       <Section title="Leadership & Mentorship">
-        <MentorMenteeForResume  rollno={rollno}/>
+        <MentorMenteeForResume rollno={rollno} />
       </Section>
-    </A4Page>
-    <A4Page>
       <Section title="Projects">
-        <ProjectsForResume  rollno={rollno}/>
+        <ProjectsForResume rollno={rollno} />
       </Section>
-      <Section title="Personal Skills">
-        <PsDataForResume rollno={rollno}/>
+      <Section title="Paper Presentations">
+        <PaperPresentationsForResume rollno={rollno} />
+      </Section>
+      <Section title="Patents">
+        <PatentsForResume rollno={rollno} />
       </Section>
     </A4Page>
-  </>
+  </div>
 );
 
 export default function PrintableResumeView(props) {
   const [isReady, setIsReady] = useState(false);
-  const [isPrinting, setIsPrinting]=useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   const Student_rollno = props.rollno || "-";
-  console.log("PrintableResumeView rollno:", Student_rollno);   
+  const resumeRef = useRef(null);
+  console.log("PrintableResumeView rollno:", Student_rollno);
+
+  const { rollno, name } = useAuth();
+  const [info, setInfo] = useState({
+    phone: "",
+    location: "",
+    github: "",
+    linkedin: "",
+    user_email: "",
+    user_name: "",
+    department: "",
+  });
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsReady(true);
@@ -153,80 +147,141 @@ export default function PrintableResumeView(props) {
     return () => clearTimeout(timer);
   }, []);
 
-  useEffect(() => {
-    const handleBeforePrint = () => setIsPrinting(true);
-    const handleAfterPrint = () => setIsPrinting(false);
-    window.addEventListener("beforeprint", handleBeforePrint);
-    window.addEventListener("afterprint", handleAfterPrint);
-    return () => {
-      window.removeEventListener("beforeprint", handleBeforePrint);
-      window.removeEventListener("afterprint", handleAfterPrint);
-    };
-  }, []);
-
-  const handlePrint = async () => {
-    if (!isReady || isPrinting) return;
-
-    setIsPrinting(true);
-    await new Promise((resolve) => setTimeout(resolve, 100));
-    window.print();
-  };
-
-  const getButtonState = () => {
-    if (!isReady) {
-      return {
-        disabled: true,
-        text: "Loading Preview...",
-        className: "disabled:bg-gray-400",
-      };
-    }
-    if (isPrinting) {
-      return {
-        disabled: true,
-        text: "Printing...",
-        className: "disabled:bg-gray-400",
-      };
-    }
-    return {
-      disabled: false,
-      text: "Print or Save as PDF",    
-      className: "hover:bg-indigo-700",
-    };
-  };
-  const {rollno,name,email}=useAuth();
-  const [info,setInfo]=useState([]);
-  const getInfo=async()=>{
-    try{
-      const res=await fetch(`http://localhost:6001/api/header/getprofile/${Student_rollno}`,{
-        method:"GET",
-        credentials:"include"
-      })
-      if(!res.ok) console.error("Response not ok for info");
-      const data=await res.json();
-      setInfo(data);
-      console.log("data from info",info);
-    }
-    catch(error){
+  const getInfo = async () => {
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/header/getprofile/${Student_rollno}`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
+      if (!res.ok) console.error("Response not ok for info");
+      const data = await res.json();
+      // API returns { data: { phone, location, github, linkedin, user_email, user_name, ... } }
+      if (data && data.data) {
+        setInfo(data.data);
+      }
+      console.log("data from info", data);
+    } catch (error) {
       console.log(error);
     }
-  }
-  useEffect(()=>{getInfo()},[rollno]);
-  const buttonState = getButtonState();
+  };
+
+  useEffect(() => {
+    getInfo();
+  }, [rollno]);
+
+  const handleDownload = async () => {
+    if (!resumeRef.current || isDownloading) return;
+
+    setIsDownloading(true);
+
+    try {
+      const element = resumeRef.current;
+      const page = element.querySelector(".a4-page");
+
+      if (!page) {
+        throw new Error("Resume content not found");
+      }
+
+      // A4 dimensions in mm
+      const a4Width = 210;
+      const a4Height = 297;
+      const a4WidthPx = 794;
+      const a4HeightPx = 1123;
+
+      // Generate canvas from the entire content
+      const canvas = await html2canvas(page, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        letterRendering: true,
+        allowTaint: true,
+        backgroundColor: "#ffffff",
+        windowWidth: a4WidthPx,
+      });
+
+      const imgData = canvas.toDataURL("image/jpeg", 0.98);
+      const imgWidth = a4Width;
+      const imgHeight = (canvas.height * a4Width) / canvas.width;
+
+      // Create PDF
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+        compress: true,
+      });
+
+      // Calculate how many pages we need
+      let heightLeft = imgHeight;
+      let position = 0;
+      let pageNum = 0;
+
+      while (heightLeft > 0) {
+        if (pageNum > 0) {
+          pdf.addPage();
+        }
+
+        pdf.addImage(
+          imgData,
+          "JPEG",
+          0,
+          position,
+          imgWidth,
+          imgHeight,
+          undefined,
+          "FAST"
+        );
+
+        heightLeft -= a4Height;
+        position -= a4Height;
+        pageNum++;
+      }
+
+      // Save the PDF
+      const filename = `${info.user_name || name || "Resume"}_${
+        new Date().toISOString().split("T")[0]
+      }.pdf`;
+      pdf.save(filename);
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      alert("Failed to generate PDF. Please try again.");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   return (
-    <>
-      <div id="resume-content-to-print">
-        <ResumeContent rollno={Student_rollno} name={name} email={email} info={info}/>
-      </div>
-       <div className="print-hide bg-gray-100 py-6 text-center">
+    <div className="relative min-h-screen bg-gray-100">
+      {/* Fixed Download Button in Top Right */}
+      <div className="fixed top-4 right-4 z-50 print-hide">
         <button
-          onClick={handlePrint}
-          disabled={buttonState.disabled}
-          className={`inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:cursor-not-allowed transition-colors duration-200 ${buttonState.className}`}
+          onClick={handleDownload}
+          disabled={!isReady || isDownloading}
+          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-200"
         >
-          <Printer className={`mr-3 -ml-1 h-5 w-5 ${isPrinting ? 'animate-pulse' : ''}`} />
-          {buttonState.text}
+          <Download
+            className={`mr-2 h-4 w-4 ${isDownloading ? "animate-bounce" : ""}`}
+          />
+          {isDownloading
+            ? "Generating PDF..."
+            : isReady
+            ? "Download PDF"
+            : "Loading..."}
         </button>
       </div>
-    </>
+
+      {/* Resume Content */}
+      <div ref={resumeRef} id="resume-content-to-print">
+        <ResumeContent
+          rollno={Student_rollno}
+          name={info.user_name || name}
+          email={info.user_email || ""}
+          info={info}
+        />
+      </div>
+    </div>
   );
 }

@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useMemo } from "react";
 import Plot from "react-plotly.js";
-import { 
-  Users, 
-  UserCheck, 
-  UserX, 
-  FileText, 
-  Award, 
-  BookOpen, 
-  Briefcase, 
-  FileBarChart, 
+import {
+  Users,
+  UserCheck,
+  UserX,
+  FileText,
+  Award,
+  BookOpen,
+  Briefcase,
+  FileBarChart,
   Medal,
   CheckCircle,
   Clock,
@@ -16,108 +16,26 @@ import {
   TrendingUp,
   TrendingDown,
   Calendar,
-  RefreshCw
+  RefreshCw,
 } from "lucide-react";
 
-// Generate dummy data with dates for the past 30 days
-const generateDummyDataWithDates = () => {
-  const categories = ['project', 'patent', 'seminar', 'internship', 'paper', 'certificate'];
-  const faculties = ["Dr. Smith", "Prof. Johnson", "Dr. Williams", "Prof. Brown", "Dr. Davis"];
-  const data = [];
-  
-  // Generate data for last 30 days
-  const today = new Date();
-  for (let i = 30; i >= 0; i--) {
-    const date = new Date(today);
-    date.setDate(date.getDate() - i);
-    const dateStr = date.toISOString().split('T')[0];
-    
-    categories.forEach(category => {
-      // Random uploads per day per category (0-8 uploads)
-      const uploads = Math.floor(Math.random() * 9);
-      
-      for (let j = 0; j < uploads; j++) {
-        const approved = Math.random() > 0.15; // 85% approval rate
-        const faculty = faculties[Math.floor(Math.random() * faculties.length)];
-        
-        data.push({
-          id: `${category}_${dateStr}_${j}`,
-          category,
-          date: dateStr,
-          faculty,
-          status: approved ? 'approved' : 'pending',
-          uploadTime: new Date(date.getTime() + Math.random() * 24 * 60 * 60 * 1000),
-          points: Math.floor(Math.random() * 20) + 5,
-          studentId: `STU${Math.floor(Math.random() * 1000) + 1}`
-        });
-      }
-    });
-  }
-  
-  return data;
-};
+const API_URL = import.meta.env.VITE_API_URL;
 
-const dummyUploadData = generateDummyDataWithDates();
-
-// Original dummy data for overall stats
-const dummyData = {
-  users: {
-    total: 1250,
-    active: 980,
-    inactive: 270,
-    newThisMonth: 45
-  },
-  uploads: {
-    project: { total: 1890, approved: 1654, pending: 236, rejected: 0 },
-    patent: { total: 124, approved: 98, pending: 26, rejected: 0 },
-    seminar: { total: 2145, approved: 1998, pending: 147, rejected: 0 },
-    internship: { total: 856, approved: 789, pending: 67, rejected: 0 },
-    paper: { total: 234, approved: 201, pending: 33, rejected: 0 },
-    certificate: { total: 3421, approved: 3156, pending: 265, rejected: 0 }
-  },
-  facultyApprovals: [
-    { name: "Dr. Smith", total: 456, approved: 420, pending: 36, rejectionRate: 7.9 },
-    { name: "Prof. Johnson", total: 623, approved: 550, pending: 73, rejectionRate: 11.7 },
-    { name: "Dr. Williams", total: 389, approved: 365, pending: 24, rejectionRate: 6.2 },
-    { name: "Prof. Brown", total: 512, approved: 445, pending: 67, rejectionRate: 13.1 },
-    { name: "Dr. Davis", total: 334, approved: 312, pending: 22, rejectionRate: 6.6 }
-  ],
-  batchData: [
-    { batch: "2020", semester: 1, avgPoints: 45 },
-    { batch: "2020", semester: 2, avgPoints: 62 },
-    { batch: "2020", semester: 3, avgPoints: 78 },
-    { batch: "2020", semester: 4, avgPoints: 95 },
-    { batch: "2020", semester: 5, avgPoints: 112 },
-    { batch: "2020", semester: 6, avgPoints: 128 },
-    { batch: "2020", semester: 7, avgPoints: 145 },
-    { batch: "2020", semester: 8, avgPoints: 162 },
-    { batch: "2021", semester: 1, avgPoints: 48 },
-    { batch: "2021", semester: 2, avgPoints: 65 },
-    { batch: "2021", semester: 3, avgPoints: 82 },
-    { batch: "2021", semester: 4, avgPoints: 98 },
-    { batch: "2021", semester: 5, avgPoints: 115 },
-    { batch: "2021", semester: 6, avgPoints: 132 },
-    { batch: "2021", semester: 7, avgPoints: 148 },
-    { batch: "2022", semester: 1, avgPoints: 52 },
-    { batch: "2022", semester: 2, avgPoints: 68 },
-    { batch: "2022", semester: 3, avgPoints: 85 },
-    { batch: "2022", semester: 4, avgPoints: 102 },
-    { batch: "2022", semester: 5, avgPoints: 118 },
-    { batch: "2022", semester: 6, avgPoints: 135 },
-    { batch: "2023", semester: 1, avgPoints: 55 },
-    { batch: "2023", semester: 2, avgPoints: 72 },
-    { batch: "2023", semester: 3, avgPoints: 88 },
-    { batch: "2023", semester: 4, avgPoints: 105 },
-    { batch: "2024", semester: 1, avgPoints: 58 },
-    { batch: "2024", semester: 2, avgPoints: 75 }
-  ]
+// Default user stats
+const defaultUserStats = {
+  total: 0,
+  active: 0,
+  inactive: 0,
+  newThisMonth: 0,
 };
 
 // Static date filter component
 const StaticDateFilter = ({ selectedDate, onDateChange, onReset }) => {
-  const today = new Date().toISOString().split('T')[0];
-  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-  
+  const today = new Date().toISOString().split("T")[0];
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .split("T")[0];
+
   return (
     <div className="bg-white rounded-xl shadow-lg p-4 border border-gray-200 mb-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -130,20 +48,22 @@ const StaticDateFilter = ({ selectedDate, onDateChange, onReset }) => {
             </span>
           )}
         </div>
-        
+
         <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
           <div className="flex flex-col">
-            <label className="text-sm font-medium text-gray-700 mb-1">Select Date</label>
+            <label className="text-sm font-medium text-gray-700 mb-1">
+              Select Date
+            </label>
             <input
               type="date"
               value={selectedDate}
               onChange={(e) => onDateChange(e.target.value)}
-              min={thirtyDaysAgo}
+              // min={thirtyDaysAgo}
               max={today}
               className="px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-40"
             />
           </div>
-          
+
           <button
             onClick={onReset}
             className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 text-sm flex items-center gap-2 mt-6 sm:mt-0"
@@ -153,18 +73,19 @@ const StaticDateFilter = ({ selectedDate, onDateChange, onReset }) => {
           </button>
         </div>
       </div>
-      
+
       {selectedDate && (
         <div className="mt-3 text-sm text-gray-600 bg-blue-50 p-2 rounded">
-          📊 Showing data for {new Date(selectedDate).toLocaleDateString('en-US', { 
-            weekday: 'long', 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
+          📊 Showing data for{" "}
+          {new Date(selectedDate).toLocaleDateString("en-US", {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
           })}
         </div>
       )}
-      
+
       {!selectedDate && (
         <div className="mt-3 text-sm text-gray-600 bg-gray-50 p-2 rounded">
           📈 Showing all data from the last 30 days
@@ -175,7 +96,15 @@ const StaticDateFilter = ({ selectedDate, onDateChange, onReset }) => {
 };
 
 // Stat card component
-const StatCard = ({ icon: Icon, title, value, subtitle, color, trend, dateInfo }) => (
+const StatCard = ({
+  icon: Icon,
+  title,
+  value,
+  subtitle,
+  color,
+  trend,
+  dateInfo,
+}) => (
   <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 hover:shadow-xl transition-shadow duration-300">
     <div className="flex items-center justify-between">
       <div className="flex items-center space-x-3">
@@ -186,11 +115,17 @@ const StatCard = ({ icon: Icon, title, value, subtitle, color, trend, dateInfo }
           <h3 className="text-sm font-medium text-gray-600">{title}</h3>
           <p className="text-2xl font-bold text-gray-900">{value}</p>
           {subtitle && <p className="text-xs text-gray-500">{subtitle}</p>}
-          {dateInfo && <p className="text-xs text-blue-600 font-medium">{dateInfo}</p>}
+          {dateInfo && (
+            <p className="text-xs text-blue-600 font-medium">{dateInfo}</p>
+          )}
         </div>
       </div>
       {trend && (
-        <div className={`flex items-center space-x-1 ${trend > 0 ? 'text-green-600' : 'text-red-600'}`}>
+        <div
+          className={`flex items-center space-x-1 ${
+            trend > 0 ? "text-green-600" : "text-red-600"
+          }`}
+        >
           {trend > 0 ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
           <span className="text-sm font-medium">{Math.abs(trend)}%</span>
         </div>
@@ -201,8 +136,9 @@ const StatCard = ({ icon: Icon, title, value, subtitle, color, trend, dateInfo }
 
 // Upload card component
 const UploadCard = ({ icon: Icon, title, data, color, dateInfo }) => {
-  const approvalRate = data.total > 0 ? ((data.approved / data.total) * 100).toFixed(1) : 0;
-  
+  const approvalRate =
+    data.total > 0 ? ((data.approved / data.total) * 100).toFixed(1) : 0;
+
   return (
     <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
       <div className="flex items-center space-x-3 mb-4">
@@ -211,13 +147,13 @@ const UploadCard = ({ icon: Icon, title, data, color, dateInfo }) => {
         </div>
         <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
       </div>
-      
+
       <div className="space-y-3">
         <div className="flex justify-between items-center">
           <span className="text-sm text-gray-600">Total Uploads</span>
           <span className="font-semibold text-gray-900">{data.total}</span>
         </div>
-        
+
         <div className="flex justify-between items-center">
           <span className="text-sm text-green-600 flex items-center">
             <CheckCircle size={14} className="mr-1" />
@@ -225,7 +161,7 @@ const UploadCard = ({ icon: Icon, title, data, color, dateInfo }) => {
           </span>
           <span className="font-semibold text-green-600">{data.approved}</span>
         </div>
-        
+
         <div className="flex justify-between items-center">
           <span className="text-sm text-yellow-600 flex items-center">
             <Clock size={14} className="mr-1" />
@@ -233,16 +169,24 @@ const UploadCard = ({ icon: Icon, title, data, color, dateInfo }) => {
           </span>
           <span className="font-semibold text-yellow-600">{data.pending}</span>
         </div>
-        
+
         <div className="pt-2 border-t border-gray-200">
           <div className="flex justify-between items-center">
             <span className="text-sm text-gray-600">Approval Rate</span>
-            <span className={`font-semibold ${approvalRate >= 90 ? 'text-green-600' : approvalRate >= 80 ? 'text-yellow-600' : 'text-red-600'}`}>
+            <span
+              className={`font-semibold ${
+                approvalRate >= 90
+                  ? "text-green-600"
+                  : approvalRate >= 80
+                  ? "text-yellow-600"
+                  : "text-red-600"
+              }`}
+            >
               {approvalRate}%
             </span>
           </div>
         </div>
-        
+
         {dateInfo && (
           <div className="pt-2 border-t border-gray-200">
             <p className="text-xs text-blue-600">{dateInfo}</p>
@@ -255,12 +199,12 @@ const UploadCard = ({ icon: Icon, title, data, color, dateInfo }) => {
 
 // Daily uploads by category chart with proper naming
 const CategoryUploadsBarChart = ({ data, selectedDate }) => {
-  const filteredData = selectedDate 
-    ? data.filter(item => item.date === selectedDate)
+  const filteredData = selectedDate
+    ? data.filter((item) => item.date === selectedDate)
     : data;
 
   const categoryData = {};
-  filteredData.forEach(item => {
+  filteredData.forEach((item) => {
     if (!categoryData[item.category]) {
       categoryData[item.category] = { total: 0, approved: 0, pending: 0 };
     }
@@ -269,38 +213,49 @@ const CategoryUploadsBarChart = ({ data, selectedDate }) => {
   });
 
   const categories = Object.keys(categoryData);
-  const colors = ['#2D4BFF', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FECA57'];
+  const colors = [
+    "#2D4BFF",
+    "#FF6B6B",
+    "#4ECDC4",
+    "#45B7D1",
+    "#96CEB4",
+    "#FECA57",
+  ];
 
-  const plotData = [{
-    x: categories.map(cat => cat.charAt(0).toUpperCase() + cat.slice(1)),
-    y: categories.map(cat => categoryData[cat].total),
-    type: 'bar',
-    name: 'Total Uploads',
-    marker: { color: colors },
-    hovertemplate: '<b>%{x}</b><br>Total Uploads: %{y}<br><extra></extra>',
-  }];
+  const plotData = [
+    {
+      x: categories.map((cat) => cat.charAt(0).toUpperCase() + cat.slice(1)),
+      y: categories.map((cat) => categoryData[cat].total),
+      type: "bar",
+      name: "Total Uploads",
+      marker: { color: colors },
+      hovertemplate: "<b>%{x}</b><br>Total Uploads: %{y}<br><extra></extra>",
+    },
+  ];
 
-  const chartTitle = selectedDate 
-    ? `Daily Upload Distribution by Category (${new Date(selectedDate).toLocaleDateString()})`
-    : 'Upload Distribution by Category (Last 30 Days)';
+  const chartTitle = selectedDate
+    ? `Daily Upload Distribution by Category (${new Date(
+        selectedDate
+      ).toLocaleDateString()})`
+    : "Upload Distribution by Category (Last 30 Days)";
 
   const layout = {
     title: {
       text: chartTitle,
-      font: { size: 16, family: 'Arial, sans-serif' }
+      font: { size: 16, family: "Arial, sans-serif" },
     },
-    xaxis: { 
-      title: 'Upload Categories',
-      titlefont: { size: 14 }
+    xaxis: {
+      title: "Upload Categories",
+      titlefont: { size: 14 },
     },
-    yaxis: { 
-      title: 'Number of Uploads',
-      titlefont: { size: 14 }
+    yaxis: {
+      title: "Number of Uploads",
+      titlefont: { size: 14 },
     },
     margin: { l: 60, r: 20, t: 80, b: 80 },
     showlegend: false,
-    plot_bgcolor: 'rgba(0,0,0,0)',
-    paper_bgcolor: 'rgba(0,0,0,0)'
+    plot_bgcolor: "rgba(0,0,0,0)",
+    paper_bgcolor: "rgba(0,0,0,0)",
   };
 
   return (
@@ -309,80 +264,7 @@ const CategoryUploadsBarChart = ({ data, selectedDate }) => {
         data={plotData}
         layout={layout}
         config={{ responsive: true, displayModeBar: false }}
-        style={{ width: '100%', height: '400px' }}
-      />
-    </div>
-  );
-};
-
-// Faculty performance for specific date with proper naming
-const FacultyPerformanceBarChart = ({ data, selectedDate }) => {
-  const filteredData = selectedDate 
-    ? data.filter(item => item.date === selectedDate)
-    : data;
-
-  const facultyStats = {};
-  filteredData.forEach(item => {
-    if (!facultyStats[item.faculty]) {
-      facultyStats[item.faculty] = { total: 0, approved: 0, pending: 0 };
-    }
-    facultyStats[item.faculty].total++;
-    facultyStats[item.faculty][item.status]++;
-  });
-
-  const facultyNames = Object.keys(facultyStats);
-  const reviewCounts = facultyNames.map(name => facultyStats[name].total);
-
-  if (facultyNames.length === 0) {
-    return (
-      <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-        <div className="text-center py-8">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Faculty Review Activity</h3>
-          <p className="text-gray-500">No faculty data available for {selectedDate ? new Date(selectedDate).toLocaleDateString() : 'the selected period'}</p>
-        </div>
-      </div>
-    );
-  }
-
-  const plotData = [{
-    x: facultyNames,
-    y: reviewCounts,
-    type: 'bar',
-    name: 'Reviews Conducted',
-    marker: { color: '#2D4BFF' },
-    hovertemplate: '<b>%{x}</b><br>Total Reviews: %{y}<br><extra></extra>',
-  }];
-
-  const chartTitle = selectedDate 
-    ? `Faculty Review Activity (${new Date(selectedDate).toLocaleDateString()})`
-    : 'Faculty Review Activity Overview (Last 30 Days)';
-
-  const layout = {
-    title: {
-      text: chartTitle,
-      font: { size: 16, family: 'Arial, sans-serif' }
-    },
-    xaxis: { 
-      title: 'Faculty Members',
-      titlefont: { size: 14 }
-    },
-    yaxis: { 
-      title: 'Number of Reviews',
-      titlefont: { size: 14 }
-    },
-    margin: { l: 60, r: 20, t: 80, b: 100 },
-    showlegend: false,
-    plot_bgcolor: 'rgba(0,0,0,0)',
-    paper_bgcolor: 'rgba(0,0,0,0)'
-  };
-
-  return (
-    <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-      <Plot
-        data={plotData}
-        layout={layout}
-        config={{ responsive: true, displayModeBar: false }}
-        style={{ width: '100%', height: '400px' }}
+        style={{ width: "100%", height: "400px" }}
       />
     </div>
   );
@@ -390,42 +272,47 @@ const FacultyPerformanceBarChart = ({ data, selectedDate }) => {
 
 // Approval status distribution with proper naming
 const ApprovalStatusPieChart = ({ data, selectedDate }) => {
-  const filteredData = selectedDate 
-    ? data.filter(item => item.date === selectedDate)
+  const filteredData = selectedDate
+    ? data.filter((item) => item.date === selectedDate)
     : data;
 
   const statusCounts = { approved: 0, pending: 0 };
-  filteredData.forEach(item => {
+  filteredData.forEach((item) => {
     statusCounts[item.status]++;
   });
 
-  const plotData = [{
-    values: [statusCounts.approved, statusCounts.pending],
-    labels: ['Approved Submissions', 'Pending Submissions'],
-    type: 'pie',
-    name: 'Approval Status',
-    marker: { colors: ['#10b981', '#f59e0b'] },
-    hovertemplate: '<b>%{label}</b><br>Count: %{value}<br>Percentage: %{percent}<extra></extra>'
-  }];
+  const plotData = [
+    {
+      values: [statusCounts.approved, statusCounts.pending],
+      labels: ["Approved Submissions", "Pending Submissions"],
+      type: "pie",
+      name: "Approval Status",
+      marker: { colors: ["#10b981", "#f59e0b"] },
+      hovertemplate:
+        "<b>%{label}</b><br>Count: %{value}<br>Percentage: %{percent}<extra></extra>",
+    },
+  ];
 
-  const chartTitle = selectedDate 
-    ? `Submission Approval Status (${new Date(selectedDate).toLocaleDateString()})`
-    : 'Overall Submission Approval Status (Last 30 Days)';
+  const chartTitle = selectedDate
+    ? `Submission Approval Status (${new Date(
+        selectedDate
+      ).toLocaleDateString()})`
+    : "Overall Submission Approval Status (Last 30 Days)";
 
   const layout = {
     title: {
       text: chartTitle,
-      font: { size: 16, family: 'Arial, sans-serif' }
+      font: { size: 16, family: "Arial, sans-serif" },
     },
     margin: { l: 20, r: 20, t: 80, b: 20 },
     showlegend: true,
-    legend: { 
-      x: 0, 
+    legend: {
+      x: 0,
       y: 0,
-      font: { size: 12 }
+      font: { size: 12 },
     },
-    plot_bgcolor: 'rgba(0,0,0,0)',
-    paper_bgcolor: 'rgba(0,0,0,0)'
+    plot_bgcolor: "rgba(0,0,0,0)",
+    paper_bgcolor: "rgba(0,0,0,0)",
   };
 
   return (
@@ -434,90 +321,7 @@ const ApprovalStatusPieChart = ({ data, selectedDate }) => {
         data={plotData}
         layout={layout}
         config={{ responsive: true, displayModeBar: false }}
-        style={{ width: '100%', height: '350px' }}
-      />
-    </div>
-  );
-};
-
-// Batch analytics chart with improved naming
-const BatchAnalyticsLineChart = ({ data }) => {
-  const [selectedBatches, setSelectedBatches] = useState(['2020', '2021', '2022', '2023', '2024']);
-  
-  const uniqueBatches = [...new Set(data.map(d => d.batch))].sort();
-  const colors = ['#2D4BFF', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FECA57'];
-  
-  const plotData = selectedBatches.map((batch, index) => {
-    const batchData = data.filter(d => d.batch === batch);
-    return {
-      x: batchData.map(d => `Semester ${d.semester}`),
-      y: batchData.map(d => d.avgPoints),
-      type: 'scatter',
-      mode: 'lines+markers',
-      name: `Batch ${batch}`,
-      line: { color: colors[index % colors.length], width: 3 },
-      marker: { size: 8 }
-    };
-  });
-
-  const layout = {
-    title: {
-      text: 'Student Achievement Points - Batch-wise Semester Progression',
-      font: { size: 16, family: 'Arial, sans-serif' }
-    },
-    xaxis: { 
-      title: 'Academic Semester',
-      titlefont: { size: 14 }
-    },
-    yaxis: { 
-      title: 'Average Achievement Points',
-      titlefont: { size: 14 }
-    },
-    margin: { l: 60, r: 20, t: 80, b: 80 },
-    showlegend: true,
-    legend: { 
-      x: 0, 
-      y: 1, 
-      orientation: 'h',
-      font: { size: 12 }
-    },
-    plot_bgcolor: 'rgba(0,0,0,0)',
-    paper_bgcolor: 'rgba(0,0,0,0)',
-    hovermode: 'x unified'
-  };
-
-  return (
-    <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-      <div className="mb-4">
-        <h3 className="text-lg font-semibold text-gray-900 mb-3">Academic Performance Analytics</h3>
-        <div className="flex flex-wrap gap-2">
-          {uniqueBatches.map(batch => (
-            <button
-              key={batch}
-              onClick={() => {
-                setSelectedBatches(prev => 
-                  prev.includes(batch) 
-                    ? prev.filter(b => b !== batch)
-                    : [...prev, batch]
-                );
-              }}
-              className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-                selectedBatches.includes(batch)
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              Batch {batch}
-            </button>
-          ))}
-        </div>
-      </div>
-      
-      <Plot
-        data={plotData}
-        layout={layout}
-        config={{ responsive: true, displayModeBar: false }}
-        style={{ width: '100%', height: '400px' }}
+        style={{ width: "100%", height: "350px" }}
       />
     </div>
   );
@@ -525,50 +329,140 @@ const BatchAnalyticsLineChart = ({ data }) => {
 
 export default function AdminDashboard() {
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedDate, setSelectedDate] = useState(() => {
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    return yesterday.toISOString().split('T')[0];
-  });
+  const [uploadData, setUploadData] = useState([]);
+  const [userStats, setUserStats] = useState(defaultUserStats);
+  const [facultyPerformance, setFacultyPerformance] = useState([]);
+  const [error, setError] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(""); // Empty = show all data
 
+  // Fetch data from backend
   useEffect(() => {
-    // Simulate loading
-    const timer = setTimeout(() => setIsLoading(false), 1000);
-    return () => clearTimeout(timer);
+    const fetchDashboardData = async () => {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        // Fetch upload statistics - get all data (365 days to cover everything)
+        const statsResponse = await fetch(
+          `${API_URL}api/admin/dashboard/stats?days=3650`,
+          {
+            method: "GET",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+
+        if (statsResponse.ok) {
+          const statsData = await statsResponse.json();
+          console.log("Upload stats API response:", statsData);
+          // Accept empty array as valid data
+          if (statsData.data && Array.isArray(statsData.data)) {
+            setUploadData(statsData.data);
+          } else {
+            // API returned null or unexpected format - treat as empty
+            setUploadData([]);
+          }
+        } else {
+          console.warn("Failed to fetch stats, status:", statsResponse.status);
+          setError("Failed to fetch upload data from server.");
+          setUploadData([]);
+        }
+
+        // Fetch user statistics
+        const userStatsResponse = await fetch(
+          `${API_URL}api/admin/dashboard/user-stats`,
+          {
+            method: "GET",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+
+        if (userStatsResponse.ok) {
+          const userData = await userStatsResponse.json();
+          console.log("User stats API response:", userData);
+          if (userData.data) {
+            setUserStats(userData.data);
+          }
+        }
+
+        // Fetch faculty performance data
+        const facultyResponse = await fetch(
+          `${API_URL}api/admin/dashboard/faculty-performance`,
+          {
+            method: "GET",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+
+        if (facultyResponse.ok) {
+          const facultyData = await facultyResponse.json();
+          console.log("Faculty performance API response:", facultyData);
+          if (facultyData.data && Array.isArray(facultyData.data)) {
+            setFacultyPerformance(facultyData.data);
+          } else {
+            setFacultyPerformance([]);
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching dashboard data:", err);
+        setError("Failed to load data from server.");
+        setUploadData([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDashboardData();
   }, []);
 
   // Filter data based on selected date
   const filteredData = useMemo(() => {
-    if (!selectedDate) return dummyUploadData;
-    return dummyUploadData.filter(item => item.date === selectedDate);
-  }, [selectedDate]);
+    if (!selectedDate) return uploadData;
+    return uploadData.filter((item) => item.date === selectedDate);
+  }, [selectedDate, uploadData]);
 
   // Calculate stats from filtered data
   const dateStats = useMemo(() => {
     const categoryData = {};
-    filteredData.forEach(item => {
+    filteredData.forEach((item) => {
       if (!categoryData[item.category]) {
-        categoryData[item.category] = { total: 0, approved: 0, pending: 0, rejected: 0 };
+        categoryData[item.category] = {
+          total: 0,
+          approved: 0,
+          pending: 0,
+          rejected: 0,
+        };
       }
       categoryData[item.category].total++;
-      categoryData[item.category][item.status]++;
+      if (categoryData[item.category][item.status] !== undefined) {
+        categoryData[item.category][item.status]++;
+      }
     });
 
     const totalUploads = filteredData.length;
-    const totalApproved = filteredData.filter(item => item.status === 'approved').length;
-    const totalPending = filteredData.filter(item => item.status === 'pending').length;
+    const totalApproved = filteredData.filter(
+      (item) => item.status === "approved"
+    ).length;
+    const totalPending = filteredData.filter(
+      (item) => item.status === "pending"
+    ).length;
 
     return {
       categoryData,
       totalUploads,
       totalApproved,
       totalPending,
-      overallApprovalRate: totalUploads > 0 ? ((totalApproved / totalUploads) * 100).toFixed(1) : 0
+      overallApprovalRate:
+        totalUploads > 0
+          ? ((totalApproved / totalUploads) * 100).toFixed(1)
+          : 0,
     };
   }, [filteredData]);
 
   const getDateInfo = () => {
-    if (!selectedDate) return 'All time data';
+    if (!selectedDate) return "All time data";
     return `Data for ${new Date(selectedDate).toLocaleDateString()}`;
   };
 
@@ -590,36 +484,17 @@ export default function AdminDashboard() {
         <StaticDateFilter
           selectedDate={selectedDate}
           onDateChange={setSelectedDate}
-          onReset={() => setSelectedDate('')}
+          onReset={() => setSelectedDate("")}
         />
 
+        {/* Error message if any */}
+        {error && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-yellow-800">
+            ⚠️ {error}
+          </div>
+        )}
+
         {/* User Statistics (Overall - not date filtered) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <StatCard
-            icon={Users}
-            title="Total Users"
-            value={dummyData.users.total.toLocaleString()}
-            subtitle="Registered students"
-            color="bg-blue-500"
-            trend={5.2}
-          />
-          <StatCard
-            icon={UserCheck}
-            title="Active Users"
-            value={dummyData.users.active.toLocaleString()}
-            subtitle={`${((dummyData.users.active / dummyData.users.total) * 100).toFixed(1)}% active rate`}
-            color="bg-green-500"
-            trend={2.1}
-          />
-          <StatCard
-            icon={UserX}
-            title="Inactive Users"
-            value={dummyData.users.inactive.toLocaleString()}
-            subtitle="Need engagement"
-            color="bg-red-500"
-            trend={-1.5}
-          />
-        </div>
 
         {/* Upload Overview (Date filtered) */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -647,82 +522,91 @@ export default function AdminDashboard() {
             color="bg-yellow-500"
             dateInfo={getDateInfo()}
           />
-          <StatCard
-            icon={AlertTriangle}
-            title="Categories Active"
-            value={Object.keys(dateStats.categoryData).length}
-            subtitle="With uploads"
-            color="bg-red-500"
-            dateInfo={getDateInfo()}
-          />
         </div>
 
         {/* Upload Categories (Date filtered) */}
         <div>
           <h2 className="text-2xl font-bold text-gray-900 mb-6">
-            Upload Analytics by Category {selectedDate && `- ${new Date(selectedDate).toLocaleDateString()}`}
+            Upload Analytics by Category{" "}
+            {selectedDate && `- ${new Date(selectedDate).toLocaleDateString()}`}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <UploadCard
               icon={Briefcase}
               title="Projects"
-              data={dateStats.categoryData.project || { total: 0, approved: 0, pending: 0, rejected: 0 }}
+              data={
+                dateStats.categoryData.project || {
+                  total: 0,
+                  approved: 0,
+                  pending: 0,
+                  rejected: 0,
+                }
+              }
               color="bg-blue-500"
               dateInfo={getDateInfo()}
             />
             <UploadCard
               icon={Award}
               title="Patents"
-              data={dateStats.categoryData.patent || { total: 0, approved: 0, pending: 0, rejected: 0 }}
+              data={
+                dateStats.categoryData.patent || {
+                  total: 0,
+                  approved: 0,
+                  pending: 0,
+                  rejected: 0,
+                }
+              }
               color="bg-purple-500"
-              dateInfo={getDateInfo()}
-            />
-            <UploadCard
-              icon={BookOpen}
-              title="Seminars/Workshops"
-              data={dateStats.categoryData.seminar || { total: 0, approved: 0, pending: 0, rejected: 0 }}
-              color="bg-green-500"
               dateInfo={getDateInfo()}
             />
             <UploadCard
               icon={Briefcase}
               title="Internships"
-              data={dateStats.categoryData.internship || { total: 0, approved: 0, pending: 0, rejected: 0 }}
+              data={
+                dateStats.categoryData.internship || {
+                  total: 0,
+                  approved: 0,
+                  pending: 0,
+                  rejected: 0,
+                }
+              }
               color="bg-orange-500"
               dateInfo={getDateInfo()}
             />
             <UploadCard
               icon={FileBarChart}
               title="Paper Presentations"
-              data={dateStats.categoryData.paper || { total: 0, approved: 0, pending: 0, rejected: 0 }}
+              data={
+                dateStats.categoryData.paper || {
+                  total: 0,
+                  approved: 0,
+                  pending: 0,
+                  rejected: 0,
+                }
+              }
               color="bg-red-500"
               dateInfo={getDateInfo()}
             />
             <UploadCard
               icon={Medal}
               title="Certificates"
-              data={dateStats.categoryData.certificate || { total: 0, approved: 0, pending: 0, rejected: 0 }}
+              data={
+                dateStats.categoryData.certificate || {
+                  total: 0,
+                  approved: 0,
+                  pending: 0,
+                  rejected: 0,
+                }
+              }
               color="bg-yellow-500"
               dateInfo={getDateInfo()}
             />
           </div>
         </div>
-
-        {/* Charts Section (Date filtered) */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <CategoryUploadsBarChart data={dummyUploadData} selectedDate={selectedDate} />
-          <ApprovalStatusPieChart data={dummyUploadData} selectedDate={selectedDate} />
-        </div>
-
-        {/* Faculty Performance Chart (Date filtered) */}
-        <FacultyPerformanceBarChart data={dummyUploadData} selectedDate={selectedDate} />
-
-        {/* Batch Analytics (Not date filtered - historical data) */}
-        <BatchAnalyticsLineChart data={dummyData.batchData} />
-
-        {/* Faculty Performance Table (Overall stats) */}
         <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-          <h3 className="text-xl font-semibold text-gray-900 mb-4">Overall Faculty Performance Summary</h3>
+          <h3 className="text-xl font-semibold text-gray-900 mb-4">
+            Overall Faculty Performance Summary
+          </h3>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
@@ -748,41 +632,66 @@ export default function AdminDashboard() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {dummyData.facultyApprovals.map((faculty, index) => (
-                  <tr key={index} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {faculty.name}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {faculty.total}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600">
-                      {faculty.approved}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-yellow-600">
-                      {faculty.pending}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <span className={`${
-                        faculty.rejectionRate > 10 ? 'text-red-600' : 
-                        faculty.rejectionRate > 7 ? 'text-yellow-600' : 
-                        'text-green-600'
-                      } font-medium`}>
-                        {faculty.rejectionRate}%
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        faculty.rejectionRate > 10 ? 'bg-red-100 text-red-800' :
-                        faculty.rejectionRate > 7 ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-green-100 text-green-800'
-                      }`}>
-                        {faculty.rejectionRate > 10 ? 'Needs Attention' :
-                         faculty.rejectionRate > 7 ? 'Monitor' : 'Good'}
-                      </span>
+                {facultyPerformance.length > 0 ? (
+                  facultyPerformance.map((faculty, index) => (
+                    <tr
+                      key={faculty.faculty_id || index}
+                      className="hover:bg-gray-50"
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {faculty.name}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {faculty.total}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600">
+                        {faculty.approved}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-yellow-600">
+                        {faculty.pending}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <span
+                          className={`${
+                            faculty.rejectionRate > 10
+                              ? "text-red-600"
+                              : faculty.rejectionRate > 7
+                              ? "text-yellow-600"
+                              : "text-green-600"
+                          } font-medium`}
+                        >
+                          {faculty.rejectionRate}%
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span
+                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                            faculty.rejectionRate > 10
+                              ? "bg-red-100 text-red-800"
+                              : faculty.rejectionRate > 7
+                              ? "bg-yellow-100 text-yellow-800"
+                              : "bg-green-100 text-green-800"
+                          }`}
+                        >
+                          {faculty.rejectionRate > 10
+                            ? "Needs Attention"
+                            : faculty.rejectionRate > 7
+                            ? "Monitor"
+                            : "Good"}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan="6"
+                      className="px-6 py-8 text-center text-gray-500"
+                    >
+                      No faculty data available
                     </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>

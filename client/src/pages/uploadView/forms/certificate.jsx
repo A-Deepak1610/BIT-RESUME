@@ -753,7 +753,7 @@ const CertificateUpload = ({ onBack, initialData = {} }) => {
 
 
         let apiEndpoint = '';
-        const baseApiUrl = 'http://localhost:6001/api/certificates';
+        const baseApiUrl = `${import.meta.env.VITE_API_URL}api/certificates`;
         let httpMethod = initialData.id ? 'put' : 'post';
 
 

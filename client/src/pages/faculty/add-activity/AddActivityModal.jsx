@@ -370,7 +370,7 @@ export default function AddActivityModal({
       }
     });
     console.log(submissionData.get("roundsData"));
-    const API_URL = "http://localhost:6001/api/addevents/create";
+    const API_URL = `${import.meta.env.VITE_API_URL}api/addevents/create`;
     try {
       const response = await fetch(API_URL, {
         method: "POST",
