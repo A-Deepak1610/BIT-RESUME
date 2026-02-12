@@ -45,6 +45,7 @@ import OnlineCourseForm from "../pages/faculty/faculty-achievements/forms/Online
 import PaperForm from "../pages/faculty/faculty-achievements/forms/PaperForm";
 import ResourcePersonForm from "../pages/faculty/faculty-achievements/forms/ResourcePersonForm";
 import FacultyMetrics from "../pages/Admin/FacultyMetrics/FacultyMetrics";
+import OutsideWorldInteraction from "../pages/faculty/outside-world-interaction/OutsideWorldInteraction";
 
 export default function Applayout() {
   const { fetchUser, user, loading } = useAuth();
@@ -116,7 +117,6 @@ export default function Applayout() {
                 path="/faculty/uploadview"
                 element={<FacultyAchievements />}
               />
-
               {/* Specific routes for each achievement form */}
               <Route
                 path="/faculty/achievements/newsletter"
@@ -165,6 +165,10 @@ export default function Applayout() {
               <Route
                 path="/faculty/achievements/resource-person"
                 element={<ResourcePersonForm />}
+              />
+              <Route
+                path="/faculty/outside-world-interaction"
+                element={<OutsideWorldInteraction />}
               />
             </Route>
             <Route path="/student-resume" element={<StudentResume />} />
