@@ -1,11 +1,11 @@
-import React, {useState, useRef, useMemo} from "react";
+import React, { useState, useRef, useMemo } from "react";
 import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
 import StarBorderRoundedIcon from "@mui/icons-material/StarBorderRounded";
 import KeyboardArrowRightRoundedIcon from "@mui/icons-material/KeyboardArrowRightRounded";
 import FindInPageOutlinedIcon from "@mui/icons-material/FindInPageOutlined";
 import ArticleOutlinedIcon from "@mui/icons-material/ArticleOutlined";
 import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
-import {useNavigate, useLocation} from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import useAuth from "../../store/UseAuth";
 import GroupWorkOutlinedIcon from "@mui/icons-material/GroupWorkOutlined";
 import ApprovalOutlinedIcon from "@mui/icons-material/ApprovalOutlined";
@@ -15,6 +15,7 @@ import BarChartOutlinedIcon from "@mui/icons-material/BarChartOutlined";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import TaskAltOutlinedIcon from "@mui/icons-material/TaskAltOutlined";
+import PublicOutlinedIcon from "@mui/icons-material/PublicOutlined";
 export default function SideBar() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -26,7 +27,7 @@ export default function SideBar() {
   const studentRequestsRef = useRef(null);
   const activityTrackerRef = useRef(null);
 
-  const {user, logout} = useAuth();
+  const { user, logout } = useAuth();
   const activeItem = useMemo(() => {
     const path = location.pathname;
     if (
@@ -84,6 +85,8 @@ export default function SideBar() {
     if (path == "/faculty/achievements/papers") return "faculty/uploadview";
     if (path == "/faculty/achievements/resource-person")
       return "faculty/uploadview";
+    if (path == "/faculty/outside-world-interaction")
+      return "outsideWorldInteraction";
     return "";
   }, [location.pathname]);
 
@@ -136,7 +139,18 @@ export default function SideBar() {
                 <StarBorderRoundedIcon fontSize="small" />
                 Faculty Achievements
               </li>
-              <li>
+              <li
+                className={`flex items-center gap-3 cursor-pointer p-2 rounded-md transition-all duration-300 ease-in-out ${
+                  activeItem === "outsideWorldInteraction"
+                    ? "text-white bg-primary w-55"
+                    : "hover:bg-gray-100"
+                }`}
+                onClick={() => navigate("/faculty/outside-world-interaction")}
+              >
+                <PublicOutlinedIcon fontSize="small" />
+                Outside World Interaction
+              </li>
+              {/* <li>
                 <div
                   className={`relative flex items-center gap-1 cursor-pointer p-2 rounded-md text-[14px] transition-all duration-300 ease-in-out ${
                     expandedMenus.studentRequests
@@ -207,22 +221,6 @@ export default function SideBar() {
                   </li>
                 </ul>
               </li>
-
-              {/* <li
-                    className={`flex items-center gap-3 cursor-pointer p-2 mt-3 rounded-md transition-all duration-300 ease-in-out ${
-                  activeItem === "manageActivities"
-                    ? "text-white bg-primary w-55"
-                    : "hover:bg-gray-100"
-                }`}
-                    onClick={() => {
-                      handleItemClick("manageActivities");
-                      navigate("/faculty-manageActivity");
-                    }}
-                  >
-                    <TuneOutlinedIcon fontSize="small" className="mr-1" />{" "}
-                    Manage Activities
-                  </li> */}
-
               <li
                 className={`flex items-center gap-3 cursor-pointer p-2 mt-3 rounded-md transition-all duration-300 ease-in-out ${
                   activeItem === "studentPerformance"
@@ -248,7 +246,7 @@ export default function SideBar() {
                 }}
               >
                 <ArticleOutlinedIcon fontSize="small" /> Resume Drafts
-              </li>
+              </li> */}
             </ul>
           </div>
           <div className="">
