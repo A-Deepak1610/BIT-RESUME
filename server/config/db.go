@@ -1,30 +1,62 @@
 package config
 
+
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"database/sql"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
+	"github.com/go-sql-driver/mysql"
 )
+
 var DB *sql.DB
-func InitDB () {
+
+func InitDB() {
 	er := godotenv.Load()
 	if er != nil {
-	log.Fatal("Error loading .env file")
+		log.Fatal("Error loading .env file")
 	}
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s",
-	os.Getenv("DB_USER"),
-	os.Getenv("DB_PASSWORD"),
-	os.Getenv("DB_HOST"),
-	os.Getenv("DB_PORT"),
-	os.Getenv("DB_NAME"),)
 
-	var err error
-	DB, err = sql.Open("mysql",dsn)
+	dbUser := os.Getenv("DB_USER")
+	dbPassword := os.Getenv("DB_PASSWORD")
+	dbHost := os.Getenv("DB_HOST")
+	dbPort := os.Getenv("DB_PORT")
+	dbName := os.Getenv("DB_NAME")
+	dbSSLCA := os.Getenv("DB_SSL_CA")
 
-	if err != nil{
+	rootCertPool := x509.NewCertPool()
+	pem, err := ioutil.ReadFile(dbSSLCA)
+	if err != nil {
+		log.Fatalf("Failed to read CA cert file: %v", err)
+	}
+	if ok := rootCertPool.AppendCertsFromPEM(pem); !ok {
+		log.Fatal("Failed to append CA cert")
+	}
+
+	tlsConfig := &tls.Config{
+		RootCAs: rootCertPool,
+	}
+
+	err = mysql.RegisterTLSConfig("custom", tlsConfig)
+	if err != nil {
+		log.Fatalf("Failed to register TLS config: %v", err)
+	}
+
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?tls=custom",
+		dbUser,
+		dbPassword,
+		dbHost,
+		dbPort,
+		dbName,
+	)
+
+	DB, err = sql.Open("mysql", dsn)
+	if err != nil {
 		fmt.Print("Error: ", err)
 		panic("Cannot connect to the database")
 	}
