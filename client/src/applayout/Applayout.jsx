@@ -10,7 +10,7 @@ import Project from "../pages/uploadView/forms/project";
 import PaperPresentation from "../pages/uploadView/forms/paperPresentation";
 import Internship from "../pages/uploadView/forms/internship";
 import SeminarOrWorkshop from "../pages/uploadView/forms/seminarOrWorkshop";
-import useAuth from "../store/UseAuth";
+// import useAuth from "../store/UseAuth"; // Removed duplicate import
 import RoleRedirect from "../components/auth/RoleRedirect";
 import ProtectedRoute from "../components/auth/ProtectedRoute";
 import LoadingBar from "../components/loading/Loading";
@@ -45,6 +45,11 @@ import OnlineCourseForm from "../pages/faculty/faculty-achievements/forms/Online
 import PaperForm from "../pages/faculty/faculty-achievements/forms/PaperForm";
 import ResourcePersonForm from "../pages/faculty/faculty-achievements/forms/ResourcePersonForm";
 import FacultyMetrics from "../pages/Admin/FacultyMetrics/FacultyMetrics";
+import ConsultancyPrincipal from "../pages/Consultancy/ConsultancyPrincipal";
+import ConsultancyIQAC from "../pages/Consultancy/ConsultancyIQAC";
+import ConsultancyHod from "../pages/Consultancy/ConsultancyHod";
+import ConsultancyFaculty from "../pages/Consultancy/ConsultancyFaculty";
+import useAuth from "../store/UseAuth";
 import OutsideWorldInteraction from "../pages/faculty/outside-world-interaction/OutsideWorldInteraction";
 import MouForm from "../pages/faculty/outside-world-interaction/forms/MouForm";
 import IRP_VisitForm from "../pages/faculty/outside-world-interaction/forms/IRP_VisitForm";
@@ -208,6 +213,11 @@ export default function Applayout() {
             </Route>
             <Route path="/student-resume" element={<StudentResume />} />
           </Route>
+          {/* Routes for Principal, IQAC, Hod, Faculty */}
+          <Route element={<DashboardLayout />}>
+            <Route path="/dashboard" element={<Dashboard />} />              
+            <Route path="/consultancy" element={<ConsultancyRoleRouter />} />
+          </Route>
           <Route element={<ProtectedRoute allowedRoles={["Admin"]} />}>
             <Route element={<DashboardLayout />}>
               <Route path="/admin-addactivity" element={<AddActivity />} />
@@ -229,7 +239,6 @@ export default function Applayout() {
             </Route>
             <Route path="/admin-resume" element={<Resume />} />
           </Route>
-          {/* Both faculty and Student */}
           <Route path="/downloadResume" element={<DownloadResume />} />
           <Route path="/resume" element={<Resume />} />
           <Route path="*" element={<PageNotFound />} />
@@ -237,4 +246,25 @@ export default function Applayout() {
       ) : null}
     </>
   );
+}
+
+// Role-based router for consultancy
+function ConsultancyRoleRouter() {
+  const { user } = useAuth();
+  const role = user?.role;
+  
+  if (!user) return <div className="p-8"><h1>Loading...</h1></div>;
+  
+  switch (role) {
+    case "Principal":
+      return <ConsultancyPrincipal />;
+    case "IQAC":
+      return <ConsultancyIQAC />;
+    case "Hod":
+      return <ConsultancyHod />;
+    case "faculty":
+      return <ConsultancyFaculty />;
+    default:
+      return <ConsultancyFaculty />;
+  }
 }
