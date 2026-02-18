@@ -54,9 +54,16 @@ import OutsideWorldInteraction from "../pages/faculty/outside-world-interaction/
 import Industryadvisor from "../pages/faculty/outside-world-interaction/forms/industryadvisor";
 import Laboratorybyindustry from "../pages/faculty/outside-world-interaction/forms/laboratorybyindustry";
 import Studentsindustrialvisit from "../pages/faculty/outside-world-interaction/forms/studentsindustrialvisit";
-import Technicalsocieties from "../pages/faculty/outside-world-interaction/forms/technicalsocieties"
-import Trainingtoindustry from "../pages/faculty/outside-world-interaction/forms/trainingtoindustry"
+import Technicalsocieties from "../pages/faculty/outside-world-interaction/forms/technicalsocieties";
+import Trainingtoindustry from "../pages/faculty/outside-world-interaction/forms/trainingtoindustry";
 import Professionalmembership from "../pages/faculty/outside-world-interaction/forms/professionalmembership";
+import MouForm from "../pages/faculty/outside-world-interaction/forms/MouForm";
+import IRPVisitForm from "../pages/faculty/outside-world-interaction/forms/IRP_VisitForm";
+import ConsultancyForm from "../pages/faculty/outside-world-interaction/forms/ConsultancyForm";
+import ExternalVIPVisitForm from "../pages/faculty/outside-world-interaction/forms/External_VIP_VisitForm";
+import FacultyIndustryProjectsForm from "../pages/faculty/outside-world-interaction/forms/Faculty_Industry_ProjectsForm";
+import COEForm from "../pages/faculty/outside-world-interaction/forms/COEForm";
+import FacultyTrainedByIndustryForm from "../pages/faculty/outside-world-interaction/forms/Faculty_Trained_by_IndustryForm";
 
 export default function Applayout() {
   const { fetchUser, user, loading } = useAuth();
@@ -181,6 +188,28 @@ export default function Applayout() {
                 path="/faculty/outside-world-interaction"
                 element={<OutsideWorldInteraction />}
               />
+              <Route path="/faculty/outside-world/mou" element={<MouForm />} />
+              <Route
+                path="/faculty/outside-world/ipr-visit"
+                element={<IRPVisitForm />}
+              />
+              <Route
+                path="/faculty/outside-world/consultancy"
+                element={<ConsultancyForm />}
+              />
+              <Route
+                path="/faculty/outside-world/external-vip-visit"
+                element={<ExternalVIPVisitForm />}
+              />
+              <Route
+                path="/faculty/outside-world/faculty-industry-projects"
+                element={<FacultyIndustryProjectsForm />}
+              />
+              <Route path="/faculty/outside-world/coe" element={<COEForm />} />
+              <Route
+                path="/faculty/outside-world/faculty-trained-by-industry"
+                element={<FacultyTrainedByIndustryForm />}
+              />
               <Route
                 path="/faculty/outside-world/industry-advisors"
                 element={<Industryadvisor />}
@@ -205,13 +234,12 @@ export default function Applayout() {
                 path="/faculty/outside-world/professional-membership"
                 element={<Professionalmembership />}
               />
-
             </Route>
             <Route path="/student-resume" element={<StudentResume />} />
           </Route>
           {/* Routes for Principal, IQAC, Hod, Faculty */}
           <Route element={<DashboardLayout />}>
-            <Route path="/dashboard" element={<Dashboard />} />              
+            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/consultancy" element={<ConsultancyRoleRouter />} />
           </Route>
           <Route element={<ProtectedRoute allowedRoles={["Admin"]} />}>
@@ -248,9 +276,14 @@ export default function Applayout() {
 function ConsultancyRoleRouter() {
   const { user } = useAuth();
   const role = user?.role;
-  
-  if (!user) return <div className="p-8"><h1>Loading...</h1></div>;
-  
+
+  if (!user)
+    return (
+      <div className="p-8">
+        <h1>Loading...</h1>
+      </div>
+    );
+
   switch (role) {
     case "Principal":
       return <ConsultancyPrincipal />;
