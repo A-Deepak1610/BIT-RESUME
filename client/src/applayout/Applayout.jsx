@@ -51,6 +51,7 @@ import ConsultancyHod from "../pages/Consultancy/ConsultancyHod";
 import ConsultancyFaculty from "../pages/Consultancy/ConsultancyFaculty";
 import useAuth from "../store/UseAuth";
 import OutsideWorldInteraction from "../pages/faculty/outside-world-interaction/OutsideWorldInteraction";
+<<<<<<< HEAD
 import MouForm from "../pages/faculty/outside-world-interaction/forms/MouForm";
 import IRP_VisitForm from "../pages/faculty/outside-world-interaction/forms/IRP_VisitForm";
 import ConsultancyForm from "../pages/faculty/outside-world-interaction/forms/ConsultancyForm";
@@ -58,6 +59,14 @@ import External_VIP_VisitForm from "../pages/faculty/outside-world-interaction/f
 import Faculty_Industry_ProjectsForm from "../pages/faculty/outside-world-interaction/forms/Faculty_Industry_ProjectsForm";
 import COEForm from "../pages/faculty/outside-world-interaction/forms/COEForm";
 import Faculty_Trained_by_IndustryForm from "../pages/faculty/outside-world-interaction/forms/Faculty_Trained_by_IndustryForm";
+=======
+import Industryadvisor from "../pages/faculty/outside-world-interaction/forms/industryadvisor";
+import Laboratorybyindustry from "../pages/faculty/outside-world-interaction/forms/laboratorybyindustry";
+import Studentsindustrialvisit from "../pages/faculty/outside-world-interaction/forms/studentsindustrialvisit";
+import Technicalsocieties from "../pages/faculty/outside-world-interaction/forms/technicalsocieties"
+import Trainingtoindustry from "../pages/faculty/outside-world-interaction/forms/trainingtoindustry"
+import Professionalmembership from "../pages/faculty/outside-world-interaction/forms/professionalmembership";
+>>>>>>> 7fcaee8 (sdr)
 
 export default function Applayout() {
   const { fetchUser, user, loading } = useAuth();
@@ -183,6 +192,7 @@ export default function Applayout() {
                 element={<OutsideWorldInteraction />}
               />
               <Route
+<<<<<<< HEAD
                 path="/faculty/outside-world/mou"
                 element={<MouForm />}
               />
@@ -210,6 +220,32 @@ export default function Applayout() {
                 path="/faculty/outside-world/faculty-trained-by-industry"
                 element={<Faculty_Trained_by_IndustryForm />}
               />
+=======
+                path="/faculty/outside-world/industry-advisors"
+                element={<Industryadvisor />}
+              />
+              <Route
+                path="/faculty/outside-world/laboratory-by-industry"
+                element={<Laboratorybyindustry />}
+              />
+              <Route
+                path="/faculty/outside-world/students-industrial-visit"
+                element={<Studentsindustrialvisit />}
+              />
+              <Route
+                path="/faculty/outside-world/technical-societies"
+                element={<Technicalsocieties />}
+              />
+              <Route
+                path="/faculty/outside-world/training-to-industry"
+                element={<Trainingtoindustry />}
+              />
+              <Route
+                path="/faculty/outside-world/professional-membership"
+                element={<Professionalmembership />}
+              />
+
+>>>>>>> 7fcaee8 (sdr)
             </Route>
             <Route path="/student-resume" element={<StudentResume />} />
           </Route>

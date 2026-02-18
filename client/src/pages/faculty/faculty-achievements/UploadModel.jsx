@@ -186,9 +186,9 @@ export default function UploadModel({ open, handleClose }) {
             )})}
           </div>
         </div>
-        <div className="p-6 pt-0 border-t border-gray-100 mt-auto bg-white rounded-b-lg">
+        <div className="p-6 border-t border-gray-100 mt-auto bg-blue-100 rounded-b-lg">
           <button
-            className={`w-full py-2.5 rounded-md text-white font-medium shadow-sm active:scale-[0.99] transition-all ${
+            className={`w-full py-2.5 shadow-lg shadow-gray-400 border border-gray-400 rounded-md text-white font-medium active:scale-[0.99] transition-all ${
               selectedType
                 ? "bg-blue-600 hover:bg-blue-700 cursor-pointer shadow-blue-200"
                 : "bg-gray-300 cursor-not-allowed"
@@ -198,6 +198,7 @@ export default function UploadModel({ open, handleClose }) {
               if (selectedType) {
                 handleNavigateToForm(selectedType);
                 handleClose();
+                setSelectedType("");
               }
             }}
           >

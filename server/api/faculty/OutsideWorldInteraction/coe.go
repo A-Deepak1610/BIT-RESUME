@@ -1,4 +1,4 @@
-package outsideWorldInteraction
+package outsideworld
 
 import (
 	"bitresume/config"
