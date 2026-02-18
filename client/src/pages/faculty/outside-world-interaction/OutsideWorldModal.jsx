@@ -29,8 +29,8 @@ export default function OutsideWorldModal({ open, handleClose }) {
       icon: Handshake,
     },
     {
-      id: "iprVisit",
-      label: "IPR Visit",
+      id: "irpVisit",
+      label: "IRP Visit",
       desc: "Intellectual Property Rights visits and activities",
       icon: Lightbulb,
     },
@@ -106,7 +106,7 @@ export default function OutsideWorldModal({ open, handleClose }) {
     // Map labels to specific routes
     const routeMap = {
       MoU: "/faculty/outside-world/mou",
-      "IPR Visit": "/faculty/outside-world/ipr-visit",
+      "IRP Visit": "/faculty/outside-world/irp-visit",
       Consultancy: "/faculty/outside-world/consultancy",
       "External VIP Visit": "/faculty/outside-world/external-vip-visit",
       "Faculty Industry Projects":
@@ -157,20 +157,18 @@ export default function OutsideWorldModal({ open, handleClose }) {
               return (
                 <div
                   key={item.id}
-                  className={`group border rounded-lg p-3 cursor-pointer transition-all duration-200 ${
-                    selectedType === item.label
+                  className={`group border rounded-lg p-3 cursor-pointer transition-all duration-200 ${selectedType === item.label
                       ? "border-blue-500 bg-blue-50 shadow-md hover:scale-105 "
                       : "border-gray-200 hover:border-blue-300 hover:shadow-sm hover:scale-105 hover:bg-[#eff6ff]"
-                  }`}
+                    }`}
                   onClick={() => setSelectedType(item.label)}
                 >
                   <div className="flex flex-row gap-3 items-center">
                     <div
-                      className={`p-2 rounded-[50%] transition-colors ${
-                        selectedType === item.label
+                      className={`p-2 rounded-[50%] transition-colors ${selectedType === item.label
                           ? "bg-[#265ee1] text-white"
                           : "bg-[#f3f4f6] text-black group-hover:bg-[#e5edfd]"
-                      }`}
+                        }`}
                     >
                       <Icon size={20} />
                     </div>
@@ -188,14 +186,14 @@ export default function OutsideWorldModal({ open, handleClose }) {
         </div>
         <div className="p-6 pt-0 border-t border-gray-100 mt-auto bg-white rounded-b-lg">
           <button
-            className={`w-full py-2.5 rounded-md text-white font-medium shadow-sm active:scale-[0.99] transition-all ${
-              selectedType
+            className={`w-full py-2.5 rounded-md text-white font-medium shadow-sm active:scale-[0.99] transition-all ${selectedType
                 ? "bg-blue-600 hover:bg-blue-700 cursor-pointer shadow-blue-200"
                 : "bg-gray-300 cursor-not-allowed"
-            }`}
+              }`}
             disabled={!selectedType}
             onClick={() => {
               if (selectedType) {
+                console.log("Navigating to:", selectedType);
                 handleNavigateToForm(selectedType);
                 handleClose();
               }

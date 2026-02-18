@@ -11,5 +11,8 @@ export default function RoleRedirect() {
   if (user.role === "student") return <Navigate to="/dashboard" replace />;
   if (user.role === "faculty") return <Navigate to="/faculty-dashboard" replace />;
   if (user.role === "Admin") return <Navigate to="/admin-dashboard" replace />;
+  if (user.role === "Hod") return <Navigate to="/dashboard" replace />;
+  if (user.role === "Principal") return <Navigate to="/dashboard" replace />;
+  if (user.role === "IQAC") return <Navigate to="/dashboard" replace />;
   return <Navigate to="/unauthorized" replace />; 
 }

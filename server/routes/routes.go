@@ -26,6 +26,7 @@ import (
 	"bitresume/api/upload-view/projects"
 	dashboard "bitresume/api/upload-view/upload_view_dashboard"
 	"bitresume/api/upload-view/workshops"
+	outsideWorldInteraction "bitresume/api/faculty/OutsideWorldInteraction"
 	"bitresume/middleware"
 
 	"github.com/gin-gonic/gin"
@@ -101,6 +102,22 @@ func RegisterRoutes(r *gin.Engine) {
 		facultyOnly.GET("/faculty/paperPresentationGet", facultyAchievements.FetchPaperPresentation)
 		facultyOnly.POST("/faculty/resourcePersonPost", facultyAchievements.HandleResourcePersonForm)
 		facultyOnly.GET("/faculty/resourcePersonGet", facultyAchievements.FetchResourcePerson)
+
+		// Outside World Interaction
+		facultyOnly.POST("/faculty/mouPost", outsideWorldInteraction.HandleMouForm)
+		facultyOnly.GET("/faculty/mouGet", outsideWorldInteraction.FetchMou)
+		facultyOnly.POST("/faculty/irpVisitPost", outsideWorldInteraction.HandleIrpVisitForm)
+		facultyOnly.GET("/faculty/irpVisitGet", outsideWorldInteraction.FetchIrpVisit)
+		facultyOnly.POST("/faculty/trainedByIndustryPost", outsideWorldInteraction.HandleTrainedByIndustryForm)
+		facultyOnly.GET("/faculty/trainedByIndustryGet", outsideWorldInteraction.FetchTrainedByIndustry)
+		facultyOnly.POST("/faculty/industryProjectPost", outsideWorldInteraction.HandleIndustryProjectsForm)
+		facultyOnly.GET("/faculty/industryProjectGet", outsideWorldInteraction.FetchIndustryProjects)
+		facultyOnly.POST("/faculty/externalVipVisitPost", outsideWorldInteraction.HandleExternalVipVisitForm)
+		facultyOnly.GET("/faculty/externalVipVisitGet", outsideWorldInteraction.FetchExternalVipVisit)
+		facultyOnly.POST("/faculty/coePost", outsideWorldInteraction.HandleCoeForm)
+		facultyOnly.GET("/faculty/coeGet", outsideWorldInteraction.FetchCoe)
+		facultyOnly.POST("/faculty/consultancyPost", outsideWorldInteraction.HandleConsultancyForm)
+		facultyOnly.GET("/faculty/consultancyGet", outsideWorldInteraction.FetchConsultancy)
 	}
 
 	bothStudentFacultyAdmin := r.Group("/api")

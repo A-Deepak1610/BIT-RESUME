@@ -4,6 +4,7 @@ import (
 	"bitresume/config"
 	"database/sql"
 	"errors"
+	"fmt"
 )
 
 type User struct {
@@ -16,6 +17,7 @@ type User struct {
 // GetUserByEmail checks if a user exists and returns their details
 func GetUserByEmail(email string) (*User, error) {
 	var user User
+	fmt.Println("Email: ", email)
 	query := `SELECT user_email, rollno, role,user_name FROM login WHERE user_email = ?`
 	err := config.DB.QueryRow(query, email).Scan(&user.Email, &user.RollNo, &user.Role ,&user.UserName)
 	if err != nil {
@@ -24,6 +26,6 @@ func GetUserByEmail(email string) (*User, error) {
 		}
 		return nil, err
 	}
-
+	fmt.Println("User: ", user)
 	return &user, nil
 }
