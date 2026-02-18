@@ -18,122 +18,59 @@ import {
 } from "lucide-react";
 
 export default function OutsideWorldModal({ open, handleClose }) {
-  const [selectedType, setSelectedType] = useState("");
+  const [selectedType, setSelectedType] = useState(null);
+
   const navigate = useNavigate();
 
   const items = [
-    {
-      id: "mou",
-      label: "MoU",
-      desc: "Memorandum of Understanding with institutions",
-      icon: Handshake,
-    },
-    {
-      id: "irpVisit",
-      label: "IRP Visit",
-      desc: "Intellectual Property Rights visits and activities",
-      icon: Lightbulb,
-    },
-    {
-      id: "consultancy",
-      label: "Consultancy",
-      desc: "Consultancy projects undertaken",
-      icon: Briefcase,
-    },
-    {
-      id: "externalVipVisit",
-      label: "External VIP Visit",
-      desc: "Visits by external VIPs and dignitaries",
-      icon: Users,
-    },
-    {
-      id: "facultyIndustryProjects",
-      label: "Faculty Industry Projects",
-      desc: "Faculty members' industry collaboration projects",
-      icon: Factory,
-    },
-    {
-      id: "coe",
-      label: "COE",
-      desc: "Centre of Excellence initiatives",
-      icon: Award,
-    },
-    {
-      id: "facultyTrainedByIndustry",
-      label: "Faculty Trained by Industry",
-      desc: "Training programs attended from industry",
-      icon: GraduationCap,
-    },
-    {
-      id: "industryAdvisors",
-      label: "Industry Advisors",
-      desc: "Industry advisory board members",
-      icon: UserCheck,
-    },
-    {
-      id: "laboratoryDevelopedByIndustry",
-      label: "Laboratory by Industry",
-      desc: "Laboratories developed with industry support",
-      icon: Microscope,
-    },
-    {
-      id: "studentsIndustrialVisit",
-      label: "Students Industrial Visit",
-      desc: "Industrial visits organized for students",
-      icon: Plane,
-    },
-    {
-      id: "technicalSocieties",
-      label: "Technical Societies",
-      desc: "Technical societies and chapter memberships",
-      icon: Network,
-    },
-    {
-      id: "trainingToIndustry",
-      label: "Training to Industry",
-      desc: "Training programs conducted for industry personnel",
-      icon: BookOpen,
-    },
-    {
-      id: "professionalBodyMembership",
-      label: "Professional Membership",
-      desc: "Professional body and association memberships",
-      icon: BadgeCheck,
-    },
+    { id: "mou", label: "MoU", desc: "Memorandum of Understanding with institutions", icon: Handshake },
+    { id: "iprVisit", label: "IPR Visit", desc: "Intellectual Property Rights visits and activities", icon: Lightbulb },
+    { id: "consultancy", label: "Consultancy", desc: "Consultancy projects undertaken", icon: Briefcase },
+    { id: "externalVipVisit", label: "External VIP Visit", desc: "Visits by external VIPs and dignitaries", icon: Users },
+    { id: "facultyIndustryProjects", label: "Faculty Industry Projects", desc: "Faculty members' industry collaboration projects", icon: Factory },
+    { id: "coe", label: "COE", desc: "Centre of Excellence initiatives", icon: Award },
+    { id: "facultyTrainedByIndustry", label: "Faculty Trained by Industry", desc: "Training programs attended from industry", icon: GraduationCap },
+    { id: "industryAdvisors", label: "Industry Advisors", desc: "Industry advisory board members", icon: UserCheck },
+    { id: "laboratoryDevelopedByIndustry", label: "Laboratory by Industry", desc: "Laboratories developed with industry support", icon: Microscope },
+    { id: "studentsIndustrialVisit", label: "Students Industrial Visit", desc: "Industrial visits organized for students", icon: Plane },
+    { id: "technicalSocieties", label: "Technical Societies", desc: "Technical societies and chapter memberships", icon: Network },
+    { id: "trainingToIndustry", label: "Training to Industry", desc: "Training programs conducted for industry personnel", icon: BookOpen },
+    { id: "professionalBodyMembership", label: "Professional Membership", desc: "Professional body and association memberships", icon: BadgeCheck },
   ];
 
   const handleNavigateToForm = (type) => {
-    // Map labels to specific routes
     const routeMap = {
       MoU: "/faculty/outside-world/mou",
       "IRP Visit": "/faculty/outside-world/irp-visit",
       Consultancy: "/faculty/outside-world/consultancy",
       "External VIP Visit": "/faculty/outside-world/external-vip-visit",
-      "Faculty Industry Projects":
-        "/faculty/outside-world/faculty-industry-projects",
+      "Faculty Industry Projects": "/faculty/outside-world/faculty-industry-projects",
       COE: "/faculty/outside-world/coe",
-      "Faculty Trained by Industry":
-        "/faculty/outside-world/faculty-trained-by-industry",
+      "Faculty Trained by Industry": "/faculty/outside-world/faculty-trained-by-industry",
       "Industry Advisors": "/faculty/outside-world/industry-advisors",
       "Laboratory by Industry": "/faculty/outside-world/laboratory-by-industry",
-      "Students Industrial Visit":
-        "/faculty/outside-world/students-industrial-visit",
+      "Students Industrial Visit": "/faculty/outside-world/students-industrial-visit",
       "Technical Societies": "/faculty/outside-world/technical-societies",
       "Training to Industry": "/faculty/outside-world/training-to-industry",
-      "Professional Membership":
-        "/faculty/outside-world/professional-membership",
+      "Professional Membership": "/faculty/outside-world/professional-membership",
     };
 
     if (routeMap[type]) {
       navigate(routeMap[type]);
-    } else {
-      console.error("No route found for type:", type);
     }
   };
 
   return (
-    <Modal open={open} onClose={handleClose}>
+    <Modal
+      open={open}
+      onClose={() => {
+        handleClose();
+        setSelectedType(null);
+      }}
+    >
       <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow-lg w-[90%] max-w-[900px] max-h-[90vh] flex flex-col outline-none">
+
+        {/* Header */}
         <div className="bg-[#e2eefe] rounded-t-lg p-6 pb-4">
           <div className="flex justify-center mb-2">
             <div className="px-4 py-1 rounded-[15px] bg-[#dbeafe]">
@@ -157,11 +94,16 @@ export default function OutsideWorldModal({ open, handleClose }) {
               return (
                 <div
                   key={item.id}
-                  className={`group border rounded-lg p-3 cursor-pointer transition-all duration-200 ${selectedType === item.label
-                      ? "border-blue-500 bg-blue-50 shadow-md hover:scale-105 "
+                  className={`group border rounded-lg p-3 cursor-pointer transition-all duration-200 ${
+                    selectedType === item.label
+                      ? "border-blue-500 bg-blue-50 shadow-md hover:scale-105"
                       : "border-gray-200 hover:border-blue-300 hover:shadow-sm hover:scale-105 hover:bg-[#eff6ff]"
-                    }`}
-                  onClick={() => setSelectedType(item.label)}
+                  }`}
+                  onClick={() =>
+                    setSelectedType(
+                      selectedType === item.label ? null : item.label
+                    )
+                  }
                 >
                   <div className="flex flex-row gap-3 items-center">
                     <div
@@ -176,7 +118,9 @@ export default function OutsideWorldModal({ open, handleClose }) {
                       <p className="font-medium text-sm text-gray-800">
                         {item.label}
                       </p>
-                      <p className="text-xs text-gray-500 mt-1">{item.desc}</p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {item.desc}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -184,9 +128,12 @@ export default function OutsideWorldModal({ open, handleClose }) {
             })}
           </div>
         </div>
-        <div className="p-6 pt-0 border-t border-gray-100 mt-auto bg-white rounded-b-lg">
+
+        {/* Footer */}
+        <div className="p-6 border-t border-gray-100 mt-auto bg-blue-100 rounded-b-lg">
           <button
-            className={`w-full py-2.5 rounded-md text-white font-medium shadow-sm active:scale-[0.99] transition-all ${selectedType
+            className={`w-full py-2.5 shadow-lg shadow-gray-400 border border-gray-400 rounded-md text-white font-medium active:scale-[0.99] transition-all ${
+              selectedType
                 ? "bg-blue-600 hover:bg-blue-700 cursor-pointer shadow-blue-200"
                 : "bg-gray-300 cursor-not-allowed"
               }`}
@@ -196,6 +143,7 @@ export default function OutsideWorldModal({ open, handleClose }) {
                 console.log("Navigating to:", selectedType);
                 handleNavigateToForm(selectedType);
                 handleClose();
+                setSelectedType(null);
               }
             }}
           >
@@ -206,3 +154,4 @@ export default function OutsideWorldModal({ open, handleClose }) {
     </Modal>
   );
 }
+
