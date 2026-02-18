@@ -10,6 +10,7 @@ import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
 import DehazeIcon from "@mui/icons-material/Dehaze";
 import Drawer from "@mui/material/Drawer";
 import {useNavigate, useLocation} from "react-router-dom";
+import PublicOutlinedIcon from "@mui/icons-material/PublicOutlined";
 import logo from "../../assets/logo_bit.jpg";
 import logo_main from "../../assets/bit_logo.png";
 import useAuth from "../../store/UseAuth";
@@ -358,7 +359,18 @@ export default function NavBar() {
               >
                 <StarBorderRoundedIcon fontSize="small" /> Faculty Achievements
               </li>
-              <li>
+              <li
+                className={`flex items-center gap-3 cursor-pointer p-2 rounded-md transition-all duration-300 ease-in-out ${
+                  activeItem === "outsideWorldInteraction"
+                    ? "text-white bg-primary w-55"
+                    : "hover:bg-gray-100"
+                }`}
+                onClick={() => navigate("/faculty/outside-world-interaction")}
+              >
+                <PublicOutlinedIcon fontSize="small" />
+                Outside World Interaction
+              </li>
+              {/* <li>
                 <div
                   className={`relative flex items-center gap-1 cursor-pointer p-2 rounded-md text-[14px] transition-all duration-300 ease-in-out ${
                     expandedMenus.studentRequests
@@ -430,7 +442,7 @@ export default function NavBar() {
                     Verifications
                   </li>
                 </ul>
-              </li>
+              </li> */}
               {/* <li
                 className={`flex items-center gap-3 cursor-pointer p-2 mt-3 rounded-md transition-all duration-300 ease-in-out ${
                   activeItem === "manageActivities"
@@ -446,7 +458,7 @@ export default function NavBar() {
                 <TuneOutlinedIcon fontSize="small" className="mr-1" />{" "}
                 Manage Activities
               </li> */}
-              <li
+              {/* <li
                 className={`flex items-center gap-3 cursor-pointer p-2 mt-3 rounded-md transition-all duration-300 ease-in-out ${
                   activeItem === "studentPerformance"
                     ? "text-white bg-primary w-55"
@@ -473,7 +485,7 @@ export default function NavBar() {
                 }}
               >
                 <ArticleOutlinedIcon fontSize="small" /> Resume Drafts
-              </li>
+              </li> */}
             </ul>
           </div>
           <div className="mt-auto">

@@ -46,6 +46,13 @@ import PaperForm from "../pages/faculty/faculty-achievements/forms/PaperForm";
 import ResourcePersonForm from "../pages/faculty/faculty-achievements/forms/ResourcePersonForm";
 import FacultyMetrics from "../pages/Admin/FacultyMetrics/FacultyMetrics";
 import OutsideWorldInteraction from "../pages/faculty/outside-world-interaction/OutsideWorldInteraction";
+import MouForm from "../pages/faculty/outside-world-interaction/forms/MouForm";
+import IRP_VisitForm from "../pages/faculty/outside-world-interaction/forms/IRP_VisitForm";
+import ConsultancyForm from "../pages/faculty/outside-world-interaction/forms/ConsultancyForm";
+import External_VIP_VisitForm from "../pages/faculty/outside-world-interaction/forms/External_VIP_VisitForm";
+import Faculty_Industry_ProjectsForm from "../pages/faculty/outside-world-interaction/forms/Faculty_Industry_ProjectsForm";
+import COEForm from "../pages/faculty/outside-world-interaction/forms/COEForm";
+import Faculty_Trained_by_IndustryForm from "../pages/faculty/outside-world-interaction/forms/Faculty_Trained_by_IndustryForm";
 
 export default function Applayout() {
   const { fetchUser, user, loading } = useAuth();
@@ -170,6 +177,34 @@ export default function Applayout() {
                 path="/faculty/outside-world-interaction"
                 element={<OutsideWorldInteraction />}
               />
+              <Route
+                path="/faculty/outside-world/mou"
+                element={<MouForm />}
+              />
+              <Route
+                path="/faculty/outside-world/irp-visit"
+                element={<IRP_VisitForm />}
+              />
+              <Route
+                path="/faculty/outside-world/consultancy"
+                element={<ConsultancyForm />}
+              />
+              <Route
+                path="/faculty/outside-world/external-vip-visit"
+                element={<External_VIP_VisitForm />}
+              />
+              <Route
+                path="/faculty/outside-world/faculty-industry-projects"
+                element={<Faculty_Industry_ProjectsForm />}
+              />
+              <Route
+                path="/faculty/outside-world/coe"
+                element={<COEForm />}
+              />
+              <Route
+                path="/faculty/outside-world/faculty-trained-by-industry"
+                element={<Faculty_Trained_by_IndustryForm />}
+              />
             </Route>
             <Route path="/student-resume" element={<StudentResume />} />
           </Route>
@@ -185,7 +220,7 @@ export default function Applayout() {
               />
               <Route
                 path="/admin-facultyMetrics"
-                element={<FacultyMetrics/>}
+                element={<FacultyMetrics />}
               />
               <Route
                 path="/admin-facultyVerifications"
