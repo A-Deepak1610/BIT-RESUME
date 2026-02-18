@@ -6,7 +6,7 @@ export default function PageNotFound() {
 
   return (
     <div className="text-center mt-20">
-      <h1 className="text-3xl font-semibold mb-4">404 | Page Not Found</h1>
+      <h1 className="text-3xl font-semibold mb-4">404 | Page Not Found...||..</h1>
     
     </div>
   );

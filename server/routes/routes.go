@@ -12,6 +12,7 @@ import (
 	studentrequests "bitresume/api/faculty/ActivityTracker/StudentRequests/varifications"
 	addevents "bitresume/api/faculty/AddEvents"
 	facultyAchievements "bitresume/api/faculty/FacultyAchievements"
+	outsideworld "bitresume/api/faculty/OutsideWorldInteraction"
 	studentdata "bitresume/api/faculty/StudentData"
 	dashBoardfaculty "bitresume/api/faculty/dashboardfaculty"
 	"bitresume/api/login"
@@ -101,6 +102,37 @@ func RegisterRoutes(r *gin.Engine) {
 		facultyOnly.GET("/faculty/paperPresentationGet", facultyAchievements.FetchPaperPresentation)
 		facultyOnly.POST("/faculty/resourcePersonPost", facultyAchievements.HandleResourcePersonForm)
 		facultyOnly.GET("/faculty/resourcePersonGet", facultyAchievements.FetchResourcePerson)
+
+		// Outside World Interaction Routes
+		facultyOnly.POST("/owi/industryAdvisor", outsideworld.HandleIndustryAdvisorPost)
+		facultyOnly.GET("/owi/industryAdvisor", outsideworld.HandleIndustryAdvisorGet)
+		facultyOnly.PUT("/owi/industryAdvisor/:id", outsideworld.HandleIndustryAdvisorUpdate)
+		facultyOnly.DELETE("/owi/industryAdvisor/:id", outsideworld.HandleIndustryAdvisorDelete)
+
+		facultyOnly.POST("/owi/laboratoryByIndustry", outsideworld.HandleLaboratoryByIndustryPost)
+		facultyOnly.GET("/owi/laboratoryByIndustry", outsideworld.HandleLaboratoryByIndustryGet)
+		facultyOnly.PUT("/owi/laboratoryByIndustry/:id", outsideworld.HandleLaboratoryByIndustryUpdate)
+		facultyOnly.DELETE("/owi/laboratoryByIndustry/:id", outsideworld.HandleLaboratoryByIndustryDelete)
+
+		facultyOnly.POST("/owi/professionalMembership", outsideworld.HandleProfessionalMembershipPost)
+		facultyOnly.GET("/owi/professionalMembership", outsideworld.HandleProfessionalMembershipGet)
+		facultyOnly.PUT("/owi/professionalMembership/:id", outsideworld.HandleProfessionalMembershipUpdate)
+		facultyOnly.DELETE("/owi/professionalMembership/:id", outsideworld.HandleProfessionalMembershipDelete)
+
+		facultyOnly.POST("/owi/studentsIndustrialVisit", outsideworld.HandleStudentsIndustrialVisitPost)
+		facultyOnly.GET("/owi/studentsIndustrialVisit", outsideworld.HandleStudentsIndustrialVisitGet)
+		facultyOnly.PUT("/owi/studentsIndustrialVisit/:id", outsideworld.HandleStudentsIndustrialVisitUpdate)
+		facultyOnly.DELETE("/owi/studentsIndustrialVisit/:id", outsideworld.HandleStudentsIndustrialVisitDelete)
+
+		facultyOnly.POST("/owi/technicalSocieties", outsideworld.HandleTechnicalSocietiesPost)
+		facultyOnly.GET("/owi/technicalSocieties", outsideworld.HandleTechnicalSocietiesGet)
+		facultyOnly.PUT("/owi/technicalSocieties/:id", outsideworld.HandleTechnicalSocietiesUpdate)
+		facultyOnly.DELETE("/owi/technicalSocieties/:id", outsideworld.HandleTechnicalSocietiesDelete)
+
+		facultyOnly.POST("/owi/trainingToIndustry", outsideworld.HandleTrainingToIndustryPost)
+		facultyOnly.GET("/owi/trainingToIndustry", outsideworld.HandleTrainingToIndustryGet)
+		facultyOnly.PUT("/owi/trainingToIndustry/:id", outsideworld.HandleTrainingToIndustryUpdate)
+		facultyOnly.DELETE("/owi/trainingToIndustry/:id", outsideworld.HandleTrainingToIndustryDelete)
 	}
 
 	bothStudentFacultyAdmin := r.Group("/api")
