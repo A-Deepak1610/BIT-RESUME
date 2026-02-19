@@ -2,6 +2,7 @@ import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Save, UploadCloud, FileText, X } from "lucide-react";
 import axios from "axios";
+import DepartmentDropdown from "../../../../components/shared/DepartmentDropdown";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -17,18 +18,7 @@ const NEWSLETTER_CATEGORIES = [
   "department-newsletter",
 ];
 
-const DEPARTMENTS = [
-  "Click to choose",
-  "CSE",
-  "ECE",
-  "EEE",
-  "MECH",
-  "CIVIL",
-  "IT",
-  "AIDS",
-  "AIML",
-  "CSBS",
-];
+// Department data is now fetched from the backend API via DepartmentDropdown component
 
 const ACADEMIC_YEARS = [
   "Select Academic Year",
@@ -147,7 +137,7 @@ export default function NewsletterForm() {
       newErrors.newsletterCategory = "Category is required";
     if (
       formData.newsletterCategory === "department-newsletter" &&
-      (!formData.department || formData.department === "Click to choose")
+      !formData.department
     ) {
       newErrors.department = "Department is required";
     }
@@ -278,23 +268,15 @@ export default function NewsletterForm() {
                   >
                     Department <RequiredAst />
                   </label>
-                  <select
+                  <DepartmentDropdown
                     name="department"
                     id="department"
                     value={formData.department}
                     onChange={handleChange}
+                    error={errors.department}
+                    placeholder="Select Department"
                     className={`mt-1 block w-full px-3 py-2 border ${errors.department ? "border-red-500" : "border-gray-300"} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-                  >
-                    {DEPARTMENTS.map((option) => (
-                      <option
-                        key={option}
-                        value={option}
-                        disabled={option === "Click to choose"}
-                      >
-                        {option}
-                      </option>
-                    ))}
-                  </select>
+                  />
                   {errors.department && (
                     <p className="mt-1 text-sm text-red-600">
                       {errors.department}

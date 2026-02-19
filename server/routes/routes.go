@@ -8,6 +8,7 @@ import (
 	activitygraph "bitresume/api/dashboard/activity_graph"
 	headerdetails "bitresume/api/dashboard/header_details"
 	dataUploadPs "bitresume/api/dataUploadPs"
+	"bitresume/api/departments"
 	manageactivities "bitresume/api/faculty/ActivityTracker/ManageActivities"
 	studentrequests "bitresume/api/faculty/ActivityTracker/StudentRequests/varifications"
 	addevents "bitresume/api/faculty/AddEvents"
@@ -19,6 +20,7 @@ import (
 	pointshandlers "bitresume/api/pointsHandlers"
 	registerevents "bitresume/api/registerEvents"
 	"bitresume/api/resume"
+	"bitresume/api/speciallabs"
 	certificates "bitresume/api/upload-view/Certificates"
 	Uploadsdelete "bitresume/api/upload-view/delete"
 	"bitresume/api/upload-view/internship"
@@ -189,4 +191,6 @@ func RegisterRoutes(r *gin.Engine) {
 	r.DELETE("/api/uploadview/deleteupload", Uploadsdelete.Uploadsdelete)
 	r.GET("/api/getpsdata/:rollno", dataUploadPs.GetPsStatus)
 	r.POST("/api/bulkupload", dataUploadPs.BulkUploadHandler)
+	r.GET("/api/departments", departments.GetDepartments)
+	r.GET("/api/speciallabs", speciallabs.GetSpecialLabs)
 }
