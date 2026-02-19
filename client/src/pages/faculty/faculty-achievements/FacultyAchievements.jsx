@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
   Trophy,
@@ -30,7 +31,6 @@ import {
   PenTool,
 } from "lucide-react";
 import useAuth from "../../../store/UseAuth";
-import UploadModel from "./UploadModel";
 const API_URL = import.meta.env.VITE_API_URL;
 
 // Helper component for status badge
@@ -87,7 +87,7 @@ const FacultyAchievements = () => {
   const [activeTab, setActiveTab] = useState("newsletter");
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
-  const [openModal, setOpenModal] = useState(false);
+  const navigate = useNavigate();
   const [achievements, setAchievements] = useState({
     newsletterArchive: [],
     eContentDeveloped: [],
@@ -201,7 +201,7 @@ const FacultyAchievements = () => {
           method: "GET",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
-        }
+        },
       );
       if (!response.ok)
         throw new Error(`HTTP error! Status: ${response.status}`);
@@ -255,7 +255,7 @@ const FacultyAchievements = () => {
           method: "GET",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
-        }
+        },
       );
       if (!response.ok)
         throw new Error(`HTTP error! Status: ${response.status}`);
@@ -309,7 +309,7 @@ const FacultyAchievements = () => {
           method: "GET",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
-        }
+        },
       );
       if (!response.ok)
         throw new Error(`HTTP error! Status: ${response.status}`);
@@ -423,7 +423,26 @@ const FacultyAchievements = () => {
             </div>
             <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
               <button
-                onClick={() => setOpenModal(true)}
+                onClick={() => {
+                  const routeMap = {
+                    newsletter: "/faculty/achievements/newsletter",
+                    econtent: "/faculty/achievements/e-content",
+                    eventsAttended: "/faculty/achievements/events-attended",
+                    eventsOrganized: "/faculty/achievements/events-organized",
+                    examiner: "/faculty/achievements/external-examiner",
+                    reviewer: "/faculty/achievements/journal-reviewer",
+                    guestLecture: "/faculty/achievements/guest-lectures",
+                    internationalVisit:
+                      "/faculty/achievements/international-visits",
+                    awards: "/faculty/achievements/awards",
+                    onlineCourse: "/faculty/achievements/online-courses",
+                    papers: "/faculty/achievements/papers",
+                    resourcePerson: "/faculty/achievements/resource-person",
+                  };
+                  if (routeMap[activeTab]) {
+                    navigate(routeMap[activeTab]);
+                  }
+                }}
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center justify-center sm:justify-start"
               >
                 <Plus className="h-4 w-4 mr-2" />
@@ -488,7 +507,7 @@ const FacultyAchievements = () => {
                               {paper.conference_name} •{" "}
                               {paper.event_start_date &&
                                 new Date(
-                                  paper.event_start_date
+                                  paper.event_start_date,
                                 ).toLocaleDateString()}
                             </p>
                           </div>
@@ -590,7 +609,7 @@ const FacultyAchievements = () => {
                         <Calendar className="h-4 w-4 inline mr-1" />
                         Published:{" "}
                         {new Date(
-                          newsletter.date_of_publication
+                          newsletter.date_of_publication,
                         ).toLocaleDateString()}
                       </span>
                       {newsletter.proof_document && (
@@ -681,7 +700,7 @@ const FacultyAchievements = () => {
                         <Calendar className="h-4 w-4 inline mr-1" />
                         {content.date_of_publication
                           ? new Date(
-                              content.date_of_publication
+                              content.date_of_publication,
                             ).toLocaleDateString()
                           : "Date N/A"}
                       </span>
@@ -1327,8 +1346,8 @@ const FacultyAchievements = () => {
                         {award.received_date
                           ? new Date(award.received_date).toLocaleDateString()
                           : award.date
-                          ? new Date(award.date).toLocaleDateString()
-                          : "N/A"}
+                            ? new Date(award.date).toLocaleDateString()
+                            : "N/A"}
                       </span>
                     </div>
                     <RemarksBox remarks={award.remarks} />
@@ -1506,7 +1525,7 @@ const FacultyAchievements = () => {
                         <Calendar className="h-4 w-4 mr-2" />
                         {paper.event_start_date
                           ? new Date(
-                              paper.event_start_date
+                              paper.event_start_date,
                             ).toLocaleDateString()
                           : "N/A"}{" "}
                         -{" "}
@@ -1639,7 +1658,6 @@ const FacultyAchievements = () => {
           </div>
         )}
       </div>
-      <UploadModel open={openModal} handleClose={() => setOpenModal(false)} />
     </div>
   );
 };
