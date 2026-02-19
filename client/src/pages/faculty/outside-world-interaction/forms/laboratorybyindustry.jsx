@@ -81,7 +81,7 @@ export default function LaboratoryByIndustryForm() {
     if (e.target.files && e.target.files.length > 0) {
       setFormData((prev) => ({
         ...prev,
-        [fieldName]: [...prev[fieldName], ...Array.from(e.target.files)]
+        [fieldName]: [...prev[fieldName], ...Array.from(e.target.files)],
       }));
       if (errors[fieldName]) {
         setErrors((prev) => {
@@ -92,7 +92,7 @@ export default function LaboratoryByIndustryForm() {
       }
     }
     // Reset the input value to allow selecting the same file again
-    e.target.value = '';
+    e.target.value = "";
   };
 
   const openFileDialog = (fieldName) => {
@@ -130,7 +130,7 @@ export default function LaboratoryByIndustryForm() {
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       setFormData((prev) => ({
         ...prev,
-        [fieldName]: [...prev[fieldName], ...Array.from(e.dataTransfer.files)]
+        [fieldName]: [...prev[fieldName], ...Array.from(e.dataTransfer.files)],
       }));
       if (errors[fieldName]) {
         setErrors((prev) => {
@@ -166,41 +166,57 @@ export default function LaboratoryByIndustryForm() {
     }
 
     if (!formData.domainAreaOfIndustry.trim()) {
-      newErrors.domainAreaOfIndustry = "Domain area of the industry is required";
+      newErrors.domainAreaOfIndustry =
+        "Domain area of the industry is required";
     }
 
     if (!formData.laboratoryArea.trim()) {
       newErrors.laboratoryArea = "Laboratory Area in Sq.m is required";
-    } else if (isNaN(formData.laboratoryArea) || parseFloat(formData.laboratoryArea) <= 0) {
+    } else if (
+      isNaN(formData.laboratoryArea) ||
+      parseFloat(formData.laboratoryArea) <= 0
+    ) {
       newErrors.laboratoryArea = "Please enter a valid number";
     }
 
     if (!formData.totalAmountIncurred.trim()) {
       newErrors.totalAmountIncurred = "Total Amount Incurred is required";
-    } else if (isNaN(formData.totalAmountIncurred) || parseFloat(formData.totalAmountIncurred) < 0) {
+    } else if (
+      isNaN(formData.totalAmountIncurred) ||
+      parseFloat(formData.totalAmountIncurred) < 0
+    ) {
       newErrors.totalAmountIncurred = "Please enter a valid number";
     }
 
     if (!formData.bitContribution.trim()) {
       newErrors.bitContribution = "BIT Contribution is required";
-    } else if (isNaN(formData.bitContribution) || parseFloat(formData.bitContribution) < 0) {
+    } else if (
+      isNaN(formData.bitContribution) ||
+      parseFloat(formData.bitContribution) < 0
+    ) {
       newErrors.bitContribution = "Please enter a valid number";
     }
 
-    if (formData.financialSupportFromIndustry && isNaN(formData.financialSupportFromIndustry)) {
+    if (
+      formData.financialSupportFromIndustry &&
+      isNaN(formData.financialSupportFromIndustry)
+    ) {
       newErrors.financialSupportFromIndustry = "Please enter a valid number";
     }
 
     if (!formData.equipmentSponsored.trim()) {
-      newErrors.equipmentSponsored = "Equipment sponsored information is required";
+      newErrors.equipmentSponsored =
+        "Equipment sponsored information is required";
     }
 
     if (!formData.equipmentEnhancement.trim()) {
-      newErrors.equipmentEnhancement = "Equipment enhancement information is required";
+      newErrors.equipmentEnhancement =
+        "Equipment enhancement information is required";
     }
 
     if (!formData.layoutDesignEnhancement.trim()) {
-      newErrors.layoutDesignEnhancement = "Layout design / enhancement information is required";
+      newErrors.layoutDesignEnhancement =
+        "Layout design / enhancement information is required";
     }
 
     if (!formData.curriculumMapping.trim()) {
@@ -212,7 +228,8 @@ export default function LaboratoryByIndustryForm() {
     }
 
     if (!formData.proofDocument || formData.proofDocument.length === 0) {
-      newErrors.proofDocument = "Proof document is required (Bills & Invoices, Sample training/equipment sponsored, Photographs, Approval Letter from the Institute)";
+      newErrors.proofDocument =
+        "Proof document is required (Bills & Invoices, Sample training/equipment sponsored, Photographs, Approval Letter from the Institute)";
     }
 
     if (!formData.owiVerification || formData.owiVerification === "") {
@@ -229,14 +246,14 @@ export default function LaboratoryByIndustryForm() {
       const API_URL = import.meta.env.VITE_API_URL;
       try {
         const submitData = new FormData();
-        
+
         // Append all text fields
         Object.keys(formData).forEach((key) => {
-          if (formData[key] !== null && key !== 'proofDocument') {
+          if (formData[key] !== null && key !== "proofDocument") {
             submitData.append(key, formData[key]);
           }
         });
-        
+
         // Append files if exists (multiple files support)
         if (formData.proofDocument && formData.proofDocument.length > 0) {
           formData.proofDocument.forEach((file) => {
@@ -249,7 +266,7 @@ export default function LaboratoryByIndustryForm() {
           body: submitData,
           credentials: "include",
         });
-        
+
         if (response.ok) {
           console.log("Form submitted successfully");
           navigate("/faculty/outside-world-interaction");
@@ -315,7 +332,9 @@ export default function LaboratoryByIndustryForm() {
                     placeholder="Enter faculty name"
                   />
                   {errors.faculty && (
-                    <p className="mt-1 text-sm text-red-600">{errors.faculty}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.faculty}
+                    </p>
                   )}
                 </div>
 
@@ -338,7 +357,9 @@ export default function LaboratoryByIndustryForm() {
                     placeholder="Enter SIG Number"
                   />
                   {errors.sigNumber && (
-                    <p className="mt-1 text-sm text-red-600">{errors.sigNumber}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.sigNumber}
+                    </p>
                   )}
                 </div>
               </div>
@@ -390,12 +411,16 @@ export default function LaboratoryByIndustryForm() {
                     value={formData.nameOfLaboratory}
                     onChange={handleChange}
                     className={`mt-1 block w-full px-3 py-2 border ${
-                      errors.nameOfLaboratory ? "border-red-500" : "border-gray-300"
+                      errors.nameOfLaboratory
+                        ? "border-red-500"
+                        : "border-gray-300"
                     } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                     placeholder="Enter laboratory name"
                   />
                   {errors.nameOfLaboratory && (
-                    <p className="mt-1 text-sm text-red-600">{errors.nameOfLaboratory}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.nameOfLaboratory}
+                    </p>
                   )}
                 </div>
 
@@ -413,12 +438,16 @@ export default function LaboratoryByIndustryForm() {
                     value={formData.collaborativeIndustry}
                     onChange={handleChange}
                     className={`mt-1 block w-full px-3 py-2 border ${
-                      errors.collaborativeIndustry ? "border-red-500" : "border-gray-300"
+                      errors.collaborativeIndustry
+                        ? "border-red-500"
+                        : "border-gray-300"
                     } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                     placeholder="Enter industry name"
                   />
                   {errors.collaborativeIndustry && (
-                    <p className="mt-1 text-sm text-red-600">{errors.collaborativeIndustry}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.collaborativeIndustry}
+                    </p>
                   )}
                 </div>
               </div>
@@ -438,12 +467,16 @@ export default function LaboratoryByIndustryForm() {
                     value={formData.domainAreaOfIndustry}
                     onChange={handleChange}
                     className={`mt-1 block w-full px-3 py-2 border ${
-                      errors.domainAreaOfIndustry ? "border-red-500" : "border-gray-300"
+                      errors.domainAreaOfIndustry
+                        ? "border-red-500"
+                        : "border-gray-300"
                     } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                     placeholder="e.g., AI/ML, Data Science, IoT"
                   />
                   {errors.domainAreaOfIndustry && (
-                    <p className="mt-1 text-sm text-red-600">{errors.domainAreaOfIndustry}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.domainAreaOfIndustry}
+                    </p>
                   )}
                 </div>
 
@@ -463,12 +496,16 @@ export default function LaboratoryByIndustryForm() {
                     min="0"
                     step="0.01"
                     className={`mt-1 block w-full px-3 py-2 border ${
-                      errors.laboratoryArea ? "border-red-500" : "border-gray-300"
+                      errors.laboratoryArea
+                        ? "border-red-500"
+                        : "border-gray-300"
                     } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                     placeholder="e.g., 100"
                   />
                   {errors.laboratoryArea && (
-                    <p className="mt-1 text-sm text-red-600">{errors.laboratoryArea}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.laboratoryArea}
+                    </p>
                   )}
                 </div>
               </div>
@@ -496,12 +533,16 @@ export default function LaboratoryByIndustryForm() {
                     onChange={handleChange}
                     min="0"
                     className={`mt-1 block w-full px-3 py-2 border ${
-                      errors.totalAmountIncurred ? "border-red-500" : "border-gray-300"
+                      errors.totalAmountIncurred
+                        ? "border-red-500"
+                        : "border-gray-300"
                     } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                     placeholder="e.g., 500000"
                   />
                   {errors.totalAmountIncurred && (
-                    <p className="mt-1 text-sm text-red-600">{errors.totalAmountIncurred}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.totalAmountIncurred}
+                    </p>
                   )}
                 </div>
 
@@ -520,12 +561,16 @@ export default function LaboratoryByIndustryForm() {
                     onChange={handleChange}
                     min="0"
                     className={`mt-1 block w-full px-3 py-2 border ${
-                      errors.bitContribution ? "border-red-500" : "border-gray-300"
+                      errors.bitContribution
+                        ? "border-red-500"
+                        : "border-gray-300"
                     } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                     placeholder="e.g., 250000"
                   />
                   {errors.bitContribution && (
-                    <p className="mt-1 text-sm text-red-600">{errors.bitContribution}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.bitContribution}
+                    </p>
                   )}
                 </div>
               </div>
@@ -546,12 +591,16 @@ export default function LaboratoryByIndustryForm() {
                     onChange={handleChange}
                     min="0"
                     className={`mt-1 block w-full px-3 py-2 border ${
-                      errors.financialSupportFromIndustry ? "border-red-500" : "border-gray-300"
+                      errors.financialSupportFromIndustry
+                        ? "border-red-500"
+                        : "border-gray-300"
                     } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                     placeholder="e.g., 250000"
                   />
                   {errors.financialSupportFromIndustry && (
-                    <p className="mt-1 text-sm text-red-600">{errors.financialSupportFromIndustry}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.financialSupportFromIndustry}
+                    </p>
                   )}
                 </div>
               </div>
@@ -578,12 +627,16 @@ export default function LaboratoryByIndustryForm() {
                     onChange={handleChange}
                     rows={3}
                     className={`mt-1 block w-full px-3 py-2 border ${
-                      errors.equipmentSponsored ? "border-red-500" : "border-gray-300"
+                      errors.equipmentSponsored
+                        ? "border-red-500"
+                        : "border-gray-300"
                     } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                     placeholder="List any equipment sponsored by the industry"
                   />
                   {errors.equipmentSponsored && (
-                    <p className="mt-1 text-sm text-red-600">{errors.equipmentSponsored}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.equipmentSponsored}
+                    </p>
                   )}
                 </div>
 
@@ -601,12 +654,16 @@ export default function LaboratoryByIndustryForm() {
                     onChange={handleChange}
                     rows={3}
                     className={`mt-1 block w-full px-3 py-2 border ${
-                      errors.equipmentEnhancement ? "border-red-500" : "border-gray-300"
+                      errors.equipmentEnhancement
+                        ? "border-red-500"
+                        : "border-gray-300"
                     } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                     placeholder="Describe any equipment enhancements"
                   />
                   {errors.equipmentEnhancement && (
-                    <p className="mt-1 text-sm text-red-600">{errors.equipmentEnhancement}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.equipmentEnhancement}
+                    </p>
                   )}
                 </div>
               </div>
@@ -625,12 +682,16 @@ export default function LaboratoryByIndustryForm() {
                   onChange={handleChange}
                   rows={3}
                   className={`mt-1 block w-full px-3 py-2 border ${
-                    errors.layoutDesignEnhancement ? "border-red-500" : "border-gray-300"
+                    errors.layoutDesignEnhancement
+                      ? "border-red-500"
+                      : "border-gray-300"
                   } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                   placeholder="Describe the layout design or enhancements made"
                 />
                 {errors.layoutDesignEnhancement && (
-                  <p className="mt-1 text-sm text-red-600">{errors.layoutDesignEnhancement}</p>
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.layoutDesignEnhancement}
+                  </p>
                 )}
               </div>
             </div>
@@ -646,7 +707,8 @@ export default function LaboratoryByIndustryForm() {
                   htmlFor="curriculumMapping"
                   className="block text-sm font-medium text-gray-700 mb-1"
                 >
-                  Curriculum Mapping (mention the course code & Name) for newly set laboratories <RequiredAst />
+                  Curriculum Mapping (mention the course code & Name) for newly
+                  set laboratories <RequiredAst />
                 </label>
                 <textarea
                   name="curriculumMapping"
@@ -655,12 +717,16 @@ export default function LaboratoryByIndustryForm() {
                   onChange={handleChange}
                   rows={3}
                   className={`mt-1 block w-full px-3 py-2 border ${
-                    errors.curriculumMapping ? "border-red-500" : "border-gray-300"
+                    errors.curriculumMapping
+                      ? "border-red-500"
+                      : "border-gray-300"
                   } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                   placeholder="e.g., CS301 - Data Structures Lab, CS401 - Machine Learning Lab"
                 />
                 {errors.curriculumMapping && (
-                  <p className="mt-1 text-sm text-red-600">{errors.curriculumMapping}</p>
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.curriculumMapping}
+                  </p>
                 )}
               </div>
 
@@ -678,12 +744,16 @@ export default function LaboratoryByIndustryForm() {
                   onChange={handleChange}
                   rows={3}
                   className={`mt-1 block w-full px-3 py-2 border ${
-                    errors.expectedOutcomes ? "border-red-500" : "border-gray-300"
+                    errors.expectedOutcomes
+                      ? "border-red-500"
+                      : "border-gray-300"
                   } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                   placeholder="Describe the expected outcomes of the laboratory"
                 />
                 {errors.expectedOutcomes && (
-                  <p className="mt-1 text-sm text-red-600">{errors.expectedOutcomes}</p>
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.expectedOutcomes}
+                  </p>
                 )}
               </div>
             </div>
@@ -696,15 +766,17 @@ export default function LaboratoryByIndustryForm() {
               </h3>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Proof : (Bills & Invoices, Sample training/equipment sponsored, Photographs, Approval Letter from the Institute) <RequiredAst />
+                  Proof : (Bills & Invoices, Sample training/equipment
+                  sponsored, Photographs, Approval Letter from the Institute){" "}
+                  <RequiredAst />
                 </label>
                 <div
                   className={`mt-1 flex flex-col items-center justify-center w-full h-32 px-6 pt-5 pb-6 border-2 ${
                     errors.proofDocument
                       ? "border-red-500"
                       : dragActive
-                      ? "border-indigo-500 bg-indigo-50"
-                      : "border-gray-300"
+                        ? "border-indigo-500 bg-indigo-50"
+                        : "border-gray-300"
                   } border-dashed rounded-md cursor-pointer hover:border-indigo-500 transition-colors bg-white`}
                   onDragEnter={(e) => handleDrag(e, setDragActive)}
                   onDragLeave={(e) => handleDrag(e, setDragActive)}
@@ -719,15 +791,14 @@ export default function LaboratoryByIndustryForm() {
                       }`}
                     />
                     <div className="flex text-sm text-gray-600">
-                      <label
-                        htmlFor="proof-upload"
-                        className="cursor-pointer rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none"
-                      >
-                        <span>Upload files</span>
-                      </label>
+                      <span className="cursor-pointer rounded-md font-medium text-indigo-600 hover:text-indigo-500">
+                        Upload files
+                      </span>
                       <p className="pl-1">or drag and drop</p>
                     </div>
-                    <p className="text-xs text-gray-500">PDF, DOC, DOCX, JPG, PNG up to 10MB</p>
+                    <p className="text-xs text-gray-500">
+                      PDF, DOC, DOCX, JPG, PNG up to 10MB
+                    </p>
                   </div>
                 </div>
                 <input
@@ -735,40 +806,47 @@ export default function LaboratoryByIndustryForm() {
                   id="proof-upload"
                   name="proofDocument"
                   type="file"
-                  className="hidden"
+                  style={{ position: "absolute", left: "-9999px", opacity: 0 }}
                   multiple
+                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                   onChange={(e) => handleFileChange(e, "proofDocument")}
                 />
-                {formData.proofDocument && formData.proofDocument.length > 0 && (
-                  <div className="mt-2 space-y-2">
-                    {formData.proofDocument.map((file, index) => (
-                      <div key={index} className="flex items-center text-sm text-gray-600 bg-gray-50 p-2 rounded-md border border-gray-200">
-                        <FileText
-                          size={16}
-                          className="mr-2 flex-shrink-0 text-indigo-600"
-                        />
-                        <span className="font-medium mr-2 truncate flex-1">
-                          {file.name}
-                        </span>
-                        <span className="text-xs text-gray-400 mr-2">
-                          {(file.size / 1024).toFixed(1)} KB
-                        </span>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            clearFile("proofDocument", index);
-                          }}
-                          className="ml-auto text-red-500 hover:text-red-700 p-1"
+                {formData.proofDocument &&
+                  formData.proofDocument.length > 0 && (
+                    <div className="mt-2 space-y-2">
+                      {formData.proofDocument.map((file, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center text-sm text-gray-600 bg-gray-50 p-2 rounded-md border border-gray-200"
                         >
-                          <X size={16} />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                          <FileText
+                            size={16}
+                            className="mr-2 flex-shrink-0 text-indigo-600"
+                          />
+                          <span className="font-medium mr-2 truncate flex-1">
+                            {file.name}
+                          </span>
+                          <span className="text-xs text-gray-400 mr-2">
+                            {(file.size / 1024).toFixed(1)} KB
+                          </span>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              clearFile("proofDocument", index);
+                            }}
+                            className="ml-auto text-red-500 hover:text-red-700 p-1"
+                          >
+                            <X size={16} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 {errors.proofDocument && (
-                  <p className="mt-1 text-sm text-red-600">{errors.proofDocument}</p>
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.proofDocument}
+                  </p>
                 )}
               </div>
             </div>
@@ -793,7 +871,9 @@ export default function LaboratoryByIndustryForm() {
                     value={formData.owiVerification}
                     onChange={handleChange}
                     className={`mt-1 block w-full px-3 py-2 h-10 border ${
-                      errors.owiVerification ? "border-red-500" : "border-gray-300"
+                      errors.owiVerification
+                        ? "border-red-500"
+                        : "border-gray-300"
                     } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                   >
                     {owiVerificationOptions.map((option) => (
@@ -807,7 +887,9 @@ export default function LaboratoryByIndustryForm() {
                     ))}
                   </select>
                   {errors.owiVerification && (
-                    <p className="mt-1 text-sm text-red-600">{errors.owiVerification}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.owiVerification}
+                    </p>
                   )}
                 </div>
               </div>
@@ -836,4 +918,3 @@ export default function LaboratoryByIndustryForm() {
     </div>
   );
 }
-
