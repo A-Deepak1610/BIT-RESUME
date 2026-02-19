@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
   Handshake,
@@ -25,7 +26,6 @@ import {
   MapPin
 } from "lucide-react";
 import useAuth from "../../../store/UseAuth";
-import OutsideWorldModal from "./OutsideWorldModal";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -89,7 +89,7 @@ export default function OutsideWorldInteraction() {
   const [activeTab, setActiveTab] = useState("overview");
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
-  const [openModal, setOpenModal] = useState(false);
+  const navigate = useNavigate();
   const [interactions, setInteractions] = useState({
     mou: [],
     irpVisit: [],
@@ -645,7 +645,26 @@ export default function OutsideWorldInteraction() {
             </div>
             <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
               <button
-                onClick={() => setOpenModal(true)}
+                onClick={() => {
+                  const routeMap = {
+                    mou: "/faculty/outside-world/mou",
+                    irpVisit: "/faculty/outside-world/irp-visit",
+                    consultancy: "/faculty/outside-world/consultancy",
+                    externalVipVisit: "/faculty/outside-world/external-vip-visit",
+                    facultyIndustryProjects: "/faculty/outside-world/faculty-industry-projects",
+                    coe: "/faculty/outside-world/coe",
+                    facultyTrainedByIndustry: "/faculty/outside-world/faculty-trained-by-industry",
+                    industryAdvisors: "/faculty/outside-world/industry-advisors",
+                    laboratoryDevelopedByIndustry: "/faculty/outside-world/laboratory-by-industry",
+                    studentsIndustrialVisit: "/faculty/outside-world/students-industrial-visit",
+                    technicalSocieties: "/faculty/outside-world/technical-societies",
+                    trainingToIndustry: "/faculty/outside-world/training-to-industry",
+                    professionalBodyMembership: "/faculty/outside-world/professional-membership",
+                  };
+                  if (routeMap[activeTab]) {
+                    navigate(routeMap[activeTab]);
+                  }
+                }}
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center justify-center sm:justify-start shadow-sm transition-all"
               >
                 <Plus className="h-4 w-4 mr-2" />
@@ -700,12 +719,6 @@ export default function OutsideWorldInteraction() {
         {/* Tab Content */}
         {renderTabContent()}
       </div>
-
-      {/* Modal */}
-      <OutsideWorldModal
-        open={openModal}
-        handleClose={() => setOpenModal(false)}
-      />
     </div>
   );
 }
