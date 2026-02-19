@@ -698,7 +698,7 @@ export default function NavBar() {
     <>
       <div className="flex items-center text-2xl font-semibold text-primary justify-center mt-5">
         <img src={logo_main} alt="LOGO" className="w-7 h-7 rounded-full mr-2" />
-        <p>BIT RESUME</p>
+        <p>BIT ACHIEVEMENTS</p>
       </div>
       <aside className="w-[220px] overflow-x-hidden bg-white shadow-md h-full flex flex-col mt-[-5px] justify-between p-4">
         {renderDrawerContent()}
@@ -725,7 +725,7 @@ export default function NavBar() {
           <div className="block lg:hidden mb-1 ml-2 cursor-pointer">
             <DehazeIcon onClick={toggleDrawer(true)} />
           </div>
-          <p className="lg:ml-0 ml-2">BIT RESUME</p>
+          <p className="lg:ml-0 ml-2">BIT </p>
         </div>
         <div className="flex items-center gap-4 px-6">
           {/* <div

@@ -19,6 +19,7 @@ import {
   Mail,
   ShieldCheck,
 } from "lucide-react";
+import SpecialLabDropdown from "../../../../components/shared/SpecialLabDropdown";
 
 const RequiredAst = () => <span className="text-red-500 ml-0.5">*</span>;
 
@@ -107,7 +108,7 @@ export default function IndustryAdvisorForm() {
     if (e.target.files && e.target.files.length > 0) {
       setFormData((prev) => ({
         ...prev,
-        [fieldName]: [...prev[fieldName], ...Array.from(e.target.files)]
+        [fieldName]: [...prev[fieldName], ...Array.from(e.target.files)],
       }));
       if (errors[fieldName]) {
         setErrors((prev) => {
@@ -153,7 +154,7 @@ export default function IndustryAdvisorForm() {
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       setFormData((prev) => ({
         ...prev,
-        [fieldName]: [...prev[fieldName], ...Array.from(e.dataTransfer.files)]
+        [fieldName]: [...prev[fieldName], ...Array.from(e.dataTransfer.files)],
       }));
       if (errors[fieldName]) {
         setErrors((prev) => {
@@ -177,18 +178,25 @@ export default function IndustryAdvisorForm() {
     }
 
     if (!formData.industryName.trim()) {
-      newErrors.industryName = "Name of the Industry / Organization is required";
+      newErrors.industryName =
+        "Name of the Industry / Organization is required";
     }
 
     if (!formData.domainArea.trim()) {
       newErrors.domainArea = "Domain Area of the Industry is required";
     }
 
-    if (!formData.industryType || formData.industryType === "Choose an option") {
+    if (
+      !formData.industryType ||
+      formData.industryType === "Choose an option"
+    ) {
       newErrors.industryType = "Type of Industry / Organization is required";
     }
 
-    if (formData.industryType === "Others" && !formData.industryTypeOther.trim()) {
+    if (
+      formData.industryType === "Others" &&
+      !formData.industryTypeOther.trim()
+    ) {
       newErrors.industryTypeOther = "Please specify the industry type";
     }
 
@@ -237,7 +245,8 @@ export default function IndustryAdvisorForm() {
     }
 
     if (!formData.approvalDocument || formData.approvalDocument.length === 0) {
-      newErrors.approvalDocument = "Approval Letter / Minutes of meeting / Sample / Photographs / Collaborative activities document is required";
+      newErrors.approvalDocument =
+        "Approval Letter / Minutes of meeting / Sample / Photographs / Collaborative activities document is required";
     }
 
     setErrors(newErrors);
@@ -250,14 +259,14 @@ export default function IndustryAdvisorForm() {
       const API_URL = import.meta.env.VITE_API_URL;
       try {
         const submitData = new FormData();
-        
+
         // Append all text fields
         Object.keys(formData).forEach((key) => {
-          if (formData[key] !== null && key !== 'approvalDocument') {
+          if (formData[key] !== null && key !== "approvalDocument") {
             submitData.append(key, formData[key]);
           }
         });
-        
+
         // Append files if exists (multiple files support)
         if (formData.approvalDocument && formData.approvalDocument.length > 0) {
           formData.approvalDocument.forEach((file) => {
@@ -270,7 +279,7 @@ export default function IndustryAdvisorForm() {
           body: submitData,
           credentials: "include",
         });
-        
+
         if (response.ok) {
           console.log("Form submitted successfully");
           navigate("/faculty/outside-world-interaction");
@@ -336,7 +345,9 @@ export default function IndustryAdvisorForm() {
                     placeholder="Enter faculty name"
                   />
                   {errors.faculty && (
-                    <p className="mt-1 text-sm text-red-600">{errors.faculty}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.faculty}
+                    </p>
                   )}
                 </div>
 
@@ -359,7 +370,9 @@ export default function IndustryAdvisorForm() {
                     placeholder="Enter SIG Number"
                   />
                   {errors.sigNumber && (
-                    <p className="mt-1 text-sm text-red-600">{errors.sigNumber}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.sigNumber}
+                    </p>
                   )}
                 </div>
               </div>
@@ -393,14 +406,13 @@ export default function IndustryAdvisorForm() {
                     >
                       Special Lab Name
                     </label>
-                    <input
-                      type="text"
+                    <SpecialLabDropdown
                       name="specialLab"
                       id="specialLab"
                       value={formData.specialLab}
                       onChange={handleChange}
+                      placeholder="Select Special Lab"
                       className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                      placeholder="Enter special lab name"
                     />
                   </div>
                 )}
@@ -433,7 +445,9 @@ export default function IndustryAdvisorForm() {
                     placeholder="Enter industry/organization name"
                   />
                   {errors.industryName && (
-                    <p className="mt-1 text-sm text-red-600">{errors.industryName}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.industryName}
+                    </p>
                   )}
                 </div>
 
@@ -456,7 +470,9 @@ export default function IndustryAdvisorForm() {
                     placeholder="e.g., AI/ML, Finance, Healthcare"
                   />
                   {errors.domainArea && (
-                    <p className="mt-1 text-sm text-red-600">{errors.domainArea}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.domainArea}
+                    </p>
                   )}
                 </div>
               </div>
@@ -489,7 +505,9 @@ export default function IndustryAdvisorForm() {
                     ))}
                   </select>
                   {errors.industryType && (
-                    <p className="mt-1 text-sm text-red-600">{errors.industryType}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.industryType}
+                    </p>
                   )}
                 </div>
 
@@ -508,12 +526,16 @@ export default function IndustryAdvisorForm() {
                       value={formData.industryTypeOther}
                       onChange={handleChange}
                       className={`mt-1 block w-full px-3 py-2 border ${
-                        errors.industryTypeOther ? "border-red-500" : "border-gray-300"
+                        errors.industryTypeOther
+                          ? "border-red-500"
+                          : "border-gray-300"
                       } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                       placeholder="Please specify"
                     />
                     {errors.industryTypeOther && (
-                      <p className="mt-1 text-sm text-red-600">{errors.industryTypeOther}</p>
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.industryTypeOther}
+                      </p>
                     )}
                   </div>
                 )}
@@ -546,7 +568,9 @@ export default function IndustryAdvisorForm() {
                     placeholder="Enter expert's full name"
                   />
                   {errors.expertName && (
-                    <p className="mt-1 text-sm text-red-600">{errors.expertName}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.expertName}
+                    </p>
                   )}
                 </div>
 
@@ -569,7 +593,9 @@ export default function IndustryAdvisorForm() {
                     placeholder="e.g., Senior Manager, CTO, Director"
                   />
                   {errors.designation && (
-                    <p className="mt-1 text-sm text-red-600">{errors.designation}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.designation}
+                    </p>
                   )}
                 </div>
               </div>
@@ -594,7 +620,9 @@ export default function IndustryAdvisorForm() {
                     placeholder="expert@company.com"
                   />
                   {errors.emailId && (
-                    <p className="mt-1 text-sm text-red-600">{errors.emailId}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.emailId}
+                    </p>
                   )}
                 </div>
 
@@ -617,7 +645,9 @@ export default function IndustryAdvisorForm() {
                     placeholder="10-digit phone number"
                   />
                   {errors.phoneNumber && (
-                    <p className="mt-1 text-sm text-red-600">{errors.phoneNumber}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.phoneNumber}
+                    </p>
                   )}
                 </div>
               </div>
@@ -638,12 +668,16 @@ export default function IndustryAdvisorForm() {
                     onChange={handleChange}
                     min="0"
                     className={`mt-1 block w-full px-3 py-2 border ${
-                      errors.experienceYears ? "border-red-500" : "border-gray-300"
+                      errors.experienceYears
+                        ? "border-red-500"
+                        : "border-gray-300"
                     } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                     placeholder="e.g., 10"
                   />
                   {errors.experienceYears && (
-                    <p className="mt-1 text-sm text-red-600">{errors.experienceYears}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.experienceYears}
+                    </p>
                   )}
                 </div>
 
@@ -661,12 +695,16 @@ export default function IndustryAdvisorForm() {
                     value={formData.areaOfExpertise}
                     onChange={handleChange}
                     className={`mt-1 block w-full px-3 py-2 border ${
-                      errors.areaOfExpertise ? "border-red-500" : "border-gray-300"
+                      errors.areaOfExpertise
+                        ? "border-red-500"
+                        : "border-gray-300"
                     } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                     placeholder="e.g., Machine Learning, Cloud Computing"
                   />
                   {errors.areaOfExpertise && (
-                    <p className="mt-1 text-sm text-red-600">{errors.areaOfExpertise}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.areaOfExpertise}
+                    </p>
                   )}
                 </div>
               </div>
@@ -692,12 +730,16 @@ export default function IndustryAdvisorForm() {
                   onChange={handleChange}
                   rows={3}
                   className={`mt-1 block w-full px-3 py-2 border ${
-                    errors.industryAddress ? "border-red-500" : "border-gray-300"
+                    errors.industryAddress
+                      ? "border-red-500"
+                      : "border-gray-300"
                   } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                   placeholder="Enter complete address of the industry/organization"
                 />
                 {errors.industryAddress && (
-                  <p className="mt-1 text-sm text-red-600">{errors.industryAddress}</p>
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.industryAddress}
+                  </p>
                 )}
               </div>
 
@@ -743,12 +785,16 @@ export default function IndustryAdvisorForm() {
                     min="1"
                     max="60"
                     className={`mt-1 block w-full px-3 py-2 border ${
-                      errors.frequencyOfInteraction ? "border-red-500" : "border-gray-300"
+                      errors.frequencyOfInteraction
+                        ? "border-red-500"
+                        : "border-gray-300"
                     } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                     placeholder="Enter frequency in months"
                   />
                   {errors.frequencyOfInteraction && (
-                    <p className="mt-1 text-sm text-red-600">{errors.frequencyOfInteraction}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.frequencyOfInteraction}
+                    </p>
                   )}
                 </div>
 
@@ -766,11 +812,15 @@ export default function IndustryAdvisorForm() {
                     value={formData.dateOfMeeting}
                     onChange={handleChange}
                     className={`mt-1 block w-full px-3 py-2 border ${
-                      errors.dateOfMeeting ? "border-red-500" : "border-gray-300"
+                      errors.dateOfMeeting
+                        ? "border-red-500"
+                        : "border-gray-300"
                     } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                   />
                   {errors.dateOfMeeting && (
-                    <p className="mt-1 text-sm text-red-600">{errors.dateOfMeeting}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.dateOfMeeting}
+                    </p>
                   )}
                 </div>
               </div>
@@ -790,12 +840,16 @@ export default function IndustryAdvisorForm() {
                   onChange={handleChange}
                   min="0"
                   className={`mt-1 block w-full px-3 py-2 border ${
-                    errors.expenseIncurred ? "border-red-500" : "border-gray-300"
+                    errors.expenseIncurred
+                      ? "border-red-500"
+                      : "border-gray-300"
                   } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                   placeholder="Enter expense in Rs."
                 />
                 {errors.expenseIncurred && (
-                  <p className="mt-1 text-sm text-red-600">{errors.expenseIncurred}</p>
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.expenseIncurred}
+                  </p>
                 )}
               </div>
             </div>
@@ -851,20 +905,23 @@ export default function IndustryAdvisorForm() {
               </h3>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Approval Letter from BIT Minutes of meeting Sample, Photographs, Collaborative activities if any <RequiredAst />
+                  Approval Letter from BIT Minutes of meeting Sample,
+                  Photographs, Collaborative activities if any <RequiredAst />
                 </label>
                 <div
                   className={`mt-1 flex flex-col items-center justify-center w-full h-32 px-6 pt-5 pb-6 border-2 ${
                     errors.approvalDocument
                       ? "border-red-500"
                       : dragActive
-                      ? "border-indigo-500 bg-indigo-50"
-                      : "border-gray-300"
+                        ? "border-indigo-500 bg-indigo-50"
+                        : "border-gray-300"
                   } border-dashed rounded-md cursor-pointer hover:border-indigo-500 transition-colors bg-white`}
                   onDragEnter={(e) => handleDrag(e, setDragActive)}
                   onDragLeave={(e) => handleDrag(e, setDragActive)}
                   onDragOver={(e) => handleDrag(e, setDragActive)}
-                  onDrop={(e) => handleDrop(e, "approvalDocument", setDragActive)}
+                  onDrop={(e) =>
+                    handleDrop(e, "approvalDocument", setDragActive)
+                  }
                   onClick={() => document.getElementById("doc-upload").click()}
                 >
                   <div className="space-y-1 text-center">
@@ -886,44 +943,54 @@ export default function IndustryAdvisorForm() {
                           type="file"
                           className="sr-only"
                           multiple
-                          onChange={(e) => handleFileChange(e, "approvalDocument")}
+                          onChange={(e) =>
+                            handleFileChange(e, "approvalDocument")
+                          }
                         />
                       </label>
                       <p className="pl-1">or drag and drop</p>
                     </div>
-                    <p className="text-xs text-gray-500">PDF, DOC, DOCX, JPG, PNG up to 10MB</p>
+                    <p className="text-xs text-gray-500">
+                      PDF, DOC, DOCX, JPG, PNG up to 10MB
+                    </p>
                   </div>
                 </div>
-                {formData.approvalDocument && formData.approvalDocument.length > 0 && (
-                  <div className="mt-2 space-y-2">
-                    {formData.approvalDocument.map((file, index) => (
-                      <div key={index} className="flex items-center text-sm text-gray-600 bg-gray-50 p-2 rounded-md border border-gray-200">
-                        <FileText
-                          size={16}
-                          className="mr-2 flex-shrink-0 text-indigo-600"
-                        />
-                        <span className="font-medium mr-2 truncate flex-1">
-                          {file.name}
-                        </span>
-                        <span className="text-xs text-gray-400 mr-2">
-                          {(file.size / 1024).toFixed(1)} KB
-                        </span>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            clearFile("approvalDocument", index);
-                          }}
-                          className="ml-auto text-red-500 hover:text-red-700 p-1"
+                {formData.approvalDocument &&
+                  formData.approvalDocument.length > 0 && (
+                    <div className="mt-2 space-y-2">
+                      {formData.approvalDocument.map((file, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center text-sm text-gray-600 bg-gray-50 p-2 rounded-md border border-gray-200"
                         >
-                          <X size={16} />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                          <FileText
+                            size={16}
+                            className="mr-2 flex-shrink-0 text-indigo-600"
+                          />
+                          <span className="font-medium mr-2 truncate flex-1">
+                            {file.name}
+                          </span>
+                          <span className="text-xs text-gray-400 mr-2">
+                            {(file.size / 1024).toFixed(1)} KB
+                          </span>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              clearFile("approvalDocument", index);
+                            }}
+                            className="ml-auto text-red-500 hover:text-red-700 p-1"
+                          >
+                            <X size={16} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 {errors.approvalDocument && (
-                  <p className="mt-1 text-sm text-red-600">{errors.approvalDocument}</p>
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.approvalDocument}
+                  </p>
                 )}
               </div>
             </div>
@@ -986,4 +1053,3 @@ export default function IndustryAdvisorForm() {
     </div>
   );
 }
-

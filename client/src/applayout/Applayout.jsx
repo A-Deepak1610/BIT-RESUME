@@ -276,7 +276,7 @@ export default function Applayout() {
 function ConsultancyRoleRouter() {
   const { user } = useAuth();
   const role = user?.role;
-
+  
   if (!user)
     return (
       <div className="p-8">
