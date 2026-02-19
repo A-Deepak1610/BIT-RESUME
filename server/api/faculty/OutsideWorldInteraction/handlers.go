@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -40,6 +41,43 @@ func UploadFile(c *gin.Context, formKey string) (string, error) {
 	return filepath, nil
 }
 
+// UploadMultipleFiles handles multiple file uploads and returns comma-separated file paths
+func UploadMultipleFiles(c *gin.Context, formKey string) (string, error) {
+	form, err := c.MultipartForm()
+	if err != nil {
+		return "", nil // No multipart form, that's okay
+	}
+
+	files := form.File[formKey]
+	if len(files) == 0 {
+		return "", nil // No files uploaded
+	}
+
+	// Create uploads directory if it doesn't exist
+	uploadDir := "./uploads/owi"
+	if err := os.MkdirAll(uploadDir, 0755); err != nil {
+		return "", err
+	}
+
+	var filePaths []string
+	for i, file := range files {
+		// Generate unique filename
+		ext := filepath.Ext(file.Filename)
+		timestamp := time.Now().UnixNano()
+		filename := fmt.Sprintf("%d_%s_%d%s", timestamp, formKey, i, ext)
+		filePath := filepath.Join(uploadDir, filename)
+
+		// Save file
+		if err := c.SaveUploadedFile(file, filePath); err != nil {
+			log.Printf("Error saving file %s: %v", file.Filename, err)
+			continue
+		}
+		filePaths = append(filePaths, filePath)
+	}
+
+	return strings.Join(filePaths, ","), nil
+}
+
 // nullString helper for handling nullable strings
 func nullString(s string) interface{} {
 	if s == "" {
@@ -62,7 +100,7 @@ func HandleIndustryAdvisorPost(c *gin.Context) {
 
 	approvalDoc, _ := UploadFile(c, "approvalDocument")
 
-	query := `INSERT INTO industry_advisor (faculty, sig_number, special_labs_involved, special_lab, industry_name, domain_area, industry_type, industry_type_other, expert_name, designation, email_id, phone_number, experience_years, area_of_expertise, industry_address, industry_website, frequency_of_interaction, date_of_meeting, expense_incurred, suggestions, collaborative_activities, approval_document, owi_verification) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+	query := `INSERT INTO industry_advisor (faculty, sig_number, special_labs_involved, special_lab, industry_name, domain_area, industry_type, industry_type_other, expert_name, designation, email_id, phone_number, experience_years, area_of_expertise, industry_address, industry_website, frequency_of_interaction, date_of_meeting, expense_incurred, suggestions, collaborative_activities, approval_document, owi_verification) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
 	_, err := config.DB.Exec(query,
 		facultyID,
@@ -107,7 +145,7 @@ func HandleIndustryAdvisorGet(c *gin.Context) {
 		return
 	}
 
-	query := `SELECT * FROM industry_advisor WHERE faculty = ? ORDER BY created_at DESC`
+	query := `SELECT id, COALESCE(faculty, ''), COALESCE(sig_number, ''), COALESCE(special_labs_involved, ''), COALESCE(special_lab, ''), COALESCE(industry_name, ''), COALESCE(domain_area, ''), COALESCE(industry_type, ''), COALESCE(industry_type_other, ''), COALESCE(expert_name, ''), COALESCE(designation, ''), COALESCE(email_id, ''), COALESCE(phone_number, ''), COALESCE(experience_years, ''), COALESCE(area_of_expertise, ''), COALESCE(industry_address, ''), COALESCE(industry_website, ''), COALESCE(frequency_of_interaction, ''), COALESCE(date_of_meeting, ''), COALESCE(expense_incurred, 0), COALESCE(suggestions, ''), COALESCE(collaborative_activities, ''), COALESCE(approval_document, ''), COALESCE(owi_verification, ''), COALESCE(created_at, NOW()), COALESCE(updated_at, NOW()) FROM industry_advisor WHERE faculty = ? ORDER BY created_at DESC`
 
 	rows, err := config.DB.Query(query, facultyID)
 	if err != nil {
@@ -257,9 +295,9 @@ func HandleLaboratoryByIndustryPost(c *gin.Context) {
 		return
 	}
 
-	proofDoc, _ := UploadFile(c, "proofDocument")
+	proofDoc, _ := UploadMultipleFiles(c, "proofDocument")
 
-	query := `INSERT INTO laboratory_by_industry (faculty, sig_number, task_id, name_of_laboratory, collaborative_industry, domain_area_of_industry, laboratory_area, total_amount_incurred, bit_contribution, financial_support_from_industry, equipment_sponsored, equipment_enhancement, layout_design_enhancement, curriculum_mapping, expected_outcomes, proof_document, owi_verification) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+	query := `INSERT INTO laboratory_by_industry (faculty, sig_number, task_id, name_of_laboratory, collaborative_industry, domain_area_of_industry, laboratory_area, total_amount_incurred, bit_contribution, financial_support_from_industry, equipment_sponsored, equipment_enhancement, layout_design_enhancement, curriculum_mapping, expected_outcomes, proof_document, owi_verification) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
 	_, err := config.DB.Exec(query,
 		facultyID,
@@ -298,7 +336,7 @@ func HandleLaboratoryByIndustryGet(c *gin.Context) {
 		return
 	}
 
-	query := `SELECT * FROM laboratory_by_industry WHERE faculty = ? ORDER BY created_at DESC`
+	query := `SELECT id, COALESCE(faculty, ''), COALESCE(sig_number, ''), COALESCE(task_id, ''), COALESCE(name_of_laboratory, ''), COALESCE(collaborative_industry, ''), COALESCE(domain_area_of_industry, ''), COALESCE(laboratory_area, 0), COALESCE(total_amount_incurred, 0), COALESCE(bit_contribution, 0), COALESCE(financial_support_from_industry, 0), COALESCE(equipment_sponsored, ''), COALESCE(equipment_enhancement, ''), COALESCE(layout_design_enhancement, ''), COALESCE(curriculum_mapping, ''), COALESCE(expected_outcomes, ''), COALESCE(proof_document, ''), COALESCE(owi_verification, ''), COALESCE(created_at, NOW()), COALESCE(updated_at, NOW()) FROM laboratory_by_industry WHERE faculty = ? ORDER BY created_at DESC`
 
 	rows, err := config.DB.Query(query, facultyID)
 	if err != nil {
