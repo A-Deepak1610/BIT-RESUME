@@ -74,7 +74,7 @@ const EventDetailModal1 = ({ isOpen, onClose, eventData, onDelete }) => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch(`http://localhost:6001/api/events/fetchregisteredteams/${eventCode}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}api/events/fetchregisteredteams/${eventCode}`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

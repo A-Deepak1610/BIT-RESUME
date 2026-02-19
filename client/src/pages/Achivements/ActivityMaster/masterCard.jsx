@@ -2,7 +2,7 @@ import React from "react";
 import master from "../../../assets/ActivityMaster/master.jpg"; 
 import { MapPin, Trophy, Users } from "lucide-react";
 
-const BACKEND_URL = "http://localhost:6001";
+const BACKEND_URL = import.meta.env.VITE_API_URL;
 const MasterCard = ({ data, onCardClick }) => {
   if (!data || data.length === 0) {
     return (
@@ -14,7 +14,7 @@ const MasterCard = ({ data, onCardClick }) => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-4">
       {data.map((item) => {
-        const imageUrl = item.image_url ? `${BACKEND_URL}/${item.image_url}` : master;
+        const imageUrl = item.image_url ? `${BACKEND_URL}${item.image_url}` : master;
 
         return (
           <div

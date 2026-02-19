@@ -22,7 +22,7 @@ const ActivityMaster = () => {
 
   const [limit, setLimit] = useState(25);
   const [offset, setOffset] = useState(0);
-
+  const API_URL = import.meta.env.VITE_API_URL
   const { rollno } = useAuth();
 
   useEffect(() => {
@@ -45,7 +45,7 @@ const ActivityMaster = () => {
     try {
       // FIXED: Restored limit and offset to ensure pagination works correctly.
       const response = await fetch(
-        `http://localhost:6001/api/activitymaster/fetch?limit=${limit}&offset=${offset}`,
+        `${API_URL}api/activitymaster/fetch?limit=${limit}&offset=${offset}`,
         { credentials: "include" }
       );
       if (!response.ok) throw new Error("Network response was not ok for activities");
@@ -59,7 +59,7 @@ const ActivityMaster = () => {
   const fetchSurveyData = async () => {
     try {
       const response = await fetch(
-        `http://localhost:6001/api/activitymaster/getsurveydata`,
+        `${API_URL}api/activitymaster/getsurveydata`,
         { credentials: "include" }
       );
       if (!response.ok) throw new Error("Network response was not ok for survey data");
@@ -87,7 +87,7 @@ const ActivityMaster = () => {
   const fetchMeetingAndSessionData = async () => {
     try {
       const response = await fetch(
-        `http://localhost:6001/api/activitymaster/getsessiondata`,
+        `${API_URL}api/activitymaster/getsessiondata`,
         { credentials: "include" }
       );
       if (!response.ok) throw new Error("Network response was not ok for meeting/session data");
@@ -259,8 +259,6 @@ const ActivityMaster = () => {
         <div className="mb-6 border-b border-gray-200">
           <nav className="flex -mb-px space-x-1">
             <TabButton label="Activities" value="activities" />
-            <TabButton label="Surveys" value="surveys" />
-            <TabButton label="Meetings/Sessions" value="meetings" />
           </nav>
         </div>
 

@@ -21,7 +21,7 @@ const RequestCard = ({ data, onApprove, onReject }) => {
   const [currentStatus, setCurrentStatus] = useState(data?.status || "Pending");
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
-  
+  const API_URL = import.meta.env.VITE_API_URL
   const {rollno} = useAuth();
   // const rollno = '7376242AD137';
 
@@ -32,7 +32,7 @@ const RequestCard = ({ data, onApprove, onReject }) => {
   console.log("RequestCard data:", data);
 
   const imgSrc = data.imageUrl 
-    ? `http://localhost:6001/${data.imageUrl}` 
+    ? `${API_URL}${data.imageUrl}` 
     : defaultEventImage;
   const requestedBy = data["Requested By"];
 
@@ -47,7 +47,7 @@ const RequestCard = ({ data, onApprove, onReject }) => {
         teamCode,
         action,
         reason,
-        url: `http://localhost:6001/api/events/registered_events/approve_reject/`
+        url: `${API_URL}api/events/registered_events/approve_reject/`
       });
 
       const requestBody = {
@@ -63,7 +63,7 @@ const RequestCard = ({ data, onApprove, onReject }) => {
       }
 
       const response = await fetch(
-        `http://localhost:6001/api/events/registered_events/approve_reject`,
+        `${API_URL}api/events/registered_events/approve_reject`,
         {
           method: "PUT",
           headers: {

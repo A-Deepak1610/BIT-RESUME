@@ -15,6 +15,7 @@ export default function ProgressGraph() {
   const [progressData, setProgressData] = useState(initialProgress);
   const [yAxisMax, setYAxisMax] = useState(30); // Default max for the Y-axis
   const {rollno} = useAuth(); // Assuming useAuth provides the roll number, though not used here
+  const API_BASE = import.meta.env.VITE_API_URL;
   useEffect(() => {
     // This function fetches data from both APIs and calculates the total counts.
     const fetchAndProcessData = async () => {
@@ -22,8 +23,8 @@ export default function ProgressGraph() {
         // Fetch both datasets in parallel for better performance.
         // NOTE: The '/approvels' endpoint is called without a rollno to get all data, as requested.
         const [approvalsResponse, verificationsResponse] = await Promise.all([
-          axios.get(`http://localhost:6001/api/manageactivities/approvels/${rollno}`, { withCredentials: true }),
-          axios.get('http://localhost:6001/api/studentrequests/varifications', { withCredentials: true })
+          axios.get(`${API_BASE}api/manageactivities/approvels/${rollno}`, { withCredentials: true }),
+          axios.get(`${API_BASE}api/studentrequests/varifications`, { withCredentials: true })
         ]);
 
         const approvalsData = approvalsResponse.data || [];

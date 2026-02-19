@@ -11,6 +11,7 @@ export default function Projects(props) {
   const [hoveredIndex, setHoveredIndex] = useState(null);
   const { rollno } = useAuth(); // Assuming useAuth provides a rollno, even if dummy, it won't trigger the fetch.
   const student_rollno = props.rollno || '-';
+  const API_URL = import.meta.env.VITE_API_URL;
   // The useEffect for fetching data is commented out or removed for dummy data
   useEffect(() => {
     if (!rollno) {
@@ -22,7 +23,7 @@ export default function Projects(props) {
       setError(null);
 
       try {
-        const response = await fetch(`http://localhost:6001/api/resume/getprojects/${student_rollno}`, {
+        const response = await fetch(`${API_URL}api/resume/getprojects/${student_rollno}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",

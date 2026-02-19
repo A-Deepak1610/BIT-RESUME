@@ -11,12 +11,13 @@ export default function ResumeDraft() {
     const [expandedYears, setExpandedYears] = useState({});
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const API_URL = import.meta.env.VITE_API_URL;
     useEffect(() => {
         const handleStudentsData = async () => {
             if (!rollno) return;
             try {
                 setLoading(true);
-                const response = await fetch(`http://localhost:6001/api/studentdata/fetchmentees`, {
+                const response = await fetch(`${API_URL}api/studentdata/fetchmentees`, {
                     method: "GET",
                     headers: { "Content-Type": "application/json" },
                     credentials: "include",

@@ -651,7 +651,7 @@ const SeminarOrWorkshop = ({ onBack, initialData = {} }) => {
 
 
         try {
-            const response = await axios.post('http://localhost:6001/api/workshops', payload, {
+            const response = await axios.post(`${import.meta.env.VITE_API_URL}api/workshops`, payload, {
               withCredentials: true,
             });
            

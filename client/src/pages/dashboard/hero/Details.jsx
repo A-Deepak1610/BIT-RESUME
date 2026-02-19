@@ -16,7 +16,7 @@ export default function Details() {
     fetchUser();
   }, []);
   const [rank, setRank] = useState("Not Available");
-  const [rewardPoints, setRewardPoints] = useState(0);
+  const [rewardPoints, setRewardPoints] = useState('-');
   const [achievementPoints, setAchievementPoints] = useState(0.0);
   const [creditDays, setCreditDays] = useState(0);
   const [penaltyDays, setPenaltyDays] = useState(0);

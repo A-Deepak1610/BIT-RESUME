@@ -14,18 +14,18 @@ import (
 func GetProjectsData(c *gin.Context) {
 	role := c.GetString("role")
 	var rollno string
-    if role == "student" {
-        rollno = c.GetString("rollNo")
-    } else if role == "faculty" ||role=="Admin" {
-        rollno = c.Param("rollno")
-        if rollno == "" {
-            c.JSON(http.StatusBadRequest, gin.H{"error": "rollno query parameter required for faculty"})
-            return
-        }
-    } else {
-        c.JSON(http.StatusForbidden, gin.H{"error": "unauthorized role"})
-        return
-    }
+	if role == "student" {
+		rollno = c.GetString("rollNo")
+	} else if role == "faculty" || role == "Admin" {
+		rollno = c.Param("rollno")
+		if rollno == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "rollno query parameter required for faculty"})
+			return
+		}
+	} else {
+		c.JSON(http.StatusForbidden, gin.H{"error": "unauthorized role"})
+		return
+	}
 	var allProjects []models.Project
 
 	// Step 1: Fetch all base projects for the given rollno from the main 'projects' table.
@@ -85,34 +85,108 @@ func GetProjectsData(c *gin.Context) {
 	// Final Step: Send the complete, aggregated list to the frontend.
 	c.JSON(http.StatusOK, allProjects)
 }
-func GetAreasOfExpertise(c *gin.Context){
+
+// CategorizedExpertise represents areas of expertise grouped by category
+type CategorizedExpertise struct {
+	Category string   `json:"category"`
+	Skills   []string `json:"skills"`
+}
+
+func GetAreasOfExpertise(c *gin.Context) {
 	role := c.GetString("role")
 	var rollno string
-    if role == "student" {
-        rollno = c.GetString("rollNo")
-    } else if role == "faculty" ||role=="Admin" {
-        rollno = c.Param("rollno")
-        if rollno == "" {
-            c.JSON(http.StatusBadRequest, gin.H{"error": "rollno query parameter required for faculty"})
-            return
-        }
-    } else {
-        c.JSON(http.StatusForbidden, gin.H{"error": "unauthorized role"})
-        return
-    }
-	query:="select distinct pt.tech_name  from projects p join project_tech_stack pt on p.id=pt.project_id and rollno=?"
-	rows,err:=config.DB.Query(query,rollno);
-	if err!=nil{
-		fmt.Println("Error fetching areas of expertise:",err);
-		c.JSON(http.StatusInternalServerError,gin.H{"message":"Could not fetch areas of expertise"});
-		return;
+	if role == "student" {
+		rollno = c.GetString("rollNo")
+	} else if role == "faculty" || role == "Admin" {
+		rollno = c.Param("rollno")
+		if rollno == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "rollno query parameter required for faculty"})
+			return
+		}
+	} else {
+		c.JSON(http.StatusForbidden, gin.H{"error": "unauthorized role"})
+		return
 	}
-	defer rows.Close();
-	var areas []string;
-	for rows.Next(){
-		var area string;
-		rows.Scan(&area)
-		areas=append(areas,area);
+
+	// Query to get all distinct tech skills for the student
+	techQuery := "SELECT DISTINCT pt.tech_name FROM projects p JOIN project_tech_stack pt ON p.id = pt.project_id WHERE p.rollno = ?"
+	rows, err := config.DB.Query(techQuery, rollno)
+	if err != nil {
+		fmt.Println("Error fetching areas of expertise:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Could not fetch areas of expertise"})
+		return
 	}
-	c.JSON(http.StatusOK,areas);
+	defer rows.Close()
+
+	// Collect all skills
+	var allSkills []string
+	for rows.Next() {
+		var skill string
+		if err := rows.Scan(&skill); err != nil {
+			continue
+		}
+		allSkills = append(allSkills, skill)
+	}
+
+	// Map to hold categorized skills
+	categoryMap := make(map[string][]string)
+
+	// For each skill, find its category
+	for _, skill := range allSkills {
+		categoryQuery := `
+			SELECT COALESCE(
+				(
+					SELECT c.category_name
+					FROM skills s
+					JOIN skill_category_map scm ON s.skill_id = scm.skill_id
+					JOIN categories c ON scm.category_id = c.category_id
+					WHERE LOWER(s.skill_name) = LOWER(?)
+					LIMIT 1
+				),
+				'Others'
+			) AS category
+		`
+		var category string
+		err := config.DB.QueryRow(categoryQuery, skill).Scan(&category)
+		if err != nil {
+			category = "Others"
+		}
+
+		// Add skill to its category
+		categoryMap[category] = append(categoryMap[category], skill)
+	}
+
+	// Convert map to slice of CategorizedExpertise
+	var result []CategorizedExpertise
+
+	// Define preferred order of categories
+	preferredOrder := []string{"Programming Languages", "Frameworks & Libraries", "Web & Database", "Tools & Platforms", "Others"}
+
+	// Add categories in preferred order first
+	for _, cat := range preferredOrder {
+		if skills, exists := categoryMap[cat]; exists && len(skills) > 0 {
+			result = append(result, CategorizedExpertise{
+				Category: cat,
+				Skills:   skills,
+			})
+			delete(categoryMap, cat)
+		}
+	}
+
+	// Add any remaining categories not in preferred order
+	for category, skills := range categoryMap {
+		if len(skills) > 0 {
+			result = append(result, CategorizedExpertise{
+				Category: category,
+				Skills:   skills,
+			})
+		}
+	}
+
+	// Return empty array if no data
+	if result == nil {
+		result = []CategorizedExpertise{}
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": result})
 }

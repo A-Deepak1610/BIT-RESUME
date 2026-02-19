@@ -17,13 +17,13 @@ func GetVerifications(c *gin.Context) {
 		return
 	}
 	allVarifications = append(allVarifications, certificates...)
-	workshops, err := GetWorkshops()
-	if err != nil {
-		fmt.Println("Error: ", err.Error())
-		fmt.Println("Could not get the data from the workshops folder")
-		return
-	}
-	allVarifications = append(allVarifications, workshops...)
+	// workshops, err := GetWorkshops()
+	// if err != nil {
+	// 	fmt.Println("Error: ", err.Error())
+	// 	fmt.Println("Could not get the data from the workshops folder")
+	// 	return
+	// }
+	// allVarifications = append(allVarifications, workshops...)
 
 	projects, err := GetProjects()
 	if err != nil {
@@ -38,10 +38,7 @@ func GetVerifications(c *gin.Context) {
 		fmt.Println("Could not get the data from the paperpresentation folder")
 		return
 	}
-	// if err == nil {
-		allVarifications = append(allVarifications, paperpresentation...)
-	// }
-
+	allVarifications = append(allVarifications, paperpresentation...)
 	internships, err := GetInternship()
 	if err != nil {
 		fmt.Println("Error: ", err.Error())
@@ -49,7 +46,6 @@ func GetVerifications(c *gin.Context) {
 		return
 	}
 	allVarifications = append(allVarifications, internships...)
-
 	patents, err := GetPatents()
 	if err != nil {
 		fmt.Println("Error: ", err.Error())

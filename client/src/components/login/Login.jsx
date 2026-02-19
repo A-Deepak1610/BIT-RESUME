@@ -4,6 +4,7 @@ import logo from "../../assets/logo.png";
 import useAuth from "../../store/UseAuth";
 import { useNavigate } from "react-router-dom";
 export default function Login() {
+  const API_URL = import.meta.env.VITE_API_URL
   const { fetchUser } = useAuth();
   const handleGoogleLogin = () => {
     const width = 500;
@@ -11,7 +12,7 @@ export default function Login() {
     const left = (window.innerWidth - width) / 2;
     const top = (window.innerHeight - height) / 2;
     const loginWindow = window.open(
-      "http://localhost:6001/api/auth/google/login",
+      `${API_URL}api/auth/google/login`,
       "GoogleLogin",
       `width=${width},height=${height},top=${top},left=${left}`
     );

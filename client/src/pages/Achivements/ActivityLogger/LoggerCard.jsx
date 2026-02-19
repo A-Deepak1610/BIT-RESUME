@@ -214,7 +214,6 @@ const TeamDetailsModal = ({ open, onClose, data }) => {
 
 const LoggerCard = ({ data, onCardClick }) => {
   const [modalOpen, setModalOpen] = useState(false);
-
   if (!data) {
     return null;
   }
@@ -273,7 +272,7 @@ const LoggerCard = ({ data, onCardClick }) => {
         <div className="relative h-[165px] flex-shrink-0">
           {data.imageUrl && (
             <img
-              src={`http://localhost:6001/${data.imageUrl}`}
+              src={`${import.meta.env.VITE_API_URL}${data.imageUrl}`}
               alt={data.eventName || "Event"}
               className="w-full h-full object-cover"
             />

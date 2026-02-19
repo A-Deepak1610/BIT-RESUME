@@ -45,7 +45,7 @@ export default function ProjectsForResume(props) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { rollno } = useAuth();
-
+const API_URL = import.meta.env.VITE_API_URL
   useEffect(() => {
     if (!rollno) {
       return;
@@ -56,7 +56,7 @@ export default function ProjectsForResume(props) {
       setError(null);
 
       try {
-        const response = await fetch(`http://localhost:6001/api/resume/getprojects/${Student_rollno }`, {
+        const response = await fetch(`${API_URL}api/resume/getprojects/${Student_rollno }`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",

@@ -9,6 +9,7 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/joho/godotenv v1.5.1
 	github.com/robfig/cron/v3 v3.0.1
+	github.com/xuri/excelize/v2 v2.9.1
 	golang.org/x/oauth2 v0.30.0
 )
 
@@ -40,7 +41,6 @@ require (
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.3.0 // indirect
 	github.com/xuri/efp v0.0.1 // indirect
-	github.com/xuri/excelize/v2 v2.9.1 // indirect
 	github.com/xuri/nfp v0.0.1 // indirect
 	golang.org/x/arch v0.18.0 // indirect
 	golang.org/x/crypto v0.39.0 // indirect

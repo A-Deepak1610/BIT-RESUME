@@ -4,9 +4,10 @@ import (
 	"bitresume/config"
 	"bitresume/models"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 func HandlePointlogs2(rollno string, point float64, sem int, currdate string) {
@@ -42,7 +43,7 @@ func FetchLastPoints(rollno string) (models.Achievementgraph, error) {
 func HandleInactivity(rollno string, currdate string, sem int) error {
 	// Step 1: Check if today's point already added
 	var count int
-	checkQuery := `SELECT COUNT(*) FROM point_logs2 WHERE rollno = ? AND currdate = ?`
+	checkQuery := `SELECT COUNT(*) FROM point_logs2 WHERE rollno = ? AND DATE(currdate) = DATE(?)`
 	err := config.DB.QueryRow(checkQuery, rollno, currdate).Scan(&count)
 	fmt.Print("Count: ", count)
 	if err != nil {
@@ -98,32 +99,36 @@ func HandleAcheivemnetPoints(rollno string, currdate string, sem int) {
 	fmt.Print("Rollno: ", rollno)
 	fmt.Print("Currdate: ", currdate)
 	fmt.Print("Sem: ", sem)
-	stmt, err := config.DB.Prepare("SELECT SUM(points) FROM point_logs2 WHERE rollno = ? AND currdate = ?")
+	stmt, err := config.DB.Prepare("SELECT COALESCE(SUM(points), 0) FROM point_logs2 WHERE rollno = ? AND DATE(currdate) = DATE(?)")
 	if err != nil {
 		log.Printf("Failed to prepare points sum query: %v", err)
 		return
 	}
 	defer stmt.Close()
-	var r models.Achievementgraph
+
+	var todayPoints float64
 	row := stmt.QueryRow(rollno, currdate)
-	err = row.Scan(&r.Points_earned)
+	err = row.Scan(&todayPoints)
 	if err != nil {
 		log.Printf("Failed to scan SUM of points for %s on %s: %v", rollno, currdate, err)
 		return
 	}
+
+	log.Printf("Today's achievement points for %s on %s: %f", rollno, currdate, todayPoints)
+
 	prevPoints, err := FetchLastPoints(rollno)
 	if err != nil {
 		log.Printf("Failed to fetch previous points for %s: %v", rollno, err)
 		return
 	}
-	newpoints := prevPoints.Cummulative_points + r.Points_earned
+	newpoints := prevPoints.Cummulative_points + todayPoints
 	insertStmt, reqerr := config.DB.Prepare("INSERT INTO achievement_graph(rollno, cummulative_points, points_earned, sem, currdate) VALUES (?, ?, ?, ?, ?)")
 	if reqerr != nil {
 		log.Printf("Failed to prepare insert: %v", reqerr)
 		return
 	}
 	defer insertStmt.Close()
-	_, execErr := insertStmt.Exec(rollno, newpoints, r.Points_earned, sem, currdate)
+	_, execErr := insertStmt.Exec(rollno, newpoints, todayPoints, sem, currdate)
 	if execErr != nil {
 		log.Printf("Failed to insert activity graph data: %v", execErr)
 	}
@@ -187,18 +192,18 @@ func HandleFetchAchievementGraph(c *gin.Context) {
 	var r models.Achievementgraph
 	role := c.GetString("role")
 	var rollno string
-    if role == "student" {
-        rollno = c.GetString("rollNo")
-    } else if role == "faculty" ||role=="Admin" {
-        rollno = c.Param("rollno")
-        if rollno == "" {
-            c.JSON(http.StatusBadRequest, gin.H{"error": "rollno query parameter required for faculty"})
-            return
-        }
-    } else {
-        c.JSON(http.StatusForbidden, gin.H{"error": "unauthorized role"})
-        return
-    }
+	if role == "student" {
+		rollno = c.GetString("rollNo")
+	} else if role == "faculty" || role == "Admin" {
+		rollno = c.Param("rollno")
+		if rollno == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "rollno query parameter required for faculty"})
+			return
+		}
+	} else {
+		c.JSON(http.StatusForbidden, gin.H{"error": "unauthorized role"})
+		return
+	}
 	rows, err := config.DB.Query("SELECT cummulative_points, points_earned, sem, currdate FROM achievement_graph WHERE rollno = ?", rollno)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
@@ -222,18 +227,18 @@ func HandleFetchInstituteAvg(c *gin.Context) {
 	var records1 []models.Institute_avg
 	role := c.GetString("role")
 	var rollno string
-    if role == "student" {
-        rollno = c.GetString("rollNo")   // set by middleware from cookie
-    } else if role == "faculty"||role=="Admin" {
-        rollno = c.Param("rollno")
-        if rollno == "" {
-            c.JSON(http.StatusBadRequest, gin.H{"error": "rollno query parameter required for faculty"})
-            return	
-        }
-    } else {
-        c.JSON(http.StatusForbidden, gin.H{"error": "unauthorized role"})
-        return
-    }
+	if role == "student" {
+		rollno = c.GetString("rollNo") // set by middleware from cookie
+	} else if role == "faculty" || role == "Admin" {
+		rollno = c.Param("rollno")
+		if rollno == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "rollno query parameter required for faculty"})
+			return
+		}
+	} else {
+		c.JSON(http.StatusForbidden, gin.H{"error": "unauthorized role"})
+		return
+	}
 	rows1, err1 := config.DB.Query(`
 SELECT
     SUM(avg_points) OVER (ORDER BY currdate, sem) AS cummulative_points,

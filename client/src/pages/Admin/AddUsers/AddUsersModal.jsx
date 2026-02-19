@@ -166,13 +166,8 @@ export default function AddUsersModal({ open, onClose }) {
             payload.mentorId = formData.mentorId;
         } else {
             payload.facultyId = formData.facultyId;
-        }       
-        
-        console.log("--- Sending Data to Backend ---");
-        console.log("Format:", payload);
-        console.log("-----------------------------");
-
-        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:6001/';
+        }
+        const API_URL = import.meta.env.VITE_API_URL;
         try {
             const response = await axios.post(`${API_URL}api/addusers`, payload);
             console.log('API Response:', response.data);

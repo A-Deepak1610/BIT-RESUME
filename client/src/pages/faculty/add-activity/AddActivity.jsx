@@ -15,7 +15,7 @@ export default function AddActivity() {
   const [error, setError] = useState(null);
 
   // API constants
-  const API_BASE = "http://localhost:6001/api/activitymaster";
+  const API_BASE = `${import.meta.env.VITE_API_URL}api/activitymaster`;
   const FETCH_URL = `${API_BASE}/fetch`;
   const limit = 100;
   const offset = 0;
@@ -93,7 +93,7 @@ export default function AddActivity() {
     console.log(`Deleting event with ID: ${id}`);   
     if (!ok) return;
     try {
-      const res = await fetch(`http://localhost:6001/api/deleteevents/${id}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}api/deleteevents/${id}`, {
         method: "DELETE",
         credentials: "include",
       });

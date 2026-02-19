@@ -8,9 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-
-
-func ReceiveDataOnlineCourse(c *gin.Context,id int) {
+func ReceiveDataOnlineCourse(c *gin.Context, id int) {
 	rollno := c.PostForm("rollno")
 	title := c.PostForm("title")
 	platform := c.PostForm("platform")
@@ -18,6 +16,7 @@ func ReceiveDataOnlineCourse(c *gin.Context,id int) {
 	start_date := c.PostForm("start_date")
 	end_date := c.PostForm("end_date")
 	course_link := c.PostForm("course_link")
+	linkedin_link := c.PostForm("linkedinLink")
 
 	pdf, err := c.FormFile("certificate_pdf")
 	if err != nil {
@@ -48,11 +47,12 @@ func ReceiveDataOnlineCourse(c *gin.Context,id int) {
 			end_date,
 			certificate_pdf,
 			course_link,
+			linkedin_link,
 			created_at
-		) VALUES (?,?, ?, ?, ?, ?, ?, ?, ?, CURRENT_DATE)
+		) VALUES (?,?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_DATE)
 	`
 
-	_, err = config.DB.Exec(query,id, rollno, title, platform, issue_date, start_date, end_date, savePathPdf, course_link)
+	_, err = config.DB.Exec(query, id, rollno, title, platform, issue_date, start_date, end_date, savePathPdf, course_link, linkedin_link)
 	if err != nil {
 		c.JSON(500, gin.H{"error": "Failed to save online course certificate to the database"})
 		return

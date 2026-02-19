@@ -37,7 +37,13 @@ const modalStyle = {
 
 // --- ApplyModal Component ---
 // Now accepts onRegistrationSuccess to signal a successful API call
-const ApplyModal = ({ isOpen, onClose, eventName, eventCode, onRegistrationSuccess }) => {
+const ApplyModal = ({
+  isOpen,
+  onClose,
+  eventName,
+  eventCode,
+  onRegistrationSuccess,
+}) => {
   // --- STATE MANAGEMENT ---
   const [participationType, setParticipationType] = useState("team");
   const [teamName, setTeamName] = useState("");
@@ -45,7 +51,7 @@ const ApplyModal = ({ isOpen, onClose, eventName, eventCode, onRegistrationSucce
   const [domain, setDomain] = useState("");
   const [problemStatement, setProblemStatement] = useState("");
   const { rollno } = useAuth();
-
+  const API_URL = import.meta.env.VITE_API_URL
   // --- API SUBMISSION LOGIC ---
   const handleEventsApply = async () => {
     const finalTeamMates =
@@ -55,7 +61,7 @@ const ApplyModal = ({ isOpen, onClose, eventName, eventCode, onRegistrationSucce
 
     try {
       const response = await fetch(
-        `http://localhost:6001/api/addregisterevents`,
+        `${API_URL}api/addregisterevents`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -84,7 +90,9 @@ const ApplyModal = ({ isOpen, onClose, eventName, eventCode, onRegistrationSucce
         // This function, passed from the parent, will trigger the closing of both modals.
         onRegistrationSuccess();
       } else {
-        alert(data.message || "Registration failed. Please check your details.");
+        alert(
+          data.message || "Registration failed. Please check your details."
+        );
       }
     } catch (error) {
       console.error("Error submitting application:", error);
@@ -99,7 +107,8 @@ const ApplyModal = ({ isOpen, onClose, eventName, eventCode, onRegistrationSucce
   };
 
   const addTeamMate = () => setTeamMates([...teamMates, ""]);
-  const removeTeamMate = (index) => setTeamMates(teamMates.filter((_, i) => i !== index));
+  const removeTeamMate = (index) =>
+    setTeamMates(teamMates.filter((_, i) => i !== index));
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -111,77 +120,182 @@ const ApplyModal = ({ isOpen, onClose, eventName, eventCode, onRegistrationSucce
       <Box sx={{ ...modalStyle, maxWidth: "36rem" }}>
         <div className="bg-white rounded-xl shadow-2xl w-full max-h-[90vh] flex flex-col overflow-hidden">
           <div className="p-4 sm:p-5 border-b border-gray-200 flex justify-between items-center">
-            <h2 id="apply-modal-title" className="text-xl font-bold text-gray-800">
+            <h2
+              id="apply-modal-title"
+              className="text-xl font-bold text-gray-800"
+            >
               Apply for: <span className="text-indigo-600">{eventName}</span>
             </h2>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors p-1 -m-1 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500" aria-label="Close modal">
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600 transition-colors p-1 -m-1 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              aria-label="Close modal"
+            >
               <X size={24} />
             </button>
           </div>
-          <form onSubmit={handleSubmit} className="p-4 sm:p-5 overflow-y-auto space-y-6">
+          <form
+            onSubmit={handleSubmit}
+            className="p-4 sm:p-5 overflow-y-auto space-y-6"
+          >
             {/* Participation Type Radio Buttons */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Participation Type</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Participation Type
+              </label>
               <div className="flex items-center gap-x-6">
                 <div className="flex items-center">
-                  <input id="team-radio" name="participationType" type="radio" value="team" checked={participationType === "team"} onChange={(e) => setParticipationType(e.target.value)} className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-600"/>
-                  <label htmlFor="team-radio" className="ml-2 block text-sm font-medium leading-6 text-gray-900">Team</label>
+                  <input
+                    id="team-radio"
+                    name="participationType"
+                    type="radio"
+                    value="team"
+                    checked={participationType === "team"}
+                    onChange={(e) => setParticipationType(e.target.value)}
+                    className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-600"
+                  />
+                  <label
+                    htmlFor="team-radio"
+                    className="ml-2 block text-sm font-medium leading-6 text-gray-900"
+                  >
+                    Team
+                  </label>
                 </div>
                 <div className="flex items-center">
-                  <input id="individual-radio" name="participationType" type="radio" value="individual" checked={participationType === "individual"} onChange={(e) => setParticipationType(e.target.value)} className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-600"/>
-                  <label htmlFor="individual-radio" className="ml-2 block text-sm font-medium leading-6 text-gray-900">Individual</label>
+                  <input
+                    id="individual-radio"
+                    name="participationType"
+                    type="radio"
+                    value="individual"
+                    checked={participationType === "individual"}
+                    onChange={(e) => setParticipationType(e.target.value)}
+                    className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-600"
+                  />
+                  <label
+                    htmlFor="individual-radio"
+                    className="ml-2 block text-sm font-medium leading-6 text-gray-900"
+                  >
+                    Individual
+                  </label>
                 </div>
               </div>
             </div>
 
             {/* Team Name Input */}
             <div>
-                <label htmlFor="team-name" className="block text-sm font-medium text-gray-700">
-                    {participationType === 'team' ? 'Team Name' : 'Project Name'}
-                </label>
-                <input
-                    id="team-name"
-                    type="text"
-                    value={teamName}
-                    onChange={(e) => setTeamName(e.target.value)}
-                    className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    placeholder={participationType === 'team' ? "e.g., The Code Crusaders" : "e.g., Smart Irrigation System"}
-                    required
-                />
+              <label
+                htmlFor="team-name"
+                className="block text-sm font-medium text-gray-700"
+              >
+                {participationType === "team" ? "Team Name" : "Project Name"}
+              </label>
+              <input
+                id="team-name"
+                type="text"
+                value={teamName}
+                onChange={(e) => setTeamName(e.target.value)}
+                className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                placeholder={
+                  participationType === "team"
+                    ? "e.g., The Code Crusaders"
+                    : "e.g., Smart Irrigation System"
+                }
+                required
+              />
             </div>
-            
+
             {/* Conditional Teammates Section */}
             {participationType === "team" && (
               <div>
-                <label htmlFor="teammates" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="teammates"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Teammates' Roll Numbers
                 </label>
                 <div className="space-y-2">
                   {teamMates.map((mate, index) => (
                     <div key={index} className="flex items-center gap-2">
-                      <input type="text" value={mate} onChange={(e) => handleTeamMateChange(index, e.target.value)} placeholder={`Teammate ${index + 1} Roll Number`} className="flex-grow block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"/>
-                      <button type="button" onClick={() => removeTeamMate(index)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full"><Trash2 size={16} /></button>
+                      <input
+                        type="text"
+                        value={mate}
+                        onChange={(e) =>
+                          handleTeamMateChange(index, e.target.value)
+                        }
+                        placeholder={`Teammate ${index + 1} Roll Number`}
+                        className="flex-grow block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeTeamMate(index)}
+                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full"
+                      >
+                        <Trash2 size={16} />
+                      </button>
                     </div>
                   ))}
                 </div>
-                <button type="button" onClick={addTeamMate} className="mt-2 text-sm font-medium text-indigo-600 hover:text-indigo-800 flex items-center gap-1"><Plus size={16} /> Add Teammate</button>
+                <button
+                  type="button"
+                  onClick={addTeamMate}
+                  className="mt-2 text-sm font-medium text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
+                >
+                  <Plus size={16} /> Add Teammate
+                </button>
               </div>
             )}
 
             {/* Domain and Problem Statement Inputs */}
             <div>
-              <label htmlFor="domain" className="block text-sm font-medium text-gray-700">Domain</label>
-              <input id="domain" type="text" value={domain} onChange={(e) => setDomain(e.target.value)} className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="e.g., Web Development, AI/ML" required/>
+              <label
+                htmlFor="domain"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Domain
+              </label>
+              <input
+                id="domain"
+                type="text"
+                value={domain}
+                onChange={(e) => setDomain(e.target.value)}
+                className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                placeholder="e.g., Web Development, AI/ML"
+                required
+              />
             </div>
             <div>
-              <label htmlFor="problem-statement" className="block text-sm font-medium text-gray-700">Problem Statement</label>
-              <textarea id="problem-statement" rows={4} value={problemStatement} onChange={(e) => setProblemStatement(e.target.value)} className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Briefly describe your chosen problem statement or project idea." required/>
+              <label
+                htmlFor="problem-statement"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Problem Statement
+              </label>
+              <textarea
+                id="problem-statement"
+                rows={4}
+                value={problemStatement}
+                onChange={(e) => setProblemStatement(e.target.value)}
+                className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                placeholder="Briefly describe your chosen problem statement or project idea."
+                required
+              />
             </div>
 
             {/* Action Buttons */}
             <div className="pt-4 border-t border-gray-200 flex justify-end gap-3">
-              <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Cancel</button>
-              <button type="submit" className="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Submit Application</button>
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                Submit Application
+              </button>
             </div>
           </form>
         </div>
@@ -189,7 +303,6 @@ const ApplyModal = ({ isOpen, onClose, eventName, eventCode, onRegistrationSucce
     </Modal>
   );
 };
-
 
 // --- EventDetailModal Component ---
 const EventDetailModal = ({ isOpen, onClose, eventData }) => {
@@ -255,14 +368,14 @@ const EventDetailModal = ({ isOpen, onClose, eventData }) => {
     Constraints: <AlertTriangle size={16} />,
     Rewards: <Award size={16} />,
   };
-  
+
   const { rollno } = useAuth();
   const [applied, setApplied] = useState(false);
 
   const handleApplied = async () => {
     try {
       const response = await fetch(
-        `http://localhost:6001/api/checkapplied?rollno=${encodeURIComponent(
+        `${API_URL}api/checkapplied?rollno=${encodeURIComponent(
           rollno
         )}&event_code=${encodeURIComponent(eventData.event_code)}`,
         {
@@ -324,23 +437,42 @@ const EventDetailModal = ({ isOpen, onClose, eventData }) => {
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                   {/* Team Size, Rounds, Domains etc. */}
                   <div>
-                    <h4 className="text-xs text-gray-500 font-semibold mb-1 flex items-center"><Users size={14} className="mr-1.5" />Team Size</h4>
-                    <p className="text-gray-700">{min_team_size} - {max_team_size} members</p>
+                    <h4 className="text-xs text-gray-500 font-semibold mb-1 flex items-center">
+                      <Users size={14} className="mr-1.5" />
+                      Team Size
+                    </h4>
+                    <p className="text-gray-700">
+                      {min_team_size} - {max_team_size} members
+                    </p>
                   </div>
                   <div>
-                    <h4 className="text-xs text-gray-500 font-semibold mb-1 flex items-center"><Laptop size={14} className="mr-1.5" />Online Rounds</h4>
+                    <h4 className="text-xs text-gray-500 font-semibold mb-1 flex items-center">
+                      <Laptop size={14} className="mr-1.5" />
+                      Online Rounds
+                    </h4>
                     <p className="text-gray-700">{online_rounds ?? "N/A"}</p>
                   </div>
                   <div>
-                    <h4 className="text-xs text-gray-500 font-semibold mb-1 flex items-center"><Users2 size={14} className="mr-1.5" />Offline Rounds</h4>
+                    <h4 className="text-xs text-gray-500 font-semibold mb-1 flex items-center">
+                      <Users2 size={14} className="mr-1.5" />
+                      Offline Rounds
+                    </h4>
                     <p className="text-gray-700">{offline_rounds ?? "N/A"}</p>
                   </div>
                   <div className="col-span-2 md:col-span-3">
-                    <h4 className="text-xs text-gray-500 font-semibold mb-1.5 flex items-center"><Tag size={14} className="mr-1.5" />Domains</h4>
+                    <h4 className="text-xs text-gray-500 font-semibold mb-1.5 flex items-center">
+                      <Tag size={14} className="mr-1.5" />
+                      Domains
+                    </h4>
                     <div className="flex flex-wrap gap-2">
                       {domainTags.length > 0 ? (
                         domainTags.map((tag, index) => (
-                          <span key={index} className="bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full text-xs font-medium">{tag}</span>
+                          <span
+                            key={index}
+                            className="bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full text-xs font-medium"
+                          >
+                            {tag}
+                          </span>
                         ))
                       ) : (
                         <span className="text-xs text-gray-500">N/A</span>
@@ -351,28 +483,56 @@ const EventDetailModal = ({ isOpen, onClose, eventData }) => {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 mb-6">
-                <button 
-                  disabled={applied}
-                  onClick={handleOpenApplyModal}
-                  className={`w-full sm:w-auto flex-1 sm:flex-none text-white font-semibold py-2.5 px-6 rounded-lg transition-colors duration-150 text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${applied ? "bg-gray-400 cursor-not-allowed" : "bg-indigo-600 hover:bg-indigo-700"}`}
-                >
-                  {applied ? "Applied" : "Apply Now"}
-                </button>
-                <div className="w-full sm:w-auto flex items-center justify-center text-xs sm:text-sm font-medium text-red-600 bg-red-50 border border-red-200 px-4 py-2 rounded-lg">
-                  <Clock size={16} className="mr-2" />
-                  Apply Before: <strong>{deadline}</strong>
-                </div>
-                <a
-                  href={apply_link || "#"}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`text-xs sm:text-sm text-indigo-600 hover:text-indigo-800 font-medium flex items-center ${!apply_link && "pointer-events-none opacity-50"}`}
-                >
-                  Official Website
-                  <ExternalLinkIcon size={14} className="ml-1" />
-                </a>
-              </div>
+              {(() => {
+                // Check if deadline has passed
+                const isDeadlinePassed = deadline
+                  ? new Date(deadline) < new Date()
+                  : false;
+                const isDisabled = applied || isDeadlinePassed;
+                const buttonText = applied
+                  ? "Applied"
+                  : isDeadlinePassed
+                  ? "Deadline Passed"
+                  : "Apply Now";
+
+                return (
+                  <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 mb-6">
+                    <button
+                      disabled={isDisabled}
+                      onClick={handleOpenApplyModal}
+                      className={`w-full sm:w-auto flex-1 sm:flex-none text-white font-semibold py-2.5 px-6 rounded-lg transition-colors duration-150 text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
+                        isDisabled
+                          ? "bg-gray-400 cursor-not-allowed"
+                          : "bg-indigo-600 hover:bg-indigo-700"
+                      }`}
+                    >
+                      {buttonText}
+                    </button>
+                    <div
+                      className={`w-full sm:w-auto flex items-center justify-center text-xs sm:text-sm font-medium px-4 py-2 rounded-lg ${
+                        isDeadlinePassed
+                          ? "text-gray-600 bg-gray-100 border border-gray-300"
+                          : "text-red-600 bg-red-50 border border-red-200"
+                      }`}
+                    >
+                      <Clock size={16} className="mr-2" />
+                      {isDeadlinePassed ? "Deadline Ended: " : "Apply Before: "}
+                      <strong>{deadline}</strong>
+                    </div>
+                    <a
+                      href={apply_link || "#"}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`text-xs sm:text-sm text-indigo-600 hover:text-indigo-800 font-medium flex items-center ${
+                        !apply_link && "pointer-events-none opacity-50"
+                      }`}
+                    >
+                      Official Website
+                      <ExternalLinkIcon size={14} className="ml-1" />
+                    </a>
+                  </div>
+                );
+              })()}
 
               {/* Tab Navigation & Content */}
               <div>
@@ -382,7 +542,11 @@ const EventDetailModal = ({ isOpen, onClose, eventData }) => {
                       <button
                         key={tab}
                         onClick={() => setActiveTab(tab)}
-                        className={`flex items-center gap-2 whitespace-nowrap py-3 px-3 border-b-2 font-medium text-sm transition-colors focus:outline-none ${activeTab === tab ? "border-indigo-500 text-indigo-600" : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"}`}
+                        className={`flex items-center gap-2 whitespace-nowrap py-3 px-3 border-b-2 font-medium text-sm transition-colors focus:outline-none ${
+                          activeTab === tab
+                            ? "border-indigo-500 text-indigo-600"
+                            : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                        }`}
                       >
                         {icon} {tab}
                       </button>
@@ -391,15 +555,25 @@ const EventDetailModal = ({ isOpen, onClose, eventData }) => {
                 </div>
                 <div className="text-sm text-gray-800 p-4 bg-gray-50 rounded-md min-h-[150px] prose prose-sm max-w-none prose-p:my-2 prose-ul:my-2 prose-li:my-1">
                   {/* Tab Content based on activeTab */}
-                  {activeTab === "Description" && <p>{description || "No description available."}</p>}
+                  {activeTab === "Description" && (
+                    <p>{description || "No description available."}</p>
+                  )}
                   {activeTab === "Rounds" && (
                     <div className="space-y-4">
                       {rounds && rounds.length > 0 ? (
                         rounds.map((round) => (
                           <div key={round.round_number} className="not-prose">
-                            <p className="font-bold text-sm text-gray-900">Round {round.round_number}: {round.description}</p>
-                            <p className="text-xs text-gray-500 font-medium">{round.start_date} to {round.end_date}</p>
-                            <p className="text-xs mt-1 bg-gray-100 p-1.5 rounded-md"><strong>RPs:</strong> I: {round.year1_rp}, II: {round.year2_rp}, III: {round.year3_rp}, IV: {round.year4_rp}</p>
+                            <p className="font-bold text-sm text-gray-900">
+                              Round {round.round_number}: {round.description}
+                            </p>
+                            <p className="text-xs text-gray-500 font-medium">
+                              {round.start_date} to {round.end_date}
+                            </p>
+                            <p className="text-xs mt-1 bg-gray-100 p-1.5 rounded-md">
+                              <strong>RPs:</strong> I: {round.year1_rp}, II:{" "}
+                              {round.year2_rp}, III: {round.year3_rp}, IV:{" "}
+                              {round.year4_rp}
+                            </p>
                           </div>
                         ))
                       ) : (
@@ -409,13 +583,28 @@ const EventDetailModal = ({ isOpen, onClose, eventData }) => {
                   )}
                   {activeTab === "Rules" && (
                     <div>
-                      {rules ? rules.split(/[\r\n]+/).map((line, index) => line.trim() && <p key={index}>{line.trim()}</p>) : <p>Rules for {event_name} will be updated soon.</p>}
+                      {rules ? (
+                        rules
+                          .split(/[\r\n]+/)
+                          .map(
+                            (line, index) =>
+                              line.trim() && <p key={index}>{line.trim()}</p>
+                          )
+                      ) : (
+                        <p>Rules for {event_name} will be updated soon.</p>
+                      )}
                     </div>
                   )}
                   {activeTab === "Constraints" && (
                     <div>
-                      {constraints && constraints.trim().toLowerCase() !== "na" ? (
-                        constraints.split(/[\r\n]+/).map((line, index) => line.trim() && <p key={index}>{line.trim()}</p>)
+                      {constraints &&
+                      constraints.trim().toLowerCase() !== "na" ? (
+                        constraints
+                          .split(/[\r\n]+/)
+                          .map(
+                            (line, index) =>
+                              line.trim() && <p key={index}>{line.trim()}</p>
+                          )
                       ) : (
                         <p>No specific constraints provided.</p>
                       )}
@@ -423,11 +612,22 @@ const EventDetailModal = ({ isOpen, onClose, eventData }) => {
                   )}
                   {activeTab === "Rewards" && (
                     <div>
-                      <p><strong>Prize Money & Rewards:</strong></p>
+                      <p>
+                        <strong>Prize Money & Rewards:</strong>
+                      </p>
                       <ul>
-                        <li><span className="font-semibold">Winner:</span> {final_prize1 || "N/A"}</li>
-                        <li><span className="font-semibold">1st Runner-up:</span> {final_prize2 || "N/A"}</li>
-                        <li><span className="font-semibold">2nd Runner-up:</span> {final_prize3 || "N/A"}</li>
+                        <li>
+                          <span className="font-semibold">Winner:</span>{" "}
+                          {final_prize1 || "N/A"}
+                        </li>
+                        <li>
+                          <span className="font-semibold">1st Runner-up:</span>{" "}
+                          {final_prize2 || "N/A"}
+                        </li>
+                        <li>
+                          <span className="font-semibold">2nd Runner-up:</span>{" "}
+                          {final_prize3 || "N/A"}
+                        </li>
                       </ul>
                     </div>
                   )}
@@ -445,7 +645,7 @@ const EventDetailModal = ({ isOpen, onClose, eventData }) => {
         onClose={handleCloseApplyModal}
         eventName={event_name}
         eventCode={event_code}
-        onRegistrationSuccess={handleRegistrationSuccess} 
+        onRegistrationSuccess={handleRegistrationSuccess}
       />
     </>
   );

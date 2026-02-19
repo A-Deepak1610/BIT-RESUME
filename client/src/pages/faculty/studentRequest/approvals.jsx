@@ -202,11 +202,12 @@ export default function Approvals() {
 
   const KNOWN_STATUSES = ["Awaiting", "Verified", "Rejected"];
   const {rollno} =useAuth();
+  const API_URL = import.meta.env.VITE_API_URL
   const handleEvents = async () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch(`http://localhost:6001/api/manageactivities/approvels/${rollno}`, {
+      const response = await fetch(`${API_URL}api/manageactivities/approvels/${rollno}`, {
         method: "GET",
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include'
@@ -268,7 +269,7 @@ export default function Approvals() {
     try {
       console.log("Sending approval/rejection payload:", JSON.stringify(payload, null, 2));
 
-      const response = await fetch("http://localhost:6001/api/manageactivities/approvels_reject", {
+      const response = await fetch(`${API_URL}api/manageactivities/approvels_reject`, {
         method: "PUT",
         headers: {
           'Content-Type': 'application/json',

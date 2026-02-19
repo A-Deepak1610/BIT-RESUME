@@ -15,7 +15,7 @@ const SKILL_CATEGORIZATION = {
   "data structure": "CS",
   "data structure using java": "CS",
   "database programming": "CS",
-  "sql": "CS",
+  "sql":  "CS",
   "web development": "CS",
   "machine learning": "CS",
   "artificial intelligence": "CS",
@@ -60,11 +60,37 @@ const categorizeSkill = (skillName) => {
   return SKILL_CATEGORIZATION[normalizedSkillName] || "CS"; // Default to CS if not found
 };
 
-// Function to extract level number from skill_level string
-const extractLevelNumber = (skillLevel) => {
-  // Match patterns like "Aptitude Level - 1A", "C Programming Level - 1", etc.
-  const match = skillLevel.match(/Level\s*-\s*(\d+)/i);
+// Function to parse level identifier (e.g., "Level - 3A" -> "3A", "Level - 2" -> "2")
+const extractLevelIdentifier = (skillLevel) => {
+  // Match patterns like "Level - 3A", "Level - 3B Written Test", "Level - 2", etc.
+  const match = skillLevel.match(/Level\s*-\s*(\d+[A-Z]?)/i);
+  if (! match) {
+    console.warn(`Could not match level pattern in: ${skillLevel}`);
+    return null;
+  }
+  
+  return match[1]. toUpperCase(); // Return "3A", "3B", "2", etc.
+};
+
+// Function to extract base level number (e.g., "3A" -> 3, "2" -> 2)
+const getBaseLevelNumber = (levelIdentifier) => {
+  const match = levelIdentifier.match(/^(\d+)/);
   return match ? parseInt(match[1]) : null;
+};
+
+// Function to sort level identifiers properly (1, 2, 3A, 3B, 4, etc.)
+const sortLevelIdentifiers = (levels) => {
+  return levels. sort((a, b) => {
+    const numA = getBaseLevelNumber(a);
+    const numB = getBaseLevelNumber(b);
+    
+    if (numA !== numB) {
+      return numA - numB;
+    }
+    
+    // If base numbers are same, sort alphabetically (3A before 3B)
+    return a.localeCompare(b);
+  });
 };
 
 const PsSkillGraph = (props) => {
@@ -105,21 +131,25 @@ const PsSkillGraph = (props) => {
         },
         credentials: "include",
       });
-      if (!res.ok) {
+      if (! res.ok) {
         throw new Error(`HTTP Error for levels status: ${res.status}`);
       }
       const response = await res.json();
+      
+      console.log("API Response:", response); // Debug log
       
       // Process and group data by skill to collect all level attempts
       const skillsMap = new Map();
       
       response.data.forEach(skill => {
-        const skillKey = skill.skill_name.toLowerCase();
+        const skillKey = skill.skill_name. toLowerCase();
         const domain = categorizeSkill(skill.skill_name);
-        const levelNumber = extractLevelNumber(skill.skill_level);
+        const levelIdentifier = extractLevelIdentifier(skill.skill_level);
         
-        if (levelNumber === null) {
-          console.warn(`Could not extract level number from: ${skill.skill_level}`);
+        console.log(`Processing:  ${skill.skill_level} -> ${levelIdentifier}`); // Debug log
+        
+        if (levelIdentifier === null) {
+          console.warn(`Could not extract level identifier from: ${skill.skill_level}`);
           return;
         }
         
@@ -128,8 +158,7 @@ const PsSkillGraph = (props) => {
             skilldomain: domain,
             skillname: skill.skill_name,
             totallevels: skill.total_levels,
-            levels: new Map(),
-            maxLevel: 0,
+            levels: new Map(), // Map of levelIdentifier -> {attempts, status, attempted_at}
             completed: 0
           });
         }
@@ -137,53 +166,55 @@ const PsSkillGraph = (props) => {
         const skillData = skillsMap.get(skillKey);
         
         // Store level data - if level already exists, keep the one with more attempts or completed status
-        if (!skillData.levels.has(levelNumber)) {
-          skillData.levels.set(levelNumber, {
+        if (!skillData. levels.has(levelIdentifier)) {
+          skillData.levels. set(levelIdentifier, {
             attempts: skill.attempts,
             status: skill.status,
-            attempted_at: skill.attempted_at
+            attempted_at: skill.attempted_at,
+            fullLevelName: skill.skill_level
           });
         } else {
-          const existingLevel = skillData.levels.get(levelNumber);
-          // Update if current status is completed or has more attempts
-          if (skill.status === "completed" || skill.attempts > existingLevel.attempts) {
-            skillData.levels.set(levelNumber, {
+          const existingLevel = skillData.levels.get(levelIdentifier);
+          // Aggregate attempts if same level attempted multiple times
+          if (skill.status === "completed" && existingLevel.status !== "completed") {
+            // If new entry is completed and existing is not, replace
+            skillData.levels.set(levelIdentifier, {
               attempts: skill.attempts,
               status: skill.status,
-              attempted_at: skill.attempted_at
+              attempted_at: skill. attempted_at,
+              fullLevelName: skill.skill_level
             });
+          } else if (skill.status === existingLevel.status) {
+            // If same status, sum attempts
+            existingLevel.attempts += skill.attempts;
           }
         }
-        
-        skillData.maxLevel = Math.max(skillData.maxLevel, levelNumber);
       });
       
       // Calculate completed levels for each skill
       skillsMap.forEach((skillData) => {
+        // Count how many unique levels are completed
         let completedCount = 0;
         
-        // Count consecutive completed levels starting from 1
-        for (let level = 1; level <= skillData.totallevels; level++) {
-          const levelData = skillData.levels.get(level);
-          if (levelData && levelData.status === "completed") {
-            completedCount = level;
-          } else {
-            // Stop counting if we hit a non-completed level
-            break;
+        skillData.levels.forEach((levelData, levelIdentifier) => {
+          if (levelData.status === "completed") {
+            completedCount++;
           }
-        }
+        });
         
         skillData.completed = completedCount;
+        
+        console.log(`${skillData.skillname}:  ${completedCount} completed out of ${skillData.totallevels}`); // Debug log
+        console.log('Levels:', Array.from(skillData.levels.keys())); // Debug log
       });
       
       // Convert back to array format
       const processedData = Array.from(skillsMap.values()).map(skill => ({
         skilldomain: skill.skilldomain,
-        skillname: skill.skillname,
+        skillname: skill. skillname,
         totallevels: skill.totallevels,
         completed: skill.completed,
-        levels: skill.levels,
-        maxLevel: skill.maxLevel
+        levels: skill.levels
       }));
       
       setSkillData(processedData);
@@ -224,10 +255,10 @@ const PsSkillGraph = (props) => {
   useEffect(() => {
     if (
       hoveredSkillInfo &&
-      !hoveredSkillInfo.hasBeenPositioned &&
+      ! hoveredSkillInfo.hasBeenPositioned &&
       popoverAttemptsRef.current
     ) {
-      const popoverElement = popoverAttemptsRef.current;
+      const popoverElement = popoverAttemptsRef. current;
       const popoverRect = popoverElement.getBoundingClientRect();
       const viewportWidth = window.innerWidth;
       const viewportHeight = window.innerHeight;
@@ -247,10 +278,10 @@ const PsSkillGraph = (props) => {
         Math.min(newFinalX, viewportWidth - popoverRect.width - margin)
       );
 
-      if (newFinalY + popoverRect.height + margin > viewportHeight) {
-        newFinalY = cursorY - popoverRect.height - offset;
+      if (newFinalY + popoverRect. height + margin > viewportHeight) {
+        newFinalY = cursorY - popoverRect. height - offset;
       }
-      newFinalY = Math.max(
+      newFinalY = Math. max(
         margin,
         Math.min(newFinalY, viewportHeight - popoverRect.height - margin)
       );
@@ -258,7 +289,7 @@ const PsSkillGraph = (props) => {
       setHoveredSkillInfo((prev) => ({
         ...prev,
         finalX: newFinalX,
-        finalY: newFinalY,
+        finalY:  newFinalY,
         hasBeenPositioned: true,
       }));
     }
@@ -276,14 +307,24 @@ const PsSkillGraph = (props) => {
   };
 
   const handleSkillCardMouseEnter = (skillData, event) => {
-    // Create attempts info for ALL levels (1 to totallevels)
+    // Create attempts info for all levels that exist in the data
     const attemptInfo = {};
     
-    // Initialize all levels with 0 attempts
-    for (let i = 1; i <= skillData.totallevels; i++) {
-      const levelData = skillData.levels.get(i);
-      attemptInfo[i] = levelData ? levelData.attempts : 0;
-    }
+    // Get all level identifiers and sort them properly
+    const levelIdentifiers = Array.from(skillData.levels. keys());
+    const sortedLevels = sortLevelIdentifiers(levelIdentifiers);
+    
+    console.log('Hover - Sorted levels:', sortedLevels); // Debug log
+    
+    // Populate attempt info with actual data
+    sortedLevels.forEach(levelId => {
+      const levelData = skillData. levels.get(levelId);
+      attemptInfo[levelId] = {
+        attempts: levelData. attempts,
+        status: levelData.status,
+        fullName: levelData.fullLevelName
+      };
+    });
 
     setHoveredSkillInfo({
       skillName: skillData.skillname,
@@ -291,10 +332,10 @@ const PsSkillGraph = (props) => {
       attempts: attemptInfo,
       totalLevels: skillData.totallevels,
       cursorX: event.clientX,
-      cursorY: event.clientY,
+      cursorY: event. clientY,
       finalX: event.clientX + 15,
-      finalY: event.clientY + 15,
-      hasBeenPositioned: false,
+      finalY:  event.clientY + 15,
+      hasBeenPositioned:  false,
     });
   };
 
@@ -379,9 +420,9 @@ const PsSkillGraph = (props) => {
       >
         {filteredSkills.length > 0 ? (
           <div className="grid lg:grid-cols-3 xl:grid-cols-5 grid-cols-2 gap-4 justify-items-center">
-            {filteredSkills.map((skillItem) => (
+            {filteredSkills.map((skillItem, index) => (
               <SkillCard
-                key={`${skillItem.skilldomain}-${skillItem.skillname}-${skillItem.id}`}
+                key={`${skillItem.skilldomain}-${skillItem.skillname}-${index}`}
                 skillName={skillItem.skillname}
                 completed={skillItem.completed}
                 totalLevels={skillItem.totallevels}
@@ -392,7 +433,7 @@ const PsSkillGraph = (props) => {
           </div>
         ) : (
           <div className="text-center text-gray-500 mt-4">
-            No skills to display for this domain.
+            No skills to display for this domain. 
           </div>
         )}
       </div>
@@ -404,23 +445,31 @@ const PsSkillGraph = (props) => {
             top: `${hoveredSkillInfo.finalY}px`,
             left: `${hoveredSkillInfo.finalX}px`,
             pointerEvents: "none",
-            opacity: hoveredSkillInfo.hasBeenPositioned ? 1 : 0,
+            opacity: hoveredSkillInfo.hasBeenPositioned ?  1 : 0,
             transition: "opacity 0.1s ease-in-out",
           }}
         >
           <h4 className="font-semibold mb-2">
-            {hoveredSkillInfo.skillName} ({hoveredSkillInfo.domain}) - Attempts
+            {hoveredSkillInfo. skillName} ({hoveredSkillInfo.domain})
           </h4>
           {hoveredSkillInfo.attempts &&
           Object.keys(hoveredSkillInfo.attempts).length > 0 ? (
             <div>
-              {Object.entries(hoveredSkillInfo.attempts)
-                .sort(([levelA], [levelB]) => parseInt(levelA) - parseInt(levelB))
-                .map(([level, attempts]) => (
-                  <div key={level}>
-                    level {level} : {attempts}
-                  </div>
-                ))}
+              {Object.entries(hoveredSkillInfo.attempts).map(([levelId, levelInfo]) => (
+                <div key={levelId} className="mb-1">
+                  <span className="font-medium">Level {levelId}:</span>{" "}
+                  <span>{levelInfo.attempts} attempt{levelInfo.attempts !== 1 ?  's' : ''}</span>
+                  <span 
+                    className={`ml-2 px-2 py-0.5 rounded text-xs ${
+                      levelInfo.status === 'completed' 
+                        ?  'bg-green-100 text-green-800' 
+                        : 'bg-yellow-100 text-yellow-800'
+                    }`}
+                  >
+                    {levelInfo.status}
+                  </span>
+                </div>
+              ))}
             </div>
           ) : (
             <p>No attempt data available.</p>
@@ -430,4 +479,5 @@ const PsSkillGraph = (props) => {
     </div>
   );
 };
+
 export default PsSkillGraph;
