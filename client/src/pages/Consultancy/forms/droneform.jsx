@@ -1,90 +1,82 @@
 import React, { useMemo, useState } from "react";
 
-export default function ProjectDeclarationForm({ selectedWork, onBack, onSubmit }) {
-  const initialDeclarationData = useMemo(
+const DroneForm = ({ selectedWork, onBack, onSubmit }) => {
+  const initialFormData = useMemo(
     () => ({
       owiRefNo: "BITCPP",
       projectDurationFrom: "",
       projectDurationTo: "",
-      totalAmountWithGst: "",
-      totalAmountWithoutGst: "",
-      quotationReportFile: null,
+      quotationFile: null,
+      totalAmountWithGST: "",
+      totalAmountWithoutGST: "",
+      financialSplit: "",
       members: [
         { sNo: 1, name: "", designation: "", department: "", financialSplit: "", amount: "" },
         { sNo: 2, name: "", designation: "", department: "", financialSplit: "", amount: "" },
         { sNo: 3, name: "", designation: "", department: "", financialSplit: "", amount: "" },
-        { sNo: 4, name: "", designation: "", department: "", financialSplit: "", amount: "" }
+        { sNo: 4, name: "", designation: "", department: "", financialSplit: "", amount: "" },
       ],
       equipment: [
         { item: "", calibrationDoneReadilyAvailable: false, requiresMaintenance: false },
-        { item: "", calibrationDoneReadilyAvailable: false, requiresMaintenance: false }
+        { item: "", calibrationDoneReadilyAvailable: false, requiresMaintenance: false },
       ],
-      activities: Array.from({ length: 5 }, () => ({
+      activities: Array.from({ length: 2 }, () => ({
         proposedActivity: "",
         description: "",
         availability: "",
         startDate: "",
         endDate: "",
-        responsible: ""
-      }))
+        responsible: "",
+      })),
     }),
     []
   );
 
-  const [declarationData, setDeclarationData] = useState(initialDeclarationData);
+  const [formData, setFormData] = useState(initialFormData);
 
-  const handleDeclarationInputChange = (e) => {
+  const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setDeclarationData((prev) => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0] ?? null;
+    setFormData((prev) => ({ ...prev, quotationFile: file }));
   };
 
   const handleMemberChange = (index, field, value) => {
-    setDeclarationData((prev) => ({
+    setFormData((prev) => ({
       ...prev,
-      members: prev.members.map((member, i) => (i === index ? { ...member, [field]: value } : member))
+      members: prev.members.map((member, i) => (i === index ? { ...member, [field]: value } : member)),
     }));
   };
 
   const handleEquipmentChange = (index, field, value) => {
-    setDeclarationData((prev) => ({
+    setFormData((prev) => ({
       ...prev,
-      equipment: prev.equipment.map((row, i) => (i === index ? { ...row, [field]: value } : row))
+      equipment: prev.equipment.map((row, i) => (i === index ? { ...row, [field]: value } : row)),
     }));
   };
 
   const handleActivityChange = (index, field, value) => {
-    setDeclarationData((prev) => ({
+    setFormData((prev) => ({
       ...prev,
-      activities: prev.activities.map((row, i) => (i === index ? { ...row, [field]: value } : row))
-    }));
-  };
-
-  const handleQuotationFileChange = (e) => {
-    const file = e.target.files?.[0] ?? null;
-    setDeclarationData((prev) => ({
-      ...prev,
-      quotationReportFile: file
+      activities: prev.activities.map((row, i) => (i === index ? { ...row, [field]: value } : row)),
     }));
   };
 
   const addMemberRow = () => {
-    setDeclarationData((prev) => {
+    setFormData((prev) => {
       const nextSNo = prev.members.length + 1;
       return {
         ...prev,
-        members: [
-          ...prev.members,
-          { sNo: nextSNo, name: "", designation: "", department: "", financialSplit: "", amount: "" }
-        ]
+        members: [...prev.members, { sNo: nextSNo, name: "", designation: "", department: "", financialSplit: "", amount: "" }],
       };
     });
   };
 
   const addActivityRow = () => {
-    setDeclarationData((prev) => ({
+    setFormData((prev) => ({
       ...prev,
       activities: [
         ...prev.activities,
@@ -95,7 +87,7 @@ export default function ProjectDeclarationForm({ selectedWork, onBack, onSubmit 
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit?.(declarationData);
+    onSubmit?.(formData);
   };
 
   return (
@@ -124,15 +116,15 @@ export default function ProjectDeclarationForm({ selectedWork, onBack, onSubmit 
           <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-8 text-gray-800 text-base leading-relaxed">
             <div className="flex items-start justify-between gap-4">
               <div className="text-xl font-semibold">
-                Annexure 1 (B): Principal Investigator Declaration on Plan of Action
+                Annexure 3 (A): Principal Investigator Declaration on Plan of Action
               </div>
               <div className="whitespace-nowrap text-sm font-medium">
                 OWI REF NO:{" "}
                 <span className="inline-block align-bottom min-w-[140px] border-b border-dotted border-gray-400">
                   <input
                     name="owiRefNo"
-                    value={declarationData.owiRefNo}
-                    onChange={handleDeclarationInputChange}
+                    value={formData.owiRefNo}
+                    onChange={handleInputChange}
                     className="w-full bg-transparent outline-none px-1"
                   />
                 </span>
@@ -141,12 +133,12 @@ export default function ProjectDeclarationForm({ selectedWork, onBack, onSubmit 
 
             <div className="mt-4 space-y-2">
               <div>
-                <span className="font-semibold">B.1</span> Project Duration (Planned): From
+                <span className="font-semibold">A.1</span> Project Duration (Planned): From
                 <span className="inline-block align-bottom mx-1 min-w-[160px] border-b border-dotted border-gray-400">
                   <input
                     name="projectDurationFrom"
-                    value={declarationData.projectDurationFrom}
-                    onChange={handleDeclarationInputChange}
+                    value={formData.projectDurationFrom}
+                    onChange={handleInputChange}
                     className="w-full bg-transparent outline-none px-1"
                   />
                 </span>
@@ -154,13 +146,10 @@ export default function ProjectDeclarationForm({ selectedWork, onBack, onSubmit 
                 <span className="inline-block align-bottom mx-1 min-w-[160px] border-b border-dotted border-gray-400">
                   <input
                     name="projectDurationTo"
-                    value={declarationData.projectDurationTo}
-                    onChange={handleDeclarationInputChange}
+                    value={formData.projectDurationTo}
+                    onChange={handleInputChange}
                     className="w-full bg-transparent outline-none px-1"
                   />
-                </span>
-                <span className="text-sm text-gray-600">
-                  (To be filled after allotment, before project commencement)
                 </span>
               </div>
 
@@ -168,9 +157,9 @@ export default function ProjectDeclarationForm({ selectedWork, onBack, onSubmit 
                 <span className="whitespace-nowrap">Total Consultancy Amount in Rs. (With GST):</span>
                 <span className="inline-block align-bottom mx-1 min-w-[180px] border-b border-dotted border-gray-400">
                   <input
-                    name="totalAmountWithGst"
-                    value={declarationData.totalAmountWithGst}
-                    onChange={handleDeclarationInputChange}
+                    name="totalAmountWithGST"
+                    value={formData.totalAmountWithGST}
+                    onChange={handleInputChange}
                     className="w-full bg-transparent outline-none px-1"
                   />
                 </span>
@@ -178,22 +167,63 @@ export default function ProjectDeclarationForm({ selectedWork, onBack, onSubmit 
                 <span className="whitespace-nowrap">(Without GST):</span>
                 <span className="inline-block align-bottom mx-1 min-w-[180px] border-b border-dotted border-gray-400">
                   <input
-                    name="totalAmountWithoutGst"
-                    value={declarationData.totalAmountWithoutGst}
-                    onChange={handleDeclarationInputChange}
+                    name="totalAmountWithoutGST"
+                    value={formData.totalAmountWithoutGST}
+                    onChange={handleInputChange}
                     className="w-full bg-transparent outline-none px-1"
                   />
                 </span>
 
                 <div className="flex items-center gap-2">
-                  <span className="font-medium whitespace-nowrap">Quotation Report (PDF):</span>
+                  <span className="font-medium whitespace-nowrap">Quotation (upload):</span>
                   <input
                     type="file"
-                    accept="application/pdf"
-                    onChange={handleQuotationFileChange}
+                    onChange={handleFileChange}
+                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                     className="text-sm border border-gray-300 rounded-md px-2 py-1 bg-white file:mr-3 file:rounded file:border-0 file:bg-gray-100 file:px-3 file:py-1 file:text-sm file:font-medium file:text-gray-700 hover:file:bg-gray-200"
                   />
+                  {formData.quotationFile && <span className="text-green-600">✓</span>}
                 </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                <span className="font-semibold whitespace-nowrap">Recommended Financial Split:</span>
+                <label className="flex items-center gap-1 whitespace-nowrap cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.financialSplit === "40-60"}
+                    onChange={() => setFormData((prev) => ({ ...prev, financialSplit: prev.financialSplit === "40-60" ? "" : "40-60" }))}
+                    className="h-3 w-3"
+                  />
+                  <span className="text-sm">40% Institute / 60% Faculty</span>
+                </label>
+                <label className="flex items-center gap-1 whitespace-nowrap cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.financialSplit === "30-70"}
+                    onChange={() => setFormData((prev) => ({ ...prev, financialSplit: prev.financialSplit === "30-70" ? "" : "30-70" }))}
+                    className="h-3 w-3"
+                  />
+                  <span className="text-sm">30% Institute / 70% Faculty</span>
+                </label>
+                <label className="flex items-center gap-1 whitespace-nowrap cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.financialSplit === "80-20"}
+                    onChange={() => setFormData((prev) => ({ ...prev, financialSplit: prev.financialSplit === "80-20" ? "" : "80-20" }))}
+                    className="h-3 w-3"
+                  />
+                  <span className="text-sm">80% Institute / 20% Faculty</span>
+                </label>
+                <label className="flex items-center gap-1 whitespace-nowrap cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.financialSplit === "ROI"}
+                    onChange={() => setFormData((prev) => ({ ...prev, financialSplit: prev.financialSplit === "ROI" ? "" : "ROI" }))}
+                    className="h-3 w-3"
+                  />
+                  <span className="text-sm">ROI</span>
+                </label>
               </div>
             </div>
 
@@ -222,7 +252,7 @@ export default function ProjectDeclarationForm({ selectedWork, onBack, onSubmit 
                     </tr>
                   </thead>
                   <tbody>
-                    {declarationData.members.map((member, idx) => (
+                    {formData.members.map((member, idx) => (
                       <tr key={member.sNo}>
                         <td className="border border-gray-300 p-3 w-[52px] font-medium">{member.sNo}.</td>
                         <td className="border border-gray-300 p-3">
@@ -268,13 +298,13 @@ export default function ProjectDeclarationForm({ selectedWork, onBack, onSubmit 
             </div>
 
             <div className="mt-4">
-              <div className="font-semibold">B.2</div>
+              <div className="font-semibold">A.2</div>
               <div className="mt-2 flex items-center justify-between gap-3">
                 <div className="font-medium">List of Equipment/Facility required and its accessibility status:</div>
               </div>
 
               <div className="mt-2 space-y-2">
-                {declarationData.equipment.map((row, idx) => (
+                {formData.equipment.map((row, idx) => (
                   <div key={idx} className="flex flex-wrap items-center gap-2">
                     <div className="w-6 font-medium">{idx + 1}.</div>
                     <div className="flex-1 min-w-[240px] border-b border-dotted border-gray-400">
@@ -289,9 +319,7 @@ export default function ProjectDeclarationForm({ selectedWork, onBack, onSubmit 
                       <input
                         type="checkbox"
                         checked={row.calibrationDoneReadilyAvailable}
-                        onChange={(e) =>
-                          handleEquipmentChange(idx, "calibrationDoneReadilyAvailable", e.target.checked)
-                        }
+                        onChange={(e) => handleEquipmentChange(idx, "calibrationDoneReadilyAvailable", e.target.checked)}
                         className="h-3 w-3"
                       />
                       <span className="text-sm">Calibration Done &amp; Readily Available</span>
@@ -339,7 +367,7 @@ export default function ProjectDeclarationForm({ selectedWork, onBack, onSubmit 
                     </tr>
                   </thead>
                   <tbody>
-                    {declarationData.activities.map((row, idx) => (
+                    {formData.activities.map((row, idx) => (
                       <tr key={idx}>
                         <td className="border border-gray-300 p-3">
                           <input
@@ -400,4 +428,6 @@ export default function ProjectDeclarationForm({ selectedWork, onBack, onSubmit 
       </div>
     </div>
   );
-}
+};
+
+export default DroneForm;

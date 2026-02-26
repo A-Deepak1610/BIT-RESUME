@@ -1,6 +1,19 @@
 import React, { useState } from "react";
 import useAuth from "../../store/UseAuth";
 import ProjectDeclarationForm from "./forms/projectdeclarationform";
+import DroneForm from "./forms/droneform";
+import IndustrialProjectForm from "./forms/industrialprojectform";
+
+const inferWorkTypeFromText = (text) => {
+  const normalized = (text || "").toLowerCase();
+  if (!normalized) return "";
+  if (normalized.includes("drone")) return "Drone";
+  if (normalized.includes("industrial training") || normalized.includes("training")) {
+    return "Industrial Training Project";
+  }
+  if (normalized.includes("software")) return "Software Project";
+  return "";
+};
 
 const ConsultancyFaculty = () => {
   useAuth();
@@ -10,6 +23,7 @@ const ConsultancyFaculty = () => {
     {
       id: 1,
       projectTitle: "Smart City IoT Infrastructure Audit",
+      workType: "Drone",
       clientOrganization: "City Municipal Corporation",
       workDescription: "Comprehensive audit and assessment of existing IoT infrastructure for smart city initiatives. This includes evaluation of current systems, security analysis, and recommendations for improvements.",
       expectedCompletionDate: "2026-06-15",
@@ -22,16 +36,17 @@ const ConsultancyFaculty = () => {
       hodRemarks: "Prof. Gupta has extensive experience in IoT infrastructure projects and security audits.",
       targetCompletionDate: "2026-06-10",
       facultyAssignedAt: "2026-02-17",
-      status: "Pending Faculty Response",
-      facultyResponse: null,
-      facultyRemarks: null,
-      responseDate: null,
+      status: "Accepted by Faculty",
+      facultyResponse: "accepted",
+      facultyRemarks: "I have the required expertise in drone technology and IoT systems. Ready to start the project.",
+      responseDate: "2026-02-18",
       declarationSubmitted: false,
       declarationData: null
     },
     {
       id: 2,
       projectTitle: "Digital Transformation Strategy",
+      workType: "Software Project",
       clientOrganization: "Regional Development Authority", 
       workDescription: "Development of comprehensive digital transformation roadmap for government services modernization including process optimization and technology integration.",
       expectedCompletionDate: "2026-08-30",
@@ -48,6 +63,29 @@ const ConsultancyFaculty = () => {
       facultyResponse: "accepted",
       facultyRemarks: "I am interested in this project and have the required expertise. I can commit to the timeline and deliver quality results.",
       responseDate: "2026-02-17",
+      declarationSubmitted: false,
+      declarationData: null
+    },
+    {
+      id: 3,
+      projectTitle: "Industrial Skills Development Program",
+      workType: "Industrial Training Project",
+      clientOrganization: "State Industrial Training Institute",
+      workDescription: "Comprehensive industrial training program for engineering students covering manufacturing processes, quality control, and industry best practices.",
+      expectedCompletionDate: "2026-09-30",
+      submittedAt: "2026-02-18",
+      submittedBy: "Principal",
+      assignedDepartment: "Mechanical Engineering",
+      iqacRemarks: "Industrial training program requires faculty with strong industry connections and practical experience in manufacturing.",
+      assignedAt: "2026-02-19",
+      assignedFaculty: "Prof. R. Gupta (IoT & Networks)",
+      hodRemarks: "Prof. Gupta has conducted similar training programs before and has excellent industry contacts.",
+      targetCompletionDate: "2026-09-15",
+      facultyAssignedAt: "2026-02-20",
+      status: "Accepted by Faculty",
+      facultyResponse: "accepted",
+      facultyRemarks: "I have experience conducting industrial training programs and can leverage my industry contacts for this project.",
+      responseDate: "2026-02-21",
       declarationSubmitted: false,
       declarationData: null
     }
@@ -162,15 +200,35 @@ const ConsultancyFaculty = () => {
     }
   };
 
+  // Determine which form to render based on workType
+  const renderDeclarationForm = () => {
+    const workType = selectedWork?.workType ||
+      inferWorkTypeFromText(selectedWork?.iqacRemarks) ||
+      inferWorkTypeFromText(selectedWork?.workDescription) ||
+      "";
+
+    const formProps = {
+      key: selectedWork?.id,
+      selectedWork: selectedWork,
+      onBack: () => setShowFullPageDeclaration(false),
+      onSubmit: handleSubmitDeclaration,
+    };
+
+    switch (workType) {
+      case "Drone":
+        return <DroneForm {...formProps} />;
+      case "Industrial Training Project":
+        return <IndustrialProjectForm {...formProps} />;
+      case "Software Project":
+      default:
+        return <ProjectDeclarationForm {...formProps} />;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {showFullPageDeclaration ? (
-        <ProjectDeclarationForm
-          key={selectedWork?.id}
-          selectedWork={selectedWork}
-          onBack={() => setShowFullPageDeclaration(false)}
-          onSubmit={handleSubmitDeclaration}
-        />
+        renderDeclarationForm()
       ) : (
         <div className="p-4">
           {/* Header */}
@@ -272,6 +330,16 @@ const ConsultancyFaculty = () => {
                                 <div>
                                   <span className="font-medium text-gray-600">Assigned Department:</span>
                                   <p className="text-gray-800 font-semibold mt-1">{work.assignedDepartment}</p>
+                                </div>
+
+                                <div>
+                                  <span className="font-medium text-gray-600">Consultancy Work:</span>
+                                  <p className="text-gray-800 mt-1">
+                                    {work.workType ||
+                                      inferWorkTypeFromText(work.iqacRemarks) ||
+                                      inferWorkTypeFromText(work.workDescription) ||
+                                      "-"}
+                                  </p>
                                 </div>
 
                                 <div>

@@ -1,8 +1,19 @@
 import React, { useState } from "react";
 import useAuth from "../../store/UseAuth";
 
+const inferWorkTypeFromText = (text) => {
+  const normalized = (text || "").toLowerCase();
+  if (!normalized) return "";
+  if (normalized.includes("drone")) return "Drone";
+  if (normalized.includes("industrial training") || normalized.includes("training")) {
+    return "Industrial Training Project";
+  }
+  if (normalized.includes("software")) return "Software Project";
+  return "";
+};
+
 const ConsultancyIQAC = () => {
-  const { user } = useAuth();
+  useAuth();
   
   // Mock data for submitted consultancy works (in real app, this would come from API)
   const [consultancyWorks, setConsultancyWorks] = useState([
@@ -61,9 +72,9 @@ const ConsultancyIQAC = () => {
   ]);
 
   const [showAssignForm, setShowAssignForm] = useState(false);
-  const [selectedWork, setSelectedWork] = useState(null);
   const [assignmentData, setAssignmentData] = useState({
     selectedWorkId: "",
+    workType: "",
     department: "",
     remarks: ""
   });
@@ -79,9 +90,9 @@ const ConsultancyIQAC = () => {
   ];
 
   const handleAssignDepartment = (work) => {
-    setSelectedWork(work);
     setAssignmentData({
       selectedWorkId: work.id.toString(),
+      workType: inferWorkTypeFromText(work.workDescription),
       department: "",
       remarks: ""
     });
@@ -90,10 +101,13 @@ const ConsultancyIQAC = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setAssignmentData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setAssignmentData((prev) => {
+      const next = { ...prev, [name]: value };
+      if (name === "remarks" && !prev.workType) {
+        next.workType = inferWorkTypeFromText(value);
+      }
+      return next;
+    });
   };
 
   const handleSubmitAssignment = (e) => {
@@ -105,6 +119,7 @@ const ConsultancyIQAC = () => {
         work.id.toString() === assignmentData.selectedWorkId 
           ? {
               ...work,
+              workType: assignmentData.workType,
               assignedDepartment: assignmentData.department,
               iqacRemarks: assignmentData.remarks,
               status: "Assigned to Department"
@@ -115,9 +130,9 @@ const ConsultancyIQAC = () => {
 
     // Reset form and close modal
     setShowAssignForm(false);
-    setSelectedWork(null);
     setAssignmentData({
       selectedWorkId: "",
+      workType: "",
       department: "",
       remarks: ""
     });
@@ -125,9 +140,9 @@ const ConsultancyIQAC = () => {
 
   const closeModal = () => {
     setShowAssignForm(false);
-    setSelectedWork(null);
     setAssignmentData({
       selectedWorkId: "",
+      workType: "",
       department: "",
       remarks: ""
     });
@@ -484,8 +499,8 @@ const ConsultancyIQAC = () => {
                     Select Consultancy Work
                   </label>
                   <select
-                    name="selectedWorkId"
-                    value={assignmentData.selectedWorkId}
+                    name="workType"
+                    value={assignmentData.workType}
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:border-opacity-50 outline-none"
                     style={{ '--tw-ring-color': '#9b9aff', '--tw-ring-opacity': '0.5' }}
@@ -493,7 +508,10 @@ const ConsultancyIQAC = () => {
                     onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
                     required
                   >
-                    <option value={selectedWork?.id || ""}>{selectedWork?.projectTitle}</option>
+                    <option value="">Select Work Type</option>
+                    <option value="Software Project">Software Project</option>
+                    <option value="Industrial Training Project">Industrial Training Project</option>
+                    <option value="Drone">Drone</option>
                   </select>
                 </div>
 
