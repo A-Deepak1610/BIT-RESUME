@@ -303,7 +303,10 @@ const ConsultancyFaculty = () => {
                       <div className="grid grid-cols-4 gap-6">
                         {/* Principal's Submission */}
                         <div className="space-y-3 text-sm">
-                          <h4 className="font-semibold text-gray-700 mb-3 text-base">Principal Submission</h4>
+                          <div className="flex justify-between items-center mb-3">
+                            <h4 className="font-semibold text-gray-700 text-base">Principal Submission</h4>
+                            <span className="text-xs text-gray-500">{work.submittedAt}</span>
+                          </div>
                           <div>
                             <span className="font-medium text-gray-600">Client Organization:</span>
                             <p className="text-gray-800 mt-1">{work.clientOrganization}</p>
@@ -324,7 +327,10 @@ const ConsultancyFaculty = () => {
                         <div className="relative">
                           <div className="absolute left-0 top-0 bottom-0 w-px bg-gray-300"></div>
                           <div className="pl-6 space-y-3 text-sm">
-                            <h4 className="font-semibold text-gray-700 mb-3 text-base">IQAC Assignment</h4>
+                            <div className="flex justify-between items-center mb-3">
+                              <h4 className="font-semibold text-gray-700 text-base">IQAC Assignment</h4>
+                              <span className="text-xs text-gray-500">{work.assignedAt}</span>
+                            </div>
                             <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
                               <div className="space-y-3">
                                 <div>
@@ -355,7 +361,10 @@ const ConsultancyFaculty = () => {
                         <div className="relative">
                           <div className="absolute left-0 top-0 bottom-0 w-px bg-gray-300"></div>
                           <div className="pl-6 space-y-3 text-sm">
-                            <h4 className="font-semibold text-gray-700 mb-3 text-base">HOD Assignment</h4>
+                            <div className="flex justify-between items-center mb-3">
+                              <h4 className="font-semibold text-gray-700 text-base">HOD Assignment</h4>
+                              <span className="text-xs text-gray-500">{work.facultyAssignedAt}</span>
+                            </div>
                             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                               <div className="space-y-3">
                                 <div>
@@ -383,7 +392,10 @@ const ConsultancyFaculty = () => {
                             <>
                               <div className="absolute left-0 top-0 bottom-0 w-px bg-gray-300"></div>
                               <div className="pl-6 space-y-3 text-sm">
-                                <h4 className="font-semibold text-gray-700 mb-3 text-base">Faculty Response</h4>
+                                <div className="flex justify-between items-center mb-3">
+                                  <h4 className="font-semibold text-gray-700 text-base">Faculty Response</h4>
+                                  <span className="text-xs text-gray-500">{work.responseDate}</span>
+                                </div>
                                 <div
                                   className={`border rounded-lg p-4 ${
                                     work.facultyResponse === "accepted"
