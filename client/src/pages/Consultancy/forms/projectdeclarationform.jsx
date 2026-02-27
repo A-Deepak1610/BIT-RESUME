@@ -9,8 +9,9 @@ export default function ProjectDeclarationForm({ selectedWork, onBack, onSubmit 
       totalAmountWithGst: "",
       totalAmountWithoutGst: "",
       quotationReportFile: null,
+      financialSplit: "",
       members: [
-        { sNo: 1, name: "", designation: "", department: "", financialSplit: "", amount: "" },
+        { sNo: 1, name: "INSTITUTION", designation: "-", department: "-", financialSplit: "", amount: "" },
         { sNo: 2, name: "", designation: "", department: "", financialSplit: "", amount: "" },
         { sNo: 3, name: "", designation: "", department: "", financialSplit: "", amount: "" },
         { sNo: 4, name: "", designation: "", department: "", financialSplit: "", amount: "" }
@@ -19,7 +20,7 @@ export default function ProjectDeclarationForm({ selectedWork, onBack, onSubmit 
         { item: "", calibrationDoneReadilyAvailable: false, requiresMaintenance: false },
         { item: "", calibrationDoneReadilyAvailable: false, requiresMaintenance: false }
       ],
-      activities: Array.from({ length: 5 }, () => ({
+      activities: Array.from({ length: 4 }, () => ({
         proposedActivity: "",
         description: "",
         availability: "",
@@ -33,19 +34,109 @@ export default function ProjectDeclarationForm({ selectedWork, onBack, onSubmit 
 
   const [declarationData, setDeclarationData] = useState(initialDeclarationData);
 
+  // Helper function to get institute percentage from split code
+  const getInstitutePercentage = (splitCode) => {
+    const splitMap = {
+      "40-60": 40,
+      "30-70": 30,
+      "80-20": 80,
+      "0-100": 0,
+      "ROI": 0,
+    };
+    return splitMap[splitCode] ?? null;
+  };
+
   const handleDeclarationInputChange = (e) => {
     const { name, value } = e.target;
-    setDeclarationData((prev) => ({
-      ...prev,
-      [name]: value
-    }));
+    setDeclarationData((prev) => {
+      const newState = { ...prev, [name]: value };
+      // Recalculate amounts when totalAmountWithoutGst changes
+      if (name === "totalAmountWithoutGst" && prev.financialSplit) {
+        const total = parseFloat(value) || 0;
+        const institutePercent = getInstitutePercentage(prev.financialSplit);
+        if (institutePercent !== null) {
+          const instituteAmount = Math.round(total * institutePercent / 100);
+          const remainingAmount = total - instituteAmount;
+          newState.members = prev.members.map((member, i) => {
+            if (i === 0) {
+              return { ...member, financialSplit: `${institutePercent}%`, amount: instituteAmount.toString() };
+            }
+            // Recalculate other members' amounts based on their percentage of remaining amount
+            const memberPercent = parseFloat(member.financialSplit) || 0;
+            const memberAmount = Math.round(remainingAmount * memberPercent / 100);
+            return { ...member, amount: memberPercent ? memberAmount.toString() : member.amount };
+          });
+        }
+      }
+      return newState;
+    });
   };
 
   const handleMemberChange = (index, field, value) => {
-    setDeclarationData((prev) => ({
-      ...prev,
-      members: prev.members.map((member, i) => (i === index ? { ...member, [field]: value } : member))
-    }));
+    setDeclarationData((prev) => {
+      const total = parseFloat(prev.totalAmountWithoutGst) || 0;
+      const institutePercent = getInstitutePercentage(prev.financialSplit);
+      const instituteAmount = institutePercent !== null ? Math.round(total * institutePercent / 100) : 0;
+      const remainingAmount = total - instituteAmount;
+      return {
+        ...prev,
+        members: prev.members.map((member, i) => {
+          if (i !== index) return member;
+          const updatedMember = { ...member, [field]: value };
+          // Auto-calculate amount when financialSplit is entered for non-first rows
+          if (field === "financialSplit" && index > 0 && remainingAmount > 0) {
+            const percent = parseFloat(value) || 0;
+            const amount = Math.round(remainingAmount * percent / 100);
+            updatedMember.amount = percent ? amount.toString() : "";
+          }
+          return updatedMember;
+        }),
+      };
+    });
+  };
+
+  const handleFinancialSplitChange = (splitCode) => {
+    setDeclarationData((prev) => {
+      const newSplit = prev.financialSplit === splitCode ? "" : splitCode;
+      const total = parseFloat(prev.totalAmountWithoutGst) || 0;
+      const institutePercent = getInstitutePercentage(newSplit);
+      
+      let updatedMembers = prev.members;
+      if (newSplit === "ROI") {
+        // Set all members with names to 0% and 0 amount for ROI
+        updatedMembers = prev.members.map((member) => ({
+          ...member,
+          financialSplit: member.name ? "0%" : "",
+          amount: member.name ? "0" : "",
+        }));
+      } else if (newSplit && institutePercent !== null) {
+        const instituteAmount = Math.round(total * institutePercent / 100);
+        const remainingAmount = total - instituteAmount;
+        updatedMembers = prev.members.map((member, i) => {
+          if (i === 0) {
+            return { ...member, financialSplit: `${institutePercent}%`, amount: total ? instituteAmount.toString() : "" };
+          }
+          // Recalculate other members' amounts based on their percentage of remaining amount
+          const memberPercent = parseFloat(member.financialSplit) || 0;
+          const memberAmount = Math.round(remainingAmount * memberPercent / 100);
+          return { ...member, amount: memberPercent && remainingAmount ? memberAmount.toString() : member.amount };
+        });
+      } else {
+        // Clear first row's calculated values when deselecting
+        updatedMembers = prev.members.map((member, i) => {
+          if (i === 0) {
+            return { ...member, financialSplit: "", amount: "" };
+          }
+          return member;
+        });
+      }
+      
+      return {
+        ...prev,
+        financialSplit: newSplit,
+        members: updatedMembers,
+      };
+    });
   };
 
   const handleEquipmentChange = (index, field, value) => {
@@ -83,6 +174,16 @@ export default function ProjectDeclarationForm({ selectedWork, onBack, onSubmit 
     });
   };
 
+  const addEquipmentRow = () => {
+    setDeclarationData((prev) => ({
+      ...prev,
+      equipment: [
+        ...prev.equipment,
+        { item: "", calibrationDoneReadilyAvailable: false, requiresMaintenance: false }
+      ]
+    }));
+  };
+
   const addActivityRow = () => {
     setDeclarationData((prev) => ({
       ...prev,
@@ -91,6 +192,35 @@ export default function ProjectDeclarationForm({ selectedWork, onBack, onSubmit 
         { proposedActivity: "", description: "", availability: "", startDate: "", endDate: "", responsible: "" }
       ]
     }));
+  };
+
+  const removeMemberRow = (index) => {
+    if (declarationData.members.length > 1) {
+      setDeclarationData((prev) => ({
+        ...prev,
+        members: prev.members
+          .filter((_, i) => i !== index)
+          .map((m, i) => ({ ...m, sNo: i + 1 })),
+      }));
+    }
+  };
+
+  const removeEquipmentRow = (index) => {
+    if (declarationData.equipment.length > 1) {
+      setDeclarationData((prev) => ({
+        ...prev,
+        equipment: prev.equipment.filter((_, i) => i !== index),
+      }));
+    }
+  };
+
+  const removeActivityRow = (index) => {
+    if (declarationData.activities.length > 1) {
+      setDeclarationData((prev) => ({
+        ...prev,
+        activities: prev.activities.filter((_, i) => i !== index),
+      }));
+    }
   };
 
   const handleSubmit = (e) => {
@@ -195,6 +325,57 @@ export default function ProjectDeclarationForm({ selectedWork, onBack, onSubmit 
                   />
                 </div>
               </div>
+
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                <span className="font-semibold whitespace-nowrap">
+                  Recommended Financial Split:
+                </span>
+                <label className="flex items-center gap-1 whitespace-nowrap cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={declarationData.financialSplit === "40-60"}
+                    onChange={() => handleFinancialSplitChange("40-60")}
+                    className="h-3 w-3"
+                  />
+                  <span className="text-sm">40% Institute / 60% Faculty</span>
+                </label>
+                <label className="flex items-center gap-1 whitespace-nowrap cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={declarationData.financialSplit === "30-70"}
+                    onChange={() => handleFinancialSplitChange("30-70")}
+                    className="h-3 w-3"
+                  />
+                  <span className="text-sm">30% Institute / 70% Faculty</span>
+                </label>
+                <label className="flex items-center gap-1 whitespace-nowrap cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={declarationData.financialSplit === "80-20"}
+                    onChange={() => handleFinancialSplitChange("80-20")}
+                    className="h-3 w-3"
+                  />
+                  <span className="text-sm">80% Institute / 20% Faculty</span>
+                </label>
+                <label className="flex items-center gap-1 whitespace-nowrap cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={declarationData.financialSplit === "0-100"}
+                    onChange={() => handleFinancialSplitChange("0-100")}
+                    className="h-3 w-3"
+                  />
+                  <span className="text-sm">100% Faculty</span>
+                </label>
+                <label className="flex items-center gap-1 whitespace-nowrap cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={declarationData.financialSplit === "ROI"}
+                    onChange={() => handleFinancialSplitChange("ROI")}
+                    className="h-3 w-3"
+                  />
+                  <span className="text-sm">ROI</span>
+                </label>
+              </div>
             </div>
 
             <div className="mt-3">
@@ -210,11 +391,12 @@ export default function ProjectDeclarationForm({ selectedWork, onBack, onSubmit 
               </div>
 
               <div className="w-full overflow-x-auto">
-                <table className="w-full border border-gray-300 border-collapse">
-                  <thead>
-                    <tr>
-                      <th className="border border-gray-300 p-3 text-left font-semibold">S.No.</th>
-                      <th className="border border-gray-300 p-3 text-left font-semibold">Name</th>
+                <div className="pl-5">
+                  <table className="w-full border border-gray-300 border-collapse">
+                    <thead>
+                      <tr>
+                        <th className="border border-gray-300 p-3 text-left font-semibold">S.No.</th>
+                        <th className="border border-gray-300 p-3 text-left font-semibold">Name</th>
                       <th className="border border-gray-300 p-3 text-left font-semibold">Designation</th>
                       <th className="border border-gray-300 p-3 text-left font-semibold">Department</th>
                       <th className="border border-gray-300 p-3 text-left font-semibold">Financial Split %</th>
@@ -223,27 +405,42 @@ export default function ProjectDeclarationForm({ selectedWork, onBack, onSubmit 
                   </thead>
                   <tbody>
                     {declarationData.members.map((member, idx) => (
-                      <tr key={member.sNo}>
-                        <td className="border border-gray-300 p-3 w-[52px] font-medium">{member.sNo}.</td>
+                      <tr key={member.sNo} className="relative">
+                        <td className="border border-gray-300 p-3 w-[52px] font-medium">
+                          {idx > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => removeMemberRow(idx)}
+                              className="absolute -left-5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500 text-xs transition-colors"
+                              title="Remove row"
+                            >
+                            -
+                          </button>
+                          )}
+                          {member.sNo}.
+                        </td>
                         <td className="border border-gray-300 p-3">
                           <input
                             value={member.name}
                             onChange={(e) => handleMemberChange(idx, "name", e.target.value)}
-                            className="w-full bg-transparent outline-none"
+                            className={`w-full bg-transparent outline-none ${idx === 0 ? "text-gray-500 cursor-not-allowed" : ""}`}
+                            readOnly={idx === 0}
                           />
                         </td>
                         <td className="border border-gray-300 p-3">
                           <input
                             value={member.designation}
                             onChange={(e) => handleMemberChange(idx, "designation", e.target.value)}
-                            className="w-full bg-transparent outline-none"
+                            className={`w-full bg-transparent outline-none ${idx === 0 ? "text-gray-500 cursor-not-allowed" : ""}`}
+                            readOnly={idx === 0}
                           />
                         </td>
                         <td className="border border-gray-300 p-3">
                           <input
                             value={member.department}
                             onChange={(e) => handleMemberChange(idx, "department", e.target.value)}
-                            className="w-full bg-transparent outline-none"
+                            className={`w-full bg-transparent outline-none ${idx === 0 ? "text-gray-500 cursor-not-allowed" : ""}`}
+                            readOnly={idx === 0}
                           />
                         </td>
                         <td className="border border-gray-300 p-3 w-[120px]">
@@ -264,6 +461,7 @@ export default function ProjectDeclarationForm({ selectedWork, onBack, onSubmit 
                     ))}
                   </tbody>
                 </table>
+                </div>
               </div>
             </div>
 
@@ -271,11 +469,26 @@ export default function ProjectDeclarationForm({ selectedWork, onBack, onSubmit 
               <div className="font-semibold">B.2</div>
               <div className="mt-2 flex items-center justify-between gap-3">
                 <div className="font-medium">List of Equipment/Facility required and its accessibility status:</div>
+                <button
+                  type="button"
+                  onClick={addEquipmentRow}
+                  className="border border-dashed border-gray-400 text-gray-700 rounded-md px-3 py-1 text-sm font-medium hover:bg-gray-50 whitespace-nowrap"
+                >
+                  Add Row
+                </button>
               </div>
 
               <div className="mt-2 space-y-2">
                 {declarationData.equipment.map((row, idx) => (
-                  <div key={idx} className="flex flex-wrap items-center gap-2">
+                  <div key={idx} className="flex flex-wrap items-center gap-2 relative">
+                    <button
+                      type="button"
+                      onClick={() => removeEquipmentRow(idx)}
+                      className="absolute -left-5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500 text-xs transition-colors"
+                      title="Remove row"
+                    >
+                      -
+                    </button>
                     <div className="w-6 font-medium">{idx + 1}.</div>
                     <div className="flex-1 min-w-[240px] border-b border-dotted border-gray-400">
                       <input
@@ -323,10 +536,11 @@ export default function ProjectDeclarationForm({ selectedWork, onBack, onSubmit 
                 </button>
               </div>
               <div className="w-full overflow-x-auto">
-                <table className="w-full border border-gray-300 border-collapse">
-                  <thead>
-                    <tr>
-                      <th className="border border-gray-300 p-3 text-left font-semibold">Proposed Activity</th>
+                <div className="pl-5">
+                  <table className="w-full border border-gray-300 border-collapse">
+                    <thead>
+                      <tr>
+                        <th className="border border-gray-300 p-3 text-left font-semibold">Proposed Activity</th>
                       <th className="border border-gray-300 p-3 text-left font-semibold">
                         Description and consumable items/resources required
                       </th>
@@ -340,8 +554,16 @@ export default function ProjectDeclarationForm({ selectedWork, onBack, onSubmit 
                   </thead>
                   <tbody>
                     {declarationData.activities.map((row, idx) => (
-                      <tr key={idx}>
+                      <tr key={idx} className="relative">
                         <td className="border border-gray-300 p-3">
+                          <button
+                            type="button"
+                            onClick={() => removeActivityRow(idx)}
+                            className="absolute -left-5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500 text-xs transition-colors"
+                            title="Remove row"
+                          >
+                            -
+                          </button>
                           <input
                             value={row.proposedActivity}
                             onChange={(e) => handleActivityChange(idx, "proposedActivity", e.target.value)}
@@ -356,11 +578,15 @@ export default function ProjectDeclarationForm({ selectedWork, onBack, onSubmit 
                           />
                         </td>
                         <td className="border border-gray-300 p-3 w-[160px]">
-                          <input
+                          <select
                             value={row.availability}
                             onChange={(e) => handleActivityChange(idx, "availability", e.target.value)}
                             className="w-full bg-transparent outline-none"
-                          />
+                          >
+                            <option value="">Select</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                          </select>
                         </td>
                         <td className="border border-gray-300 p-3 w-[140px]">
                           <input
@@ -387,6 +613,7 @@ export default function ProjectDeclarationForm({ selectedWork, onBack, onSubmit 
                     ))}
                   </tbody>
                 </table>
+                </div>
               </div>
             </div>
           </div>
