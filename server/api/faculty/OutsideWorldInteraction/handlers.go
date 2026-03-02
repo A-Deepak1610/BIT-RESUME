@@ -45,20 +45,12 @@ func UploadFile(c *gin.Context, formKey string) (string, error) {
 func UploadMultipleFiles(c *gin.Context, formKey string) (string, error) {
 	form, err := c.MultipartForm()
 	if err != nil {
-<<<<<<< Updated upstream
-		return "", nil // No multipart form, that's okay
-=======
 		return "", nil // No files uploaded, that's okay
->>>>>>> Stashed changes
 	}
 
 	files := form.File[formKey]
 	if len(files) == 0 {
-<<<<<<< Updated upstream
-		return "", nil // No files uploaded
-=======
 		return "", nil
->>>>>>> Stashed changes
 	}
 
 	// Create uploads directory if it doesn't exist
@@ -71,11 +63,7 @@ func UploadMultipleFiles(c *gin.Context, formKey string) (string, error) {
 	for i, file := range files {
 		// Generate unique filename
 		ext := filepath.Ext(file.Filename)
-<<<<<<< Updated upstream
-		timestamp := time.Now().UnixNano()
-=======
 		timestamp := time.Now().UnixNano() / 1000000 // milliseconds for uniqueness
->>>>>>> Stashed changes
 		filename := fmt.Sprintf("%d_%s_%d%s", timestamp, formKey, i, ext)
 		filePath := filepath.Join(uploadDir, filename)
 
@@ -84,11 +72,6 @@ func UploadMultipleFiles(c *gin.Context, formKey string) (string, error) {
 			log.Printf("Error saving file %s: %v", file.Filename, err)
 			continue
 		}
-<<<<<<< Updated upstream
-		filePaths = append(filePaths, filePath)
-	}
-
-=======
 
 		filePaths = append(filePaths, filePath)
 	}
@@ -98,7 +81,6 @@ func UploadMultipleFiles(c *gin.Context, formKey string) (string, error) {
 	}
 
 	// Return comma-separated paths
->>>>>>> Stashed changes
 	return strings.Join(filePaths, ","), nil
 }
 
@@ -124,11 +106,7 @@ func HandleIndustryAdvisorPost(c *gin.Context) {
 
 	approvalDoc, _ := UploadMultipleFiles(c, "approvalDocument")
 
-<<<<<<< Updated upstream
-	query := `INSERT INTO industry_advisor (faculty, sig_number, special_labs_involved, special_lab, industry_name, domain_area, industry_type, industry_type_other, expert_name, designation, email_id, phone_number, experience_years, area_of_expertise, industry_address, industry_website, frequency_of_interaction, date_of_meeting, expense_incurred, suggestions, collaborative_activities, approval_document, owi_verification) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-=======
 	query := `INSERT INTO faculty_industry_advisor (faculty, sig_number, special_labs_involved, special_lab, industry_name, domain_area, industry_type, industry_type_other, expert_name, designation, email_id, phone_number, experience_years, area_of_expertise, industry_address, industry_website, frequency_of_interaction, date_of_meeting, expense_incurred, suggestions, collaborative_activities, approval_document, owi_verification) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
->>>>>>> Stashed changes
 
 	_, err := config.DB.Exec(query,
 		facultyID,
@@ -173,11 +151,7 @@ func HandleIndustryAdvisorGet(c *gin.Context) {
 		return
 	}
 
-<<<<<<< Updated upstream
-	query := `SELECT id, COALESCE(faculty, ''), COALESCE(sig_number, ''), COALESCE(special_labs_involved, ''), COALESCE(special_lab, ''), COALESCE(industry_name, ''), COALESCE(domain_area, ''), COALESCE(industry_type, ''), COALESCE(industry_type_other, ''), COALESCE(expert_name, ''), COALESCE(designation, ''), COALESCE(email_id, ''), COALESCE(phone_number, ''), COALESCE(experience_years, ''), COALESCE(area_of_expertise, ''), COALESCE(industry_address, ''), COALESCE(industry_website, ''), COALESCE(frequency_of_interaction, ''), COALESCE(date_of_meeting, ''), COALESCE(expense_incurred, 0), COALESCE(suggestions, ''), COALESCE(collaborative_activities, ''), COALESCE(approval_document, ''), COALESCE(owi_verification, ''), COALESCE(created_at, NOW()), COALESCE(updated_at, NOW()) FROM industry_advisor WHERE faculty = ? ORDER BY created_at DESC`
-=======
 	query := `SELECT * FROM faculty_industry_advisor WHERE faculty = ? ORDER BY created_at DESC`
->>>>>>> Stashed changes
 
 	rows, err := config.DB.Query(query, facultyID)
 	if err != nil {
