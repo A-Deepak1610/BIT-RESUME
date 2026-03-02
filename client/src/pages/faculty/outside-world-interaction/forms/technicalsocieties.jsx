@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import useAuth from "../../../../store/UseAuth";
 import {
   ArrowLeft,
   Save,
@@ -80,6 +81,7 @@ const statusOptions = [
 
 export default function TechnicalSocietiesForm() {
   const navigate = useNavigate();
+  const { name: userName } = useAuth();
   const [formData, setFormData] = useState({
     name: "",
     society: "",
@@ -87,6 +89,13 @@ export default function TechnicalSocietiesForm() {
   });
 
   const [errors, setErrors] = useState({});
+
+  // Auto-fill faculty name from logged-in user
+  useEffect(() => {
+    if (userName) {
+      setFormData((prev) => ({ ...prev, name: userName }));
+    }
+  }, [userName]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -128,21 +137,26 @@ export default function TechnicalSocietiesForm() {
     if (validate()) {
       const API_URL = import.meta.env.VITE_API_URL;
       try {
+        // Prepare form-urlencoded body
+        const formBody = Object.entries(formData)
+          .map(([key, value]) => encodeURIComponent(key) + "=" + encodeURIComponent(value))
+          .join("&");
         const response = await fetch(`${API_URL}api/owi/technicalSocieties`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: formBody,
           credentials: "include",
         });
         if (response.ok) {
           console.log("Form submitted successfully");
           navigate("/faculty/outside-world-interaction");
         } else {
-          alert("Failed to submit form. Please try again.");
+          const errorData = await response.json().catch(() => ({}));
+          alert(`Failed to submit form: ${errorData.error || errorData.details || "Unknown error"}`);
         }
       } catch (error) {
         console.error("Error:", error);
-        alert("Error submitting form. Please try again.");
+        alert(`Error submitting form: ${error.message || "Unknown error"}`);
       }
     }
   };

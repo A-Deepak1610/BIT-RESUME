@@ -1,5 +1,6 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import useAuth from "../../../../store/UseAuth";
 import {
   ArrowLeft,
   Save,
@@ -28,6 +29,7 @@ const RequiredAst = () => <span className="text-red-500 ml-0.5">*</span>;
 
 export default function LaboratoryByIndustryForm() {
   const navigate = useNavigate();
+  const { name } = useAuth();
   const [formData, setFormData] = useState({
     faculty: "",
     sigNumber: "",
@@ -50,6 +52,13 @@ export default function LaboratoryByIndustryForm() {
 
   const [errors, setErrors] = useState({});
   const [dragActive, setDragActive] = useState(false);
+
+  // Auto-fill faculty name from logged-in user
+  useEffect(() => {
+    if (name) {
+      setFormData((prev) => ({ ...prev, faculty: name }));
+    }
+  }, [name]);
 
   // OWI Verification options
   const owiVerificationOptions = [
@@ -273,11 +282,11 @@ export default function LaboratoryByIndustryForm() {
         } else {
           const errorData = await response.json();
           console.error("Submission failed:", errorData);
-          alert("Failed to submit form. Please try again.");
+          alert(`Failed to submit form: ${errorData.error || errorData.details || "Unknown error"}`);
         }
       } catch (error) {
         console.error("Error:", error);
-        alert("Error submitting form. Please try again.");
+        alert(`Error submitting form: ${error.message || "Unknown error"}`);
       }
     }
   };

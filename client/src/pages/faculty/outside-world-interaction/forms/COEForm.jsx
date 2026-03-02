@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import useAuth from "../../../../store/UseAuth";
 import { ArrowLeft, Save, UploadCloud, FileText, X } from "lucide-react";
 import DepartmentDropdown from "../../../../components/shared/DepartmentDropdown";
 
@@ -8,6 +9,7 @@ const RequiredAst = () => <span className="text-red-500 ml-0.5">*</span>;
 
 export default function COEForm() {
   const navigate = useNavigate();
+  const { name } = useAuth();
   const [formData, setFormData] = useState({
     faculty: "",
     sigNumber: "",
@@ -53,6 +55,13 @@ export default function COEForm() {
 
   const [errors, setErrors] = useState({});
   const [dragActiveStates, setDragActiveStates] = useState({});
+
+  // Auto-fill faculty name from logged-in user
+  useEffect(() => {
+    if (name) {
+      setFormData((prev) => ({ ...prev, faculty: name }));
+    }
+  }, [name]);
 
   // Options
   const yesNoOptions = ["Choose an option", "yes", "No"];
@@ -181,7 +190,8 @@ export default function COEForm() {
         }
       } catch (error) {
         console.error("Error submitting COE:", error);
-        alert("Failed to submit COE details. Please try again.");
+        const errorMessage = error.response?.data?.error || error.response?.data?.details || error.message || "Unknown error";
+        alert(`Failed to submit COE details: ${errorMessage}`);
       }
     }
   };

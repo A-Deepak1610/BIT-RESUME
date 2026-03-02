@@ -1,5 +1,6 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import useAuth from "../../../../store/UseAuth";
 import {
   ArrowLeft,
   Save,
@@ -25,6 +26,7 @@ const RequiredAst = () => <span className="text-red-500 ml-0.5">*</span>;
 
 export default function IndustryAdvisorForm() {
   const navigate = useNavigate();
+  const { name } = useAuth();
   const [formData, setFormData] = useState({
     faculty: "",
     sigNumber: "",
@@ -54,6 +56,13 @@ export default function IndustryAdvisorForm() {
   const [errors, setErrors] = useState({});
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef(null);
+
+  // Auto-fill faculty name from logged-in user
+  useEffect(() => {
+    if (name) {
+      setFormData((prev) => ({ ...prev, faculty: name }));
+    }
+  }, [name]);
 
   // Options
   const industryTypeOptions = [
@@ -282,15 +291,16 @@ export default function IndustryAdvisorForm() {
 
         if (response.ok) {
           console.log("Form submitted successfully");
+          alert("Industry Advisor record saved successfully!");
           navigate("/faculty/outside-world-interaction");
         } else {
           const errorData = await response.json();
           console.error("Submission failed:", errorData);
-          alert("Failed to submit form. Please try again.");
+          alert(`Failed to submit form: ${errorData.error || errorData.details || "Unknown error"}`);
         }
       } catch (error) {
         console.error("Error submitting form:", error);
-        alert("Error submitting form. Please try again.");
+        alert(`Error submitting form: ${error.message || "Unknown error"}`);
       }
     }
   };

@@ -370,6 +370,17 @@ export default function NavBar() {
                 <PublicOutlinedIcon fontSize="small" />
                 Outside World Interaction
               </li>
+              {/* IRP Visit tab (if exists) would be here */}
+              <li
+                className={`flex items-center gap-3 cursor-pointer p-2 rounded-md transition-all duration-300 ease-in-out ${
+                  activeItem === "consultancy"
+                    ? "text-white bg-primary w-55"
+                    : "hover:bg-gray-100"
+                }`}
+                onClick={() => navigate("/faculty/outside-world-intraction/consultancy")}
+              >
+                <Briefcase fontSize="small" /> Consultancy
+              </li>
               {/* <li>
                 <div
                   className={`relative flex items-center gap-1 cursor-pointer p-2 rounded-md text-[14px] transition-all duration-300 ease-in-out ${

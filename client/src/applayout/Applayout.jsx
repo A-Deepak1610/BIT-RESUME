@@ -59,11 +59,14 @@ import Trainingtoindustry from "../pages/faculty/outside-world-interaction/forms
 import Professionalmembership from "../pages/faculty/outside-world-interaction/forms/professionalmembership";
 import MouForm from "../pages/faculty/outside-world-interaction/forms/MouForm";
 import IRPVisitForm from "../pages/faculty/outside-world-interaction/forms/IRP_VisitForm";
-import ConsultancyForm from "../pages/faculty/outside-world-interaction/forms/ConsultancyForm";
 import ExternalVIPVisitForm from "../pages/faculty/outside-world-interaction/forms/External_VIP_VisitForm";
 import FacultyIndustryProjectsForm from "../pages/faculty/outside-world-interaction/forms/Faculty_Industry_ProjectsForm";
 import COEForm from "../pages/faculty/outside-world-interaction/forms/COEForm";
 import FacultyTrainedByIndustryForm from "../pages/faculty/outside-world-interaction/forms/Faculty_Trained_by_IndustryForm";
+import IrpVisitDetailPage from "../pages/faculty/outside-world-interaction/IrpVisitDetailPage";
+import MouDetailPage from "../pages/faculty/outside-world-interaction/MouDetailPage";
+import IndustryAdvisorDetails from "../pages/faculty/outside-world-interaction/details/IndustryAdvisorDetails";
+
 
 export default function Applayout() {
   const { fetchUser, user, loading } = useAuth();
@@ -190,13 +193,25 @@ export default function Applayout() {
               />
               <Route path="/faculty/outside-world/mou" element={<MouForm />} />
               <Route
-                path="/faculty/outside-world/ipr-visit"
+                path="/faculty/outside-world/mou/:id"
+                element={<MouDetailPage />}
+              />
+              <Route
+                path="/faculty/outside-world/irp-visit"
                 element={<IRPVisitForm />}
               />
               <Route
+                path="/faculty/outside-world/irp-visit/:id"
+                element={<IrpVisitDetailPage />}
+              />
+              {/* <Route
                 path="/faculty/outside-world/consultancy"
                 element={<ConsultancyForm />}
               />
+              <Route
+                path="/faculty/outside-world/consultancy/:id"
+                element={<ConsultancyDetailPage />}
+              /> */}
               <Route
                 path="/faculty/outside-world/external-vip-visit"
                 element={<ExternalVIPVisitForm />}
@@ -213,6 +228,10 @@ export default function Applayout() {
               <Route
                 path="/faculty/outside-world/industry-advisors"
                 element={<Industryadvisor />}
+              />
+              <Route
+                path="/faculty/outside-world/industry-advisors/:id"
+                element={<IndustryAdvisorDetails />}
               />
               <Route
                 path="/faculty/outside-world/laboratory-by-industry"
@@ -276,7 +295,7 @@ export default function Applayout() {
 function ConsultancyRoleRouter() {
   const { user } = useAuth();
   const role = user?.role;
-  
+
   if (!user)
     return (
       <div className="p-8">

@@ -81,7 +81,7 @@ func HandleCoeForm(c *gin.Context) {
 
 	// Insert into database
 	query := `INSERT INTO faculty_coe (
-		faculty, sig_number, task_id, coe_name, centre_claimed_department,
+		faculty_id, faculty, sig_number, task_id, coe_name, centre_claimed_department,
 		faculty_incharge, type_of_coe, collaborative_industry1,
 		collaborative_industry2, area_in_sqm, domain, is_mou_part,
 		mou_name, is_irp_result, irp_visits, stock_register_maintained,
@@ -89,10 +89,10 @@ func HandleCoeForm(c *gin.Context) {
 		industry_contribution_without_gst, students_per_batch, academic_course,
 		syllabus_document, lab_photo, communication_proof, apex_document,
 		facilities_report, utilization_report, verification_status
-	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Initiated')`
+	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Initiated')`
 
 	_, err := config.DB.Exec(query,
-		nullString(formData["faculty"]), nullString(formData["sigNumber"]), nullString(formData["taskID"]),
+		facultyID, nullString(formData["faculty"]), nullString(formData["sigNumber"]), nullString(formData["taskID"]),
 		nullString(formData["coeName"]), nullString(formData["centreClaimedDepartment"]),
 		nullString(formData["facultyIncharge"]), nullString(formData["typeOfCOE"]),
 		nullString(formData["collaborativeIndustry1"]), nullString(formData["collaborativeIndustry2"]),
@@ -130,7 +130,7 @@ func FetchCoe(c *gin.Context) {
 			  students_per_batch, academic_course, syllabus_document, lab_photo, 
 			  communication_proof, apex_document, facilities_report, utilization_report, 
 			  verification_status, created_at
-	          FROM faculty_coe WHERE faculty = ? ORDER BY created_at DESC`
+	          FROM faculty_coe WHERE faculty_id = ? ORDER BY created_at DESC`
 
 	rows, err := config.DB.Query(query, facultyID)
 	if err != nil {

@@ -105,6 +105,30 @@ func RegisterRoutes(r *gin.Engine) {
 		facultyOnly.POST("/faculty/resourcePersonPost", facultyAchievements.HandleResourcePersonForm)
 		facultyOnly.GET("/faculty/resourcePersonGet", facultyAchievements.FetchResourcePerson)
 
+		// MoU Routes
+		facultyOnly.POST("/faculty/mouPost", outsideworld.HandleMouForm)
+		facultyOnly.GET("/faculty/mouGet", outsideworld.FetchMou)
+
+		// IRP Visit Routes
+		facultyOnly.POST("/faculty/irpVisitPost", outsideworld.HandleIrpVisitForm)
+		facultyOnly.GET("/faculty/irpVisitGet", outsideworld.FetchIrpVisit)
+
+		// COE Routes
+		facultyOnly.POST("/faculty/coePost", outsideworld.HandleCoeForm)
+		facultyOnly.GET("/faculty/coeGet", outsideworld.FetchCoe)
+
+		// Industry Projects Routes
+		facultyOnly.POST("/faculty/industryProjectPost", outsideworld.HandleIndustryProjectsForm)
+		facultyOnly.GET("/faculty/industryProjectGet", outsideworld.FetchIndustryProjects)
+
+		// Trained by Industry Routes
+		facultyOnly.POST("/faculty/trainedByIndustryPost", outsideworld.HandleTrainedByIndustryForm)
+		facultyOnly.GET("/faculty/trainedByIndustryGet", outsideworld.FetchTrainedByIndustry)
+
+		// External VIP Visit Routes
+		facultyOnly.POST("/faculty/externalVipVisitPost", outsideworld.HandleExternalVipVisitForm)
+		facultyOnly.GET("/faculty/externalVipVisitGet", outsideworld.FetchExternalVipVisit)
+
 		// Outside World Interaction Routes
 		facultyOnly.POST("/owi/industryAdvisor", outsideworld.HandleIndustryAdvisorPost)
 		facultyOnly.GET("/owi/industryAdvisor", outsideworld.HandleIndustryAdvisorGet)

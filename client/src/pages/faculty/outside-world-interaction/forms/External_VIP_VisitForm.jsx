@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import useAuth from "../../../../store/UseAuth";
 import {
   ArrowLeft,
   Save,
@@ -15,6 +16,7 @@ const RequiredAst = () => <span className="text-red-500 ml-0.5">*</span>;
 
 export default function External_VIP_VisitForm() {
   const navigate = useNavigate();
+  const { name } = useAuth();
   const [formData, setFormData] = useState({
     faculty: "",
     taskID: "",
@@ -43,6 +45,13 @@ export default function External_VIP_VisitForm() {
 
   const [errors, setErrors] = useState({});
   const [dragActiveStates, setDragActiveStates] = useState({});
+
+  // Auto-fill faculty name from logged-in user
+  useEffect(() => {
+    if (name) {
+      setFormData((prev) => ({ ...prev, faculty: name }));
+    }
+  }, [name]);
 
   // Options
   const yesNoOptions = ["Choose an option", "yes", "No"];
@@ -211,7 +220,8 @@ export default function External_VIP_VisitForm() {
         }
       } catch (error) {
         console.error("Error submitting External VIP Visit:", error);
-        alert("Failed to submit visit details. Please try again.");
+        const errorMessage = error.response?.data?.error || error.response?.data?.details || error.message || "Unknown error";
+        alert(`Failed to submit visit details: ${errorMessage}`);
       }
     }
   };

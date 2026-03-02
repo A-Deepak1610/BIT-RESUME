@@ -1,5 +1,6 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import useAuth from "../../../../store/UseAuth";
 import {
   ArrowLeft,
   Save,
@@ -17,6 +18,7 @@ const RequiredAst = () => <span className="text-red-500 ml-0.5">*</span>;
 
 export default function ProfessionalMembershipForm() {
   const navigate = useNavigate();
+  const { name } = useAuth();
   const [formData, setFormData] = useState({
     membershipCategory: "",
     faculty: "",
@@ -39,6 +41,13 @@ export default function ProfessionalMembershipForm() {
 
   const [errors, setErrors] = useState({});
   const [dragActive, setDragActive] = useState({});
+
+  // Auto-fill faculty name from logged-in user
+  useEffect(() => {
+    if (name) {
+      setFormData((prev) => ({ ...prev, faculty: name }));
+    }
+  }, [name]);
 
   // Options
   const membershipCategoryOptions = [
@@ -351,11 +360,12 @@ export default function ProfessionalMembershipForm() {
           console.log("Form submitted successfully");
           navigate("/faculty/outside-world-interaction");
         } else {
-          alert("Failed to submit form. Please try again.");
+          const errorData = await response.json().catch(() => ({}));
+          alert(`Failed to submit form: ${errorData.error || errorData.details || "Unknown error"}`);
         }
       } catch (error) {
         console.error("Error:", error);
-        alert("Error submitting form. Please try again.");
+        alert(`Error submitting form: ${error.message || "Unknown error"}`);
       }
     }
   };
@@ -809,18 +819,12 @@ export default function ProfessionalMembershipForm() {
                 <Award className="h-5 w-5 mr-2 text-blue-600" />
                 Documents
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="gap-6">
                 {renderFileUpload(
                   "documentProof",
                   "Document Proof (Certificate Proof & Apex Proof if applicable)",
                   false,
                   "Upload certificate proof & apex proof (if applicable)"
-                )}
-                {renderFileUpload(
-                  "apexDocumentProof",
-                  "Apex Document Proof",
-                  false,
-                  "Upload the apex document proof"
                 )}
               </div>
             </div>

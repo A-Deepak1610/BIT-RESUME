@@ -1,5 +1,6 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import useAuth from "../../../../store/UseAuth";
 import {
   ArrowLeft,
   Save,
@@ -307,7 +308,7 @@ const Step2_VisitDetails = React.forwardRef(({ formData, handleChange, handleFil
 
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <SelectField label="Source of Arrangement" name="sourceOfArrangement" value={formData.sourceOfArrangement} onChange={handleChange} options={SOURCES} required error={errors.sourceOfArrangement} />
-      <SelectField label="OWI Verification" name="owiVerification" value={formData.owiVerification} onChange={handleChange} options={OWI_STATUS} required error={errors.owiVerification} />
+      
     </div>
 
     <TextAreaField label="Curriculum Mapping" name="curriculumMapping" value={formData.curriculumMapping} onChange={handleChange} placeholder="Mention course code & Name (e.g., 21CSE301 - Machine Learning)" />
@@ -322,7 +323,7 @@ const Step2_VisitDetails = React.forwardRef(({ formData, handleChange, handleFil
       required
       error={errors.proofDocument}
     />
-
+  <SelectField label="OWI Verification" name="owiVerification" value={formData.owiVerification} onChange={handleChange} options={OWI_STATUS} required error={errors.owiVerification} />
   </div>
 ));
 
@@ -385,6 +386,7 @@ const STEPS = [
 
 export default function StudentsIndustrialVisitForm() {
   const navigate = useNavigate();
+  const { name } = useAuth();
   const [currentStep, setCurrentStep] = useState(0);
   const [errors, setErrors] = useState({});
   const [faculty2Selected, setFaculty2Selected] = useState(false);
@@ -428,6 +430,13 @@ export default function StudentsIndustrialVisitForm() {
     owiVerification: "",
     proofDocument: []
   });
+
+  // Auto-fill faculty name from logged-in user
+  useEffect(() => {
+    if (name) {
+      setFormData((prev) => ({ ...prev, faculty: name }));
+    }
+  }, [name]);
 
   const handleChange = useCallback((e) => {
     const { name, value } = e.target;
@@ -516,11 +525,12 @@ export default function StudentsIndustrialVisitForm() {
           console.log("Form submitted successfully");
           navigate("/faculty/outside-world-interaction");
         } else {
-          alert("Failed to submit form. Please try again.");
+          const errorData = await response.json().catch(() => ({}));
+          alert(`Failed to submit form: ${errorData.error || errorData.details || "Unknown error"}`);
         }
       } catch (error) {
         console.error("Error:", error);
-        alert("Error submitting form. Please try again.");
+        alert(`Error submitting form: ${error.message || "Unknown error"}`);
       }
     }
   };

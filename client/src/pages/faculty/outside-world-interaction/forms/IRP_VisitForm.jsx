@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import useAuth from "../../../../store/UseAuth";
 import {
   ArrowLeft,
   Save,
@@ -16,6 +17,7 @@ const RequiredAst = () => <span className="text-red-500 ml-0.5">*</span>;
 
 export default function IRP_VisitForm() {
   const navigate = useNavigate();
+  const { name } = useAuth();
   const [formData, setFormData] = useState({
     faculty: "",
     sigNumber: "",
@@ -44,6 +46,13 @@ export default function IRP_VisitForm() {
 
   const [errors, setErrors] = useState({});
   const [dragActiveStates, setDragActiveStates] = useState({});
+
+  // Auto-fill faculty name from logged-in user
+  useEffect(() => {
+    if (name) {
+      setFormData((prev) => ({ ...prev, faculty: name }));
+    }
+  }, [name]);
 
   // Options
   const specialLabsOptions = ["Choose an option", "Yes", "No"];
@@ -190,7 +199,8 @@ export default function IRP_VisitForm() {
         }
       } catch (error) {
         console.error("Error submitting IRP Visit:", error);
-        alert("Failed to submit IRP Visit. Please try again.");
+        const errorMessage = error.response?.data?.error || error.response?.data?.details || error.message || "Unknown error";
+        alert(`Failed to submit IRP Visit: ${errorMessage}`);
       }
     }
   };

@@ -45,12 +45,20 @@ func UploadFile(c *gin.Context, formKey string) (string, error) {
 func UploadMultipleFiles(c *gin.Context, formKey string) (string, error) {
 	form, err := c.MultipartForm()
 	if err != nil {
+<<<<<<< Updated upstream
 		return "", nil // No multipart form, that's okay
+=======
+		return "", nil // No files uploaded, that's okay
+>>>>>>> Stashed changes
 	}
 
 	files := form.File[formKey]
 	if len(files) == 0 {
+<<<<<<< Updated upstream
 		return "", nil // No files uploaded
+=======
+		return "", nil
+>>>>>>> Stashed changes
 	}
 
 	// Create uploads directory if it doesn't exist
@@ -63,7 +71,11 @@ func UploadMultipleFiles(c *gin.Context, formKey string) (string, error) {
 	for i, file := range files {
 		// Generate unique filename
 		ext := filepath.Ext(file.Filename)
+<<<<<<< Updated upstream
 		timestamp := time.Now().UnixNano()
+=======
+		timestamp := time.Now().UnixNano() / 1000000 // milliseconds for uniqueness
+>>>>>>> Stashed changes
 		filename := fmt.Sprintf("%d_%s_%d%s", timestamp, formKey, i, ext)
 		filePath := filepath.Join(uploadDir, filename)
 
@@ -72,9 +84,21 @@ func UploadMultipleFiles(c *gin.Context, formKey string) (string, error) {
 			log.Printf("Error saving file %s: %v", file.Filename, err)
 			continue
 		}
+<<<<<<< Updated upstream
 		filePaths = append(filePaths, filePath)
 	}
 
+=======
+
+		filePaths = append(filePaths, filePath)
+	}
+
+	if len(filePaths) == 0 {
+		return "", nil
+	}
+
+	// Return comma-separated paths
+>>>>>>> Stashed changes
 	return strings.Join(filePaths, ","), nil
 }
 
@@ -98,9 +122,13 @@ func HandleIndustryAdvisorPost(c *gin.Context) {
 		return
 	}
 
-	approvalDoc, _ := UploadFile(c, "approvalDocument")
+	approvalDoc, _ := UploadMultipleFiles(c, "approvalDocument")
 
+<<<<<<< Updated upstream
 	query := `INSERT INTO industry_advisor (faculty, sig_number, special_labs_involved, special_lab, industry_name, domain_area, industry_type, industry_type_other, expert_name, designation, email_id, phone_number, experience_years, area_of_expertise, industry_address, industry_website, frequency_of_interaction, date_of_meeting, expense_incurred, suggestions, collaborative_activities, approval_document, owi_verification) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+=======
+	query := `INSERT INTO faculty_industry_advisor (faculty, sig_number, special_labs_involved, special_lab, industry_name, domain_area, industry_type, industry_type_other, expert_name, designation, email_id, phone_number, experience_years, area_of_expertise, industry_address, industry_website, frequency_of_interaction, date_of_meeting, expense_incurred, suggestions, collaborative_activities, approval_document, owi_verification) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+>>>>>>> Stashed changes
 
 	_, err := config.DB.Exec(query,
 		facultyID,
@@ -145,7 +173,11 @@ func HandleIndustryAdvisorGet(c *gin.Context) {
 		return
 	}
 
+<<<<<<< Updated upstream
 	query := `SELECT id, COALESCE(faculty, ''), COALESCE(sig_number, ''), COALESCE(special_labs_involved, ''), COALESCE(special_lab, ''), COALESCE(industry_name, ''), COALESCE(domain_area, ''), COALESCE(industry_type, ''), COALESCE(industry_type_other, ''), COALESCE(expert_name, ''), COALESCE(designation, ''), COALESCE(email_id, ''), COALESCE(phone_number, ''), COALESCE(experience_years, ''), COALESCE(area_of_expertise, ''), COALESCE(industry_address, ''), COALESCE(industry_website, ''), COALESCE(frequency_of_interaction, ''), COALESCE(date_of_meeting, ''), COALESCE(expense_incurred, 0), COALESCE(suggestions, ''), COALESCE(collaborative_activities, ''), COALESCE(approval_document, ''), COALESCE(owi_verification, ''), COALESCE(created_at, NOW()), COALESCE(updated_at, NOW()) FROM industry_advisor WHERE faculty = ? ORDER BY created_at DESC`
+=======
+	query := `SELECT * FROM faculty_industry_advisor WHERE faculty = ? ORDER BY created_at DESC`
+>>>>>>> Stashed changes
 
 	rows, err := config.DB.Query(query, facultyID)
 	if err != nil {
@@ -184,7 +216,7 @@ func HandleIndustryAdvisorGet(c *gin.Context) {
 
 func HandleIndustryAdvisorUpdate(c *gin.Context) {
 	id := c.Param("id")
-	approvalDoc, _ := UploadFile(c, "approvalDocument")
+	approvalDoc, _ := UploadMultipleFiles(c, "approvalDocument")
 
 	// Get faculty ID from auth context
 	facultyID := c.GetString("rollNo")
@@ -194,7 +226,7 @@ func HandleIndustryAdvisorUpdate(c *gin.Context) {
 	}
 
 	if approvalDoc != "" {
-		query := `UPDATE industry_advisor SET faculty=?, sig_number=?, special_labs_involved=?, special_lab=?, industry_name=?, domain_area=?, industry_type=?, industry_type_other=?, expert_name=?, designation=?, email_id=?, phone_number=?, experience_years=?, area_of_expertise=?, industry_address=?, industry_website=?, frequency_of_interaction=?, date_of_meeting=?, expense_incurred=?, suggestions=?, collaborative_activities=?, approval_document=?, owi_verification=? WHERE id=?`
+		query := `UPDATE faculty_industry_advisor SET faculty=?, sig_number=?, special_labs_involved=?, special_lab=?, industry_name=?, domain_area=?, industry_type=?, industry_type_other=?, expert_name=?, designation=?, email_id=?, phone_number=?, experience_years=?, area_of_expertise=?, industry_address=?, industry_website=?, frequency_of_interaction=?, date_of_meeting=?, expense_incurred=?, suggestions=?, collaborative_activities=?, approval_document=?, owi_verification=? WHERE id=? AND faculty=?`
 		_, err := config.DB.Exec(query,
 			facultyID,
 			nullString(c.PostForm("sigNumber")),
@@ -220,6 +252,7 @@ func HandleIndustryAdvisorUpdate(c *gin.Context) {
 			approvalDoc,
 			nullString(c.PostForm("owiVerification")),
 			id,
+			facultyID,
 		)
 		if err != nil {
 			log.Println("Error updating industry advisor:", err)
@@ -227,7 +260,7 @@ func HandleIndustryAdvisorUpdate(c *gin.Context) {
 			return
 		}
 	} else {
-		query := `UPDATE industry_advisor SET faculty=?, sig_number=?, special_labs_involved=?, special_lab=?, industry_name=?, domain_area=?, industry_type=?, industry_type_other=?, expert_name=?, designation=?, email_id=?, phone_number=?, experience_years=?, area_of_expertise=?, industry_address=?, industry_website=?, frequency_of_interaction=?, date_of_meeting=?, expense_incurred=?, suggestions=?, collaborative_activities=?, owi_verification=? WHERE id=?`
+		query := `UPDATE faculty_industry_advisor SET faculty=?, sig_number=?, special_labs_involved=?, special_lab=?, industry_name=?, domain_area=?, industry_type=?, industry_type_other=?, expert_name=?, designation=?, email_id=?, phone_number=?, experience_years=?, area_of_expertise=?, industry_address=?, industry_website=?, frequency_of_interaction=?, date_of_meeting=?, expense_incurred=?, suggestions=?, collaborative_activities=?, owi_verification=? WHERE id=? AND faculty=?`
 		_, err := config.DB.Exec(query,
 			facultyID,
 			nullString(c.PostForm("sigNumber")),
@@ -252,6 +285,7 @@ func HandleIndustryAdvisorUpdate(c *gin.Context) {
 			nullString(c.PostForm("collaborativeActivities")),
 			nullString(c.PostForm("owiVerification")),
 			id,
+			facultyID,
 		)
 		if err != nil {
 			log.Println("Error updating industry advisor:", err)
@@ -273,7 +307,7 @@ func HandleIndustryAdvisorDelete(c *gin.Context) {
 		return
 	}
 
-	query := `DELETE FROM industry_advisor WHERE id=? AND faculty=?`
+	query := `DELETE FROM faculty_industry_advisor WHERE id=? AND faculty=?`
 	_, err := config.DB.Exec(query, id, facultyID)
 	if err != nil {
 		log.Println("Error deleting industry advisor:", err)
@@ -473,6 +507,11 @@ func HandleStudentsIndustrialVisitPost(c *gin.Context) {
 	}
 
 	proofDoc, _ := UploadFile(c, "proofDocument")
+	log.Println("proofDoc value:", proofDoc)
+	if proofDoc == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Proof document file missing or not uploaded. Please check form and file input name."})
+		return
+	}
 
 	query := `INSERT INTO students_industrial_visit (faculty, sig_number, task_id, programme, industry_name, domain_area, industry_type, industry_type_other, industry_location, industry_website, contact_person_name, contact_person_designation, contact_person_email, contact_person_phone, visit_start_date, visit_end_date, year_of_study, number_of_students, male_students, female_students, purpose_of_visit, faculty1, faculty2, faculty3, source_of_arrangement, curriculum_mapping, outcome_of_visit, proof_document, owi_verification) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
@@ -546,7 +585,7 @@ func HandleStudentsIndustrialVisitGet(c *gin.Context) {
 			&item.VisitStartDate, &item.VisitEndDate, &item.YearOfStudy, &item.NumberOfStudents,
 			&item.MaleStudents, &item.FemaleStudents, &item.PurposeOfVisit, &item.Faculty1,
 			&item.Faculty2, &item.Faculty3, &item.SourceOfArrangement, &item.CurriculumMapping,
-			&item.OutcomeOfVisit, &item.ProofDocument, &item.OWIVerification, &item.CreatedAt, &item.UpdatedAt,
+			&item.OutcomeOfVisit, &item.ProofDocument, &item.OWIVerification,
 		)
 		if err != nil {
 			log.Println("Error scanning students industrial visit:", err)
@@ -618,7 +657,8 @@ func HandleTechnicalSocietiesGet(c *gin.Context) {
 		var item models.TechnicalSocieties
 		err := rows.Scan(
 			&item.ID, &item.Name, &item.Society, &item.Status, &item.Faculty,
-			&item.SigNumber, &item.TaskID, &item.OWIVerification, &item.CreatedAt, &item.UpdatedAt,
+			&item.SigNumber, &item.TaskID, &item.OWIVerification,
+			&item.CreatedAt, &item.UpdatedAt,
 		)
 		if err != nil {
 			log.Println("Error scanning technical societies:", err)

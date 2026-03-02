@@ -75,16 +75,16 @@ func HandleExternalVipVisitForm(c *gin.Context) {
 
 	// Insert into database
 	query := `INSERT INTO faculty_external_vip_visit (
-		faculty, task_id, special_labs_involved, special_lab,
+		faculty_id, faculty, task_id, special_labs_involved, special_lab,
 		guest_belongs_to_industry, event_name, event_type, category,
 		designation, organization_name, organization_address,
 		start_date, end_date, purpose_of_visit, mobile_number,
 		guest_email, department_visit, topic_presented, is_bit_alumni,
 		formal_photo, photo_proof, approval_letter, verification_status
-	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Initiated')`
+	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Initiated')`
 
 	_, err := config.DB.Exec(query,
-		nullString(formData["faculty"]), nullString(formData["taskID"]), nullString(formData["specialLabsInvolved"]),
+		facultyID, nullString(formData["faculty"]), nullString(formData["taskID"]), nullString(formData["specialLabsInvolved"]),
 		nullString(formData["specialLab"]), nullString(formData["guestBelongsToIndustry"]),
 		nullString(formData["eventName"]), nullString(formData["eventType"]), nullString(formData["category"]),
 		nullString(formData["designation"]), nullString(formData["organizationName"]), nullString(formData["organizationAddress"]),
@@ -115,7 +115,7 @@ func FetchExternalVipVisit(c *gin.Context) {
 			  organization_name, organization_address, start_date, end_date, purpose_of_visit, 
 			  mobile_number, guest_email, department_visit, topic_presented, is_bit_alumni, 
 			  formal_photo, photo_proof, approval_letter, verification_status, created_at
-	          FROM faculty_external_vip_visit WHERE faculty = ? ORDER BY created_at DESC`
+	          FROM faculty_external_vip_visit WHERE faculty_id = ? ORDER BY created_at DESC`
 
 	rows, err := config.DB.Query(query, facultyID)
 	if err != nil {
