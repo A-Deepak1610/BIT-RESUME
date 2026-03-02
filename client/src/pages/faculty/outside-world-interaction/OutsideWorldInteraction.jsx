@@ -102,7 +102,7 @@ export default function OutsideWorldInteraction() {
   const [interactions, setInteractions] = useState({
     mou: [],
     irpVisit: [],
-
+    consultancy: [],
     externalVipVisit: [],
     facultyIndustryProjects: [],
     coe: [],
@@ -160,6 +160,70 @@ export default function OutsideWorldInteraction() {
     }
   };
 
+  // Fetch students industrial visit
+  const fetchStudentsIndustrialVisit = async () => {
+    try {
+      const response = await axios.get(
+        `${API_URL}api/owi/studentsIndustrialVisit`,
+        {
+          withCredentials: true,
+        },
+      );
+      return response.data.data || [];
+    } catch (error) {
+      console.error("Error fetching students industrial visit:", error);
+      return [];
+    }
+  };
+
+  // Fetch technical societies
+  const fetchTechnicalSocieties = async () => {
+    try {
+      const response = await axios.get(
+        `${API_URL}api/owi/technicalSocieties`,
+        {
+          withCredentials: true,
+        },
+      );
+      return response.data.data || [];
+    } catch (error) {
+      console.error("Error fetching technical societies:", error);
+      return [];
+    }
+  };
+
+  // Fetch training to industry
+  const fetchTrainingToIndustry = async () => {
+    try {
+      const response = await axios.get(
+        `${API_URL}api/owi/trainingToIndustry`,
+        {
+          withCredentials: true,
+        },
+      );
+      return response.data.data || [];
+    } catch (error) {
+      console.error("Error fetching training to industry:", error);
+      return [];
+    }
+  };
+
+  // Fetch professional membership
+  const fetchProfessionalMembership = async () => {
+    try {
+      const response = await axios.get(
+        `${API_URL}api/owi/professionalMembership`,
+        {
+          withCredentials: true,
+        },
+      );
+      return response.data.data || [];
+    } catch (error) {
+      console.error("Error fetching professional membership:", error);
+      return [];
+    }
+  };
+
   useEffect(() => {
     const fetchAllData = async () => {
       setLoading(true);
@@ -167,7 +231,7 @@ export default function OutsideWorldInteraction() {
         const [
           mou,
           irpVisit,
-
+          consultancy,
           externalVipVisit,
           facultyIndustryProjects,
           coe,
@@ -188,10 +252,10 @@ export default function OutsideWorldInteraction() {
           fetchData("trainedByIndustryGet", "trainedByIndustries"),
           fetchIndustryAdvisors(),
           fetchLaboratoryByIndustry(),
-          fetchData("studentsIndustrialVisitGet", "data"),
-          fetchData("technicalSocietiesGet", "data"),
-          fetchData("trainingToIndustryGet", "data"),
-          fetchData("professionalMembershipGet", "data"),
+          fetchStudentsIndustrialVisit(),
+          fetchTechnicalSocieties(),
+          fetchTrainingToIndustry(),
+          fetchProfessionalMembership(),
         ]);
 
         setInteractions(prev => ({
@@ -234,7 +298,7 @@ export default function OutsideWorldInteraction() {
   const tabs = [
     { id: "mou", label: "MoU", icon: Handshake },
     { id: "irpVisit", label: "IRP Visit", icon: Lightbulb },
-
+    { id: "consultancy", label: "Consultancy", icon: Briefcase },
     { id: "externalVipVisit", label: "External VIP Visit", icon: Users },
     {
       id: "facultyIndustryProjects",
@@ -428,6 +492,65 @@ export default function OutsideWorldInteraction() {
                 <button
                   className="text-amber-600 hover:text-amber-800 text-xs flex items-center font-medium bg-amber-50 px-3 py-1.5 rounded-lg hover:bg-amber-100 transition-colors"
                   onClick={(e) => { e.stopPropagation(); navigate(`/faculty/outside-world/irp-visit/${item.id}`); }}
+                >
+                  <Eye className="h-3 w-3 mr-1" /> View Details
+                </button>
+              </div>
+            </CardWrapper>
+          </div>
+        );
+
+      case 'consultancy':
+        return (
+          <div
+            className="cursor-pointer transition-transform hover:scale-[1.02]"
+            onClick={() => navigate(`/faculty/outside-world/consultancy/${item.id}`)}
+          >
+            <CardWrapper
+              title={item.consultancy_title || item.organization_name || "Consultancy"}
+              subtitle={item.consultancy_type || item.domain}
+              status={item.verification_status}
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  {item.date && (
+                    <p className="flex items-center">
+                      <Calendar className="h-4 w-4 mr-2 text-blue-500" />
+                      {new Date(item.date).toLocaleDateString()}
+                    </p>
+                  )}
+                  {item.amount && <p className="font-semibold text-green-700">Amount: ₹{item.amount}</p>}
+                  {item.organization_name && <p><Building2 className="inline h-4 w-4 mr-1 text-gray-500" />{item.organization_name}</p>}
+                </div>
+                <div className="space-y-2">
+                  {item.faculty_name && <p><strong>Faculty:</strong> {item.faculty_name}</p>}
+                  {item.department && <p><strong>Department:</strong> {item.department}</p>}
+                </div>
+              </div>
+
+              {item.description && (
+                <div className="mt-3 p-2 bg-gray-50 rounded text-sm">
+                  <strong>Description:</strong> {item.description}
+                </div>
+              )}
+
+              <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between">
+                <div className="flex flex-wrap gap-2">
+                  {item.proof_document && (
+                    <a
+                      href={`${API_URL}${item.proof_document}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-800 text-xs flex items-center font-medium bg-blue-50 px-2 py-1 rounded"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Download className="h-3 w-3 mr-1" /> Document
+                    </a>
+                  )}
+                </div>
+                <button
+                  className="text-amber-600 hover:text-amber-800 text-xs flex items-center font-medium bg-amber-50 px-3 py-1.5 rounded-lg hover:bg-amber-100 transition-colors"
+                  onClick={(e) => { e.stopPropagation(); navigate(`/faculty/outside-world/consultancy/${item.id}`); }}
                 >
                   <Eye className="h-3 w-3 mr-1" /> View Details
                 </button>
@@ -927,7 +1050,7 @@ export default function OutsideWorldInteraction() {
     const currentData = interactions[activeTab] || [];
 
     // All categories are now implemented
-    const implementedCategories = ['mou', 'irpVisit', 'externalVipVisit', 'facultyIndustryProjects', 'coe', 'facultyTrainedByIndustry', 'industryAdvisors', 'laboratoryDevelopedByIndustry', 'studentsIndustrialVisit', 'technicalSocieties', 'trainingToIndustry', 'professionalBodyMembership'];
+    const implementedCategories = ['mou', 'irpVisit', 'consultancy', 'externalVipVisit', 'facultyIndustryProjects', 'coe', 'facultyTrainedByIndustry', 'industryAdvisors', 'laboratoryDevelopedByIndustry', 'studentsIndustrialVisit', 'technicalSocieties', 'trainingToIndustry', 'professionalBodyMembership'];
 
     const filteredData = currentData.filter((item) =>
       Object.values(item).some((val) =>
@@ -956,9 +1079,9 @@ export default function OutsideWorldInteraction() {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredData.map((item, index) => (
-          <React.Fragment key={index}>
+          <div key={index}>
             {renderCard(item, activeTab)}
-          </React.Fragment>
+          </div>
         ))}
       </div>
     );

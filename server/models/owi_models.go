@@ -116,16 +116,16 @@ type StudentsIndustrialVisit struct {
 
 // TechnicalSocieties represents the technical_societies table
 type TechnicalSocieties struct {
-	ID              int    `json:"id,omitempty"`
-	Name            string `json:"name"`
-	Society         string `json:"society"`
-	Status          string `json:"status"`
-	Faculty         string `json:"faculty"`
-	SigNumber       string `json:"sigNumber"`
-	TaskID          string `json:"taskId"`
-	OWIVerification string `json:"owiVerification"`
-	CreatedAt       string `json:"createdAt,omitempty"`
-	UpdatedAt       string `json:"updatedAt,omitempty"`
+	ID              int     `json:"id,omitempty"`
+	Name            string  `json:"name"`
+	Society         string  `json:"society"`
+	Status          *string `json:"status"`
+	Faculty         string  `json:"faculty"`
+	SigNumber       string  `json:"sigNumber"`
+	TaskID          string  `json:"taskId"`
+	OWIVerification string  `json:"owiVerification"`
+	CreatedAt       string  `json:"createdAt,omitempty"`
+	UpdatedAt       string  `json:"updatedAt,omitempty"`
 }
 
 // TrainingToIndustry represents the training_to_industry table

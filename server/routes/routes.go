@@ -129,6 +129,10 @@ func RegisterRoutes(r *gin.Engine) {
 		facultyOnly.POST("/faculty/externalVipVisitPost", outsideworld.HandleExternalVipVisitForm)
 		facultyOnly.GET("/faculty/externalVipVisitGet", outsideworld.FetchExternalVipVisit)
 
+		// Consultancy Routes
+		facultyOnly.POST("/faculty/consultancyPost", outsideworld.HandleConsultancyForm)
+		facultyOnly.GET("/faculty/consultancyGet", outsideworld.FetchConsultancy)
+
 		// Outside World Interaction Routes
 		facultyOnly.POST("/owi/industryAdvisor", outsideworld.HandleIndustryAdvisorPost)
 		facultyOnly.GET("/owi/industryAdvisor", outsideworld.HandleIndustryAdvisorGet)
