@@ -23,15 +23,12 @@ import {
   Calendar,
   ExternalLink,
   MapPin,
-<<<<<<< Updated upstream
   X,
   Phone,
   Mail,
   Globe,
   Building2,
-=======
   Eye
->>>>>>> Stashed changes
 } from "lucide-react";
 import useAuth from "../../../store/UseAuth";
 
@@ -126,15 +123,8 @@ export default function OutsideWorldInteraction() {
 
   const fetchData = async (endpoint, key, basePath = 'api/faculty') => {
     try {
-<<<<<<< Updated upstream
-      const response = await axios.get(`${API_URL}api/faculty/${endpoint}`, {
-        withCredentials: true,
-      });
-      return response.data[key] || [];
-=======
-      const response = await axios.get(`${API_URL}${basePath}/${endpoint}`, { withCredentials: true });
+      const response = await axios.get(`${API_URL}api/faculty/${endpoint}`, { withCredentials: true });
       return response.data[key] || response.data.data || [];
->>>>>>> Stashed changes
     } catch (error) {
       console.error(`Error fetching ${key}:`, error);
       return [];
@@ -184,7 +174,10 @@ export default function OutsideWorldInteraction() {
           facultyTrainedByIndustry,
           industryAdvisors,
           laboratoryDevelopedByIndustry,
-<<<<<<< Updated upstream
+          studentsIndustrialVisit,
+          technicalSocieties,
+          trainingToIndustry,
+          professionalBodyMembership
         ] = await Promise.all([
           fetchData("mouGet", "mous"),
           fetchData("irpVisitGet", "irpVisits"),
@@ -195,9 +188,14 @@ export default function OutsideWorldInteraction() {
           fetchData("trainedByIndustryGet", "trainedByIndustries"),
           fetchIndustryAdvisors(),
           fetchLaboratoryByIndustry(),
+          fetchData("studentsIndustrialVisitGet", "data"),
+          fetchData("technicalSocietiesGet", "data"),
+          fetchData("trainingToIndustryGet", "data"),
+          fetchData("professionalMembershipGet", "data"),
         ]);
 
-        console.log("Fetched Data Debug:", {
+        setInteractions(prev => ({
+          ...prev,
           mou,
           irpVisit,
           consultancy,
@@ -207,49 +205,10 @@ export default function OutsideWorldInteraction() {
           facultyTrainedByIndustry,
           industryAdvisors,
           laboratoryDevelopedByIndustry,
-        });
-
-        setInteractions((prev) => ({
-=======
           studentsIndustrialVisit,
           technicalSocieties,
           trainingToIndustry,
           professionalBodyMembership
-        ] = await Promise.all([
-          fetchData('mouGet', 'mous'),
-          fetchData('irpVisitGet', 'irpVisits'),
-
-          fetchData('externalVipVisitGet', 'externalVipVisits'),
-          fetchData('industryProjectGet', 'industryProjects'),
-          fetchData('coeGet', 'coes'),
-          fetchData('trainedByIndustryGet', 'trainedByIndustries'),
-          fetchData('industryAdvisor', 'data', 'api/owi'),
-          fetchData('laboratoryByIndustry', 'data', 'api/owi'),
-          fetchData('studentsIndustrialVisit', 'data', 'api/owi'),
-          fetchData('technicalSocieties', 'data', 'api/owi'),
-          fetchData('trainingToIndustry', 'data', 'api/owi'),
-          fetchData('professionalMembership', 'data', 'api/owi'),
-        ]);
-
-        setInteractions(prev => ({
->>>>>>> Stashed changes
-          ...prev,
-          mou,
-          irpVisit,
-
-          externalVipVisit,
-          facultyIndustryProjects,
-          coe,
-          facultyTrainedByIndustry,
-          industryAdvisors,
-          laboratoryDevelopedByIndustry,
-<<<<<<< Updated upstream
-=======
-          studentsIndustrialVisit,
-          technicalSocieties,
-          trainingToIndustry,
-          professionalBodyMembership
->>>>>>> Stashed changes
         }));
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -357,101 +316,6 @@ export default function OutsideWorldInteraction() {
     switch (type) {
       case "mou":
         return (
-<<<<<<< Updated upstream
-          <CardWrapper
-            title={item.legal_name_of_industry}
-            subtitle={`${item.type_of_mou} - ${item.mou_based_on || "General"}`}
-            status={item.verification_status}
-          >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <p className="flex items-center">
-                  <Calendar className="h-4 w-4 mr-2 text-blue-500" />
-                  <span className="font-medium">Agreement:</span>&nbsp;
-                  {new Date(item.date_of_agreement).toLocaleDateString()}
-                  {item.duration && (
-                    <span className="text-gray-500 ml-1">
-                      ({item.duration})
-                    </span>
-                  )}
-                </p>
-                <p className="flex items-center">
-                  <MapPin className="h-4 w-4 mr-2 text-red-500" />{" "}
-                  {item.industry_location}
-                </p>
-                {item.domain_area && (
-                  <p className="flex items-center">
-                    <Briefcase className="h-4 w-4 mr-2 text-gray-500" />{" "}
-                    {item.domain_area}
-                  </p>
-                )}
-                {item.spoc_name && (
-                  <p className="flex items-center">
-                    <Users className="h-4 w-4 mr-2 text-gray-500" /> SPOC:{" "}
-                    {item.spoc_name}
-                  </p>
-                )}
-              </div>
-              <div className="space-y-2">
-                {item.task_id && (
-                  <p className="text-xs text-gray-500">
-                    Task ID: {item.task_id}
-                  </p>
-                )}
-                {item.type_of_industry && (
-                  <p>
-                    <span className="font-medium">Industry Type:</span>{" "}
-                    {item.type_of_industry}
-                  </p>
-                )}
-                {item.special_lab && (
-                  <p>
-                    <span className="font-medium">Special Lab:</span>{" "}
-                    {item.special_lab}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {(item.scopy_of_agreement ||
-              item.bit_roles_and_responsibilities) && (
-              <div className="mt-3 text-xs bg-gray-50 p-3 rounded space-y-2">
-                {item.scope_of_agreement && (
-                  <p>
-                    <strong>Scope:</strong> {item.scope_of_agreement}
-                  </p>
-                )}
-                {item.bit_roles_and_responsibilities && (
-                  <p>
-                    <strong>BIT Roles:</strong>{" "}
-                    {item.bit_roles_and_responsibilities}
-                  </p>
-                )}
-              </div>
-            )}
-
-            {/* Documents Section for MoU */}
-            <div className="mt-4 pt-3 border-t border-gray-100 flex flex-wrap gap-2">
-              {[
-                { file: item.signed_mou, label: "Signed MoU" },
-                { file: item.apex_proof, label: "Apex Proof" },
-              ].map(
-                (doc, idx) =>
-                  doc.file && (
-                    <a
-                      key={idx}
-                      href={`${API_URL}${doc.file}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-800 text-xs flex items-center font-medium bg-blue-50 px-2 py-1 rounded"
-                    >
-                      <Download className="h-3 w-3 mr-1" /> {doc.label}
-                    </a>
-                  ),
-              )}
-            </div>
-          </CardWrapper>
-=======
           <div
             className="cursor-pointer transition-transform hover:scale-[1.02]"
             onClick={() => navigate(`/faculty/outside-world/mou/${item.id}`)}
@@ -507,7 +371,6 @@ export default function OutsideWorldInteraction() {
               </div>
             </CardWrapper>
           </div>
->>>>>>> Stashed changes
         );
       case "irpVisit":
         return (
@@ -515,45 +378,6 @@ export default function OutsideWorldInteraction() {
             className="cursor-pointer transition-transform hover:scale-[1.02]"
             onClick={() => navigate(`/faculty/outside-world/irp-visit/${item.id}`)}
           >
-<<<<<<< Updated upstream
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <p className="flex items-center">
-                  <Calendar className="h-4 w-4 mr-2 text-blue-500" />
-                  {new Date(item.from_date).toLocaleDateString()} -{" "}
-                  {new Date(item.to_date).toLocaleDateString()}
-                </p>
-                {item.amount_incurred > 0 && (
-                  <p className="font-semibold text-green-700">
-                    Amount: ₹{item.amount_incurred}
-                  </p>
-                )}
-                {item.number_of_industry && (
-                  <p>Industries Visited: {item.number_of_industry}</p>
-                )}
-                {item.number_of_faculty && (
-                  <p>Faculty Count: {item.number_of_faculty}</p>
-                )}
-              </div>
-              <div className="space-y-2">
-                {item.claimed_for_department && (
-                  <p>
-                    <strong>Dept:</strong> {item.claimed_for_department}
-                  </p>
-                )}
-                {item.type_of_approval && (
-                  <p>
-                    <strong>Approval:</strong> {item.type_of_approval}
-                  </p>
-                )}
-                {item.special_lab && (
-                  <p>
-                    <strong>Lab:</strong> {item.special_lab}
-                  </p>
-                )}
-              </div>
-            </div>
-=======
             <CardWrapper
               title={item.mou_name || item.purpose_of_visit || "IRP Visit"}
               subtitle={item.mode_of_interaction}
@@ -574,7 +398,6 @@ export default function OutsideWorldInteraction() {
                   {item.special_lab && <p><strong>Lab:</strong> {item.special_lab}</p>}
                 </div>
               </div>
->>>>>>> Stashed changes
 
               {item.purpose_of_visit && (
                 <div className="mt-3 p-2 bg-gray-50 rounded text-sm">
@@ -582,17 +405,6 @@ export default function OutsideWorldInteraction() {
                 </div>
               )}
 
-<<<<<<< Updated upstream
-            {/* Documents Section for IRP */}
-            <div className="mt-4 pt-3 border-t border-gray-100 flex flex-wrap gap-2">
-              {[
-                { file: item.apex_proof, label: "Apex Proof" },
-                { file: item.irp_form_signed, label: "Signed Form" },
-                { file: item.consolidated_document, label: "Consolidated Doc" },
-              ].map(
-                (doc, idx) =>
-                  doc.file && (
-=======
               {/* Documents Section for IRP */}
               <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between">
                 <div className="flex flex-wrap gap-2">
@@ -601,111 +413,12 @@ export default function OutsideWorldInteraction() {
                     { file: item.irp_form_signed, label: "Signed Form" },
                     { file: item.consolidated_document, label: "Consolidated Doc" },
                   ].map((doc, idx) => doc.file && (
->>>>>>> Stashed changes
                     <a
                       key={idx}
                       href={`${API_URL}${doc.file}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-600 hover:text-blue-800 text-xs flex items-center font-medium bg-blue-50 px-2 py-1 rounded"
-<<<<<<< Updated upstream
-                    >
-                      <Download className="h-3 w-3 mr-1" /> {doc.label}
-                    </a>
-                  ),
-              )}
-            </div>
-          </CardWrapper>
-        );
-      case "consultancy":
-        return (
-          <CardWrapper
-            title={item.consultancy_project_title}
-            subtitle={item.organization_name}
-            status={item.verification_status}
-          >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <p className="font-semibold text-green-700">
-                  Amount: ₹{item.consultancy_amount}
-                </p>
-                <p className="text-xs text-gray-500">
-                  (After GST: ₹{item.amount_after_gst})
-                </p>
-                <p className="flex items-center">
-                  <Calendar className="h-4 w-4 mr-2 text-blue-500" />
-                  {new Date(item.from_date).toLocaleDateString()}
-                  <span className="text-gray-500 ml-1">
-                    ({item.duration_year}Y {item.duration_month}M)
-                  </span>
-                </p>
-                <p>
-                  <strong>PI:</strong> {item.faculty}
-                </p>
-                {item.faculty2 && (
-                  <p>
-                    <strong>Co-PI 1:</strong> {item.faculty2}
-                  </p>
-                )}
-                {item.faculty3 && (
-                  <p>
-                    <strong>Co-PI 2:</strong> {item.faculty3}
-                  </p>
-                )}
-              </div>
-              <div className="space-y-2 text-sm">
-                <p>
-                  <strong>Type:</strong> {item.type_of_consultant}
-                </p>
-                <p>
-                  <strong>Sector:</strong> {item.sector_of_consultant}
-                </p>
-                <p>
-                  <strong>Share:</strong> Fac ({item.faculty_share_percentage}%)
-                  / Inst ({item.institute_share_percentage}%)
-                </p>
-                {item.is_part_of_mou === "Yes" && (
-                  <p className="text-green-600 text-xs">
-                    Linked to MoU: {item.mou_name}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* Documents Section for Consultancy - Extensive list */}
-            <div className="mt-4 pt-3 border-t border-gray-100 flex flex-wrap gap-2">
-              {[
-                { file: item.consultancy_agreement, label: "Agreement" },
-                { file: item.invoice_receipt, label: "Invoice" },
-                { file: item.consultancy_report, label: "Report" },
-                { file: item.transaction_proof, label: "Tx Proof" },
-                { file: item.communication_proof, label: "Comm. Proof" },
-                { file: item.geotag_photos, label: "Photos" },
-                { file: item.work_logs, label: "Logs" },
-                { file: item.audit_documents, label: "Audit" },
-                { file: item.partnership_deed, label: "Deed" },
-                { file: item.noc_premises, label: "NOC" },
-                { file: item.non_disclosure_agreement, label: "NDA" },
-                { file: item.consolidated_document, label: "Consolidated" },
-              ].map(
-                (doc, idx) =>
-                  doc.file && (
-                    <a
-                      key={idx}
-                      href={`${API_URL}${doc.file}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-800 text-xs flex items-center font-medium bg-blue-50 px-2 py-1 rounded"
-                    >
-                      <Download className="h-3 w-3 mr-1" /> {doc.label}
-                    </a>
-                  ),
-              )}
-            </div>
-          </CardWrapper>
-        );
-      case "externalVipVisit":
-=======
                       onClick={(e) => e.stopPropagation()}
                     >
                       <Download className="h-3 w-3 mr-1" /> {doc.label}
@@ -724,45 +437,11 @@ export default function OutsideWorldInteraction() {
         );
 
       case 'externalVipVisit':
->>>>>>> Stashed changes
         return (
           <div
             className="cursor-pointer transition-transform hover:scale-[1.02]"
             onClick={() => navigate(`/faculty/outside-world/external-vip-visit/${item.id}`)}
           >
-<<<<<<< Updated upstream
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <p className="flex items-center">
-                  <Calendar className="h-4 w-4 mr-2 text-blue-500" />{" "}
-                  {new Date(item.start_date).toLocaleDateString()}
-                </p>
-                <p>
-                  <strong>Category:</strong> {item.category}
-                </p>
-                <p>
-                  <strong>Event Type:</strong> {item.event_type}
-                </p>
-                {item.mobile_number && (
-                  <p className="text-xs text-gray-500">
-                    Contact: {item.mobile_number}
-                  </p>
-                )}
-              </div>
-              <div className="space-y-2">
-                {item.guest_belongs_to_industry === "Yes" && (
-                  <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs font-semibold">
-                    Industry Guest
-                  </span>
-                )}
-                {item.is_bit_alumni === "Yes" && (
-                  <span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs font-semibold ml-2">
-                    Alumni
-                  </span>
-                )}
-              </div>
-            </div>
-=======
             <CardWrapper
               title={item.event_name}
               subtitle={`${item.designation} - ${item.organization_name}`}
@@ -780,7 +459,6 @@ export default function OutsideWorldInteraction() {
                   {item.is_bit_alumni === "Yes" && <span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs font-semibold ml-2">Alumni</span>}
                 </div>
               </div>
->>>>>>> Stashed changes
 
               {item.purpose_of_visit && (
                 <div className="mt-3 bg-gray-50 p-2 rounded text-sm">
@@ -788,29 +466,6 @@ export default function OutsideWorldInteraction() {
                 </div>
               )}
 
-<<<<<<< Updated upstream
-            <div className="mt-4 pt-3 border-t border-gray-100 flex flex-wrap gap-2">
-              {[
-                { file: item.formal_photo, label: "Photo" },
-                { file: item.photo_proof, label: "Proof" },
-                { file: item.approval_letter, label: "Approval" },
-              ].map(
-                (doc, idx) =>
-                  doc.file && (
-                    <a
-                      key={idx}
-                      href={`${API_URL}${doc.file}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-800 text-xs flex items-center font-medium bg-blue-50 px-2 py-1 rounded"
-                    >
-                      <Download className="h-3 w-3 mr-1" /> {doc.label}
-                    </a>
-                  ),
-              )}
-            </div>
-          </CardWrapper>
-=======
               <div className="mt-4 pt-3 border-t border-gray-100 flex justify-between items-center">
                 <div className="flex flex-wrap gap-2">
                   {[
@@ -832,46 +487,9 @@ export default function OutsideWorldInteraction() {
               </div>
             </CardWrapper>
           </div>
->>>>>>> Stashed changes
         );
       case "facultyIndustryProjects":
         return (
-<<<<<<< Updated upstream
-          <CardWrapper
-            title={item.project_title}
-            subtitle={item.industry_name}
-            status={item.verification_status}
-          >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <p className="flex items-center">
-                  <Calendar className="h-4 w-4 mr-2 text-blue-500" />{" "}
-                  {new Date(item.start_date).toLocaleDateString()} (
-                  {item.duration_months} mo)
-                </p>
-                <p>
-                  <strong>Type:</strong> {item.type_of_industry}
-                </p>
-                <p>
-                  <strong>Students:</strong> {item.number_of_students}
-                </p>
-                <p>
-                  <strong>Faculty:</strong> {item.number_of_faculty}
-                </p>
-              </div>
-              <div className="space-y-1 text-xs text-gray-600">
-                <p className="font-semibold text-gray-800">Team:</p>
-                <p>
-                  {item.faculty} {item.faculty2 && `, ${item.faculty2}`}{" "}
-                  {item.faculty3 && `, ${item.faculty3}`}
-                </p>
-                <p>
-                  {item.student1} {item.student2 && `, ${item.student2}`}{" "}
-                  {item.student3 && `, ${item.student3}`}
-                </p>
-              </div>
-            </div>
-=======
           <div className="cursor-pointer" onClick={() => openDetailModal(item, 'facultyIndustryProjects')}>
             <CardWrapper
               title={item.project_title}
@@ -891,7 +509,6 @@ export default function OutsideWorldInteraction() {
                   <p>{item.student1} {item.student2 && `, ${item.student2}`} {item.student3 && `, ${item.student3}`}</p>
                 </div>
               </div>
->>>>>>> Stashed changes
 
               {item.outcome && (
                 <div className="mt-3 p-2 bg-gray-50 rounded text-sm">
@@ -899,25 +516,6 @@ export default function OutsideWorldInteraction() {
                 </div>
               )}
 
-<<<<<<< Updated upstream
-            <div className="mt-4 pt-3 border-t border-gray-100 flex flex-wrap gap-2">
-              {[{ file: item.industry_project_proof, label: "Proof" }].map(
-                (doc, idx) =>
-                  doc.file && (
-                    <a
-                      key={idx}
-                      href={`${API_URL}${doc.file}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-800 text-xs flex items-center font-medium bg-blue-50 px-2 py-1 rounded"
-                    >
-                      <Download className="h-3 w-3 mr-1" /> {doc.label}
-                    </a>
-                  ),
-              )}
-            </div>
-          </CardWrapper>
-=======
               <div className="mt-4 pt-3 border-t border-gray-100 flex justify-between items-center">
                 <div className="flex flex-wrap gap-2">
                   {[
@@ -934,29 +532,9 @@ export default function OutsideWorldInteraction() {
               </div>
             </CardWrapper>
           </div>
->>>>>>> Stashed changes
         );
       case "coe":
         return (
-<<<<<<< Updated upstream
-          <CardWrapper
-            title={item.coe_name}
-            subtitle={item.domain}
-            status={item.verification_status}
-          >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <p>
-                  <strong>Type:</strong> {item.type_of_coe}
-                </p>
-                <p>
-                  <strong>Industry:</strong> {item.collaborative_industry1}
-                </p>
-                <p>
-                  <strong>In-Charge:</strong> {item.faculty_incharge}
-                </p>
-                <p className="text-xs">Area: {item.area_in_sqm} sqm</p>
-=======
           <div className="cursor-pointer" onClick={() => openDetailModal(item, 'coe')}>
             <CardWrapper
               title={item.coe_name}
@@ -976,35 +554,8 @@ export default function OutsideWorldInteraction() {
                   <p>Industry: ₹{item.industry_contribution_with_gst}</p>
                   <p>BIT: ₹{item.bit_contribution}</p>
                 </div>
->>>>>>> Stashed changes
               </div>
 
-<<<<<<< Updated upstream
-            <div className="mt-4 pt-3 border-t border-gray-100 flex flex-wrap gap-2">
-              {[
-                { file: item.syllabus_document, label: "Syllabus" },
-                { file: item.lab_photo, label: "Photo" },
-                { file: item.communication_proof, label: "Comm. Proof" },
-                { file: item.apex_document, label: "Apex" },
-                { file: item.facilities_report, label: "Facilities" },
-                { file: item.utilization_report, label: "Utilization" },
-              ].map(
-                (doc, idx) =>
-                  doc.file && (
-                    <a
-                      key={idx}
-                      href={`${API_URL}${doc.file}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-800 text-xs flex items-center font-medium bg-blue-50 px-2 py-1 rounded"
-                    >
-                      <Download className="h-3 w-3 mr-1" /> {doc.label}
-                    </a>
-                  ),
-              )}
-            </div>
-          </CardWrapper>
-=======
               <div className="mt-4 pt-3 border-t border-gray-100 flex justify-between items-center">
                 <div className="flex flex-wrap gap-2">
                   {[
@@ -1026,7 +577,6 @@ export default function OutsideWorldInteraction() {
               </div>
             </CardWrapper>
           </div>
->>>>>>> Stashed changes
         );
       case "facultyTrainedByIndustry":
         return (
@@ -1062,33 +612,6 @@ export default function OutsideWorldInteraction() {
             className="cursor-pointer transition-transform hover:scale-[1.02]"
             onClick={() => navigate(`/faculty/outside-world/industry-advisors/${item.id}`)}
           >
-<<<<<<< Updated upstream
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <p className="flex items-center">
-                  <Calendar className="h-4 w-4 mr-2 text-blue-500" />{" "}
-                  {new Date(item.start_date).toLocaleDateString()} (
-                  {item.duration_in_days} days)
-                </p>
-                <p>
-                  <strong>Mode:</strong> {item.mode_of_training}
-                </p>
-                <p>
-                  <strong>Domain:</strong> {item.domain_area}
-                </p>
-              </div>
-              <div>
-                <p>
-                  <strong>Trainer:</strong> {item.trainer1_name}
-                </p>
-                <p className="text-xs text-gray-500">
-                  {item.trainer1_designation}
-                </p>
-                <p>
-                  <strong>Financial:</strong> {item.financial_assistance} (₹
-                  {item.amount_incurred})
-                </p>
-=======
             <CardWrapper
               title={item.expert_name || item.ExpertName}
               subtitle={item.industry_name || item.IndustryName}
@@ -1126,7 +649,6 @@ export default function OutsideWorldInteraction() {
                 >
                   <Eye className="h-3 w-3 mr-1" /> View Details
                 </button>
->>>>>>> Stashed changes
               </div>
             </CardWrapper>
           </div>
@@ -1145,34 +667,6 @@ export default function OutsideWorldInteraction() {
                 <p><strong>Total Investment:</strong> ₹{item.total_amount_incurred || item.TotalAmountIncurred}</p>
                 <p><strong>Industry Support:</strong> ₹{item.financial_support_from_industry || item.FinancialSupportFromIndustry}</p>
               </div>
-<<<<<<< Updated upstream
-            )}
-
-            <div className="mt-4 pt-3 border-t border-gray-100 flex flex-wrap gap-2">
-              {[
-                { file: item.proof_document, label: "Proof" },
-                { file: item.apex_approval_no, label: "Apex" }, // Assuming this might be a doc link or just text, but treating as potentially linkable if structured that way. Actually apex_approval_no is usually text.
-              ]
-                .filter((d) => d.file && d.file.includes("/"))
-                .map(
-                  (
-                    doc,
-                    idx, // Improved logical check if it's a path
-                  ) => (
-                    <a
-                      key={idx}
-                      href={`${API_URL}${doc.file}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-800 text-xs flex items-center font-medium bg-blue-50 px-2 py-1 rounded"
-                    >
-                      <Download className="h-3 w-3 mr-1" /> {doc.label}
-                    </a>
-                  ),
-                )}
-            </div>
-          </CardWrapper>
-=======
               <div className="mt-4 pt-3 border-t border-gray-100 flex justify-end">
                 <button className="text-orange-600 hover:text-orange-800 text-xs flex items-center font-medium bg-orange-50 px-3 py-1.5 rounded-lg">
                   <Eye className="h-3 w-3 mr-1" /> View Details
@@ -1266,7 +760,6 @@ export default function OutsideWorldInteraction() {
               </div>
             </CardWrapper>
           </div>
->>>>>>> Stashed changes
         );
       case "industryAdvisors":
         return (
@@ -1431,109 +924,10 @@ export default function OutsideWorldInteraction() {
       );
     }
 
-<<<<<<< Updated upstream
-    if (activeTab === "overview") {
-      return (
-        <div className="space-y-8">
-          {/* Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <Handshake className="h-5 w-5 mr-2 text-indigo-600" /> Latest
-                MoUs
-              </h3>
-              <div className="space-y-4">
-                {interactions.mou.slice(0, 3).map((item, idx) => (
-                  <div
-                    key={idx}
-                    className="flex justify-between items-center border-b border-gray-50 pb-2 last:border-0"
-                  >
-                    <div>
-                      <p className="font-medium text-gray-900 truncate w-48">
-                        {item.legal_name_of_industry}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {new Date(item.date_of_agreement).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <StatusBadge status={item.verification_status} />
-                  </div>
-                ))}
-                {interactions.mou.length === 0 && (
-                  <p className="text-sm text-gray-500 italic">
-                    No MoUs recorded yet.
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <Briefcase className="h-5 w-5 mr-2 text-indigo-600" /> Recent
-                Consultancy
-              </h3>
-              <div className="space-y-4">
-                {interactions.consultancy.slice(0, 3).map((item, idx) => (
-                  <div
-                    key={idx}
-                    className="flex justify-between items-center border-b border-gray-50 pb-2 last:border-0"
-                  >
-                    <div>
-                      <p className="font-medium text-gray-900 truncate w-48">
-                        {item.consultancy_project_title}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {item.organization_name}
-                      </p>
-                    </div>
-                    <StatusBadge status={item.verification_status} />
-                  </div>
-                ))}
-                {interactions.consultancy.length === 0 && (
-                  <p className="text-sm text-gray-500 italic">
-                    No consultancy records found.
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    const currentData = interactions[activeTab] || [];
-
-    // Check if category is supported/implemented
-    const implementedCategories = [
-      "mou",
-      "irpVisit",
-      "consultancy",
-      "externalVipVisit",
-      "facultyIndustryProjects",
-      "coe",
-      "facultyTrainedByIndustry",
-      "industryAdvisors",
-      "laboratoryDevelopedByIndustry",
-    ];
-    if (!implementedCategories.includes(activeTab)) {
-      return (
-        <div className="text-center py-16 bg-white rounded-lg border border-gray-200 border-dashed">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-50 rounded-full mb-4">
-            <LayoutDashboard className="h-8 w-8 text-gray-300" />
-          </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-1">
-            Module Under Development
-          </h3>
-          <p className="text-gray-500">This section is coming soon.</p>
-        </div>
-      );
-    }
-=======
     const currentData = interactions[activeTab] || [];
 
     // All categories are now implemented
     const implementedCategories = ['mou', 'irpVisit', 'externalVipVisit', 'facultyIndustryProjects', 'coe', 'facultyTrainedByIndustry', 'industryAdvisors', 'laboratoryDevelopedByIndustry', 'studentsIndustrialVisit', 'technicalSocieties', 'trainingToIndustry', 'professionalBodyMembership'];
->>>>>>> Stashed changes
 
     const filteredData = currentData.filter((item) =>
       Object.values(item).some((val) =>
@@ -1591,17 +985,9 @@ export default function OutsideWorldInteraction() {
                   const routeMap = {
                     mou: "/faculty/outside-world/mou",
                     irpVisit: "/faculty/outside-world/irp-visit",
-<<<<<<< Updated upstream
-                    consultancy: "/faculty/outside-world/consultancy",
-                    externalVipVisit:
-                      "/faculty/outside-world/external-vip-visit",
-                    facultyIndustryProjects:
-                      "/faculty/outside-world/faculty-industry-projects",
-=======
 
                     externalVipVisit: "/faculty/outside-world/external-vip-visit",
                     facultyIndustryProjects: "/faculty/outside-world/faculty-industry-projects",
->>>>>>> Stashed changes
                     coe: "/faculty/outside-world/coe",
                     facultyTrainedByIndustry:
                       "/faculty/outside-world/faculty-trained-by-industry",
@@ -1671,14 +1057,6 @@ export default function OutsideWorldInteraction() {
               return (
                 <button
                   key={tab.id}
-<<<<<<< Updated upstream
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex cursor-pointer items-center px-4 py-2.5 text-sm font-medium rounded-full transition-all whitespace-nowrap border ${
-                    activeTab === tab.id
-                      ? "bg-blue-600 text-white border-blue-600 shadow-md"
-                      : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:text-gray-900"
-                  }`}
-=======
                   onClick={() => {
                     setActiveTab(tab.id);
                   }}
@@ -1686,7 +1064,6 @@ export default function OutsideWorldInteraction() {
                     ? "bg-blue-600 text-white border-blue-600 shadow-md"
                     : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:text-gray-900"
                     }`}
->>>>>>> Stashed changes
                 >
                   <IconComponent className="h-4 w-4 mr-2" />
                   {tab.label}
@@ -1716,448 +1093,6 @@ export default function OutsideWorldInteraction() {
         {renderTabContent()}
       </div>
 
-<<<<<<< Updated upstream
-      {/* Industry Advisor Detail Modal */}
-      {showAdvisorModal && selectedAdvisor && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            {/* Modal Header */}
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-6 rounded-t-xl">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h2 className="text-xl font-bold">
-                    {selectedAdvisor.expertName}
-                  </h2>
-                  <p className="text-blue-100 mt-1">
-                    {selectedAdvisor.designation}
-                  </p>
-                </div>
-                <button
-                  onClick={() => {
-                    setShowAdvisorModal(false);
-                    setSelectedAdvisor(null);
-                  }}
-                  className="p-2 hover:bg-white/20 rounded-full transition-colors"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-            </div>
-
-            {/* Modal Body */}
-            <div className="p-6 space-y-6">
-              {/* Industry Information */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                  <Building2 className="h-5 w-5 mr-2 text-indigo-600" />
-                  Industry Information
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg">
-                  <div>
-                    <p className="text-xs text-gray-500">Industry Name</p>
-                    <p className="font-medium text-gray-900">
-                      {selectedAdvisor.industryName || "N/A"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Domain Area</p>
-                    <p className="font-medium text-gray-900">
-                      {selectedAdvisor.domainArea || "N/A"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Industry Type</p>
-                    <p className="font-medium text-gray-900">
-                      {selectedAdvisor.industryType === "Others"
-                        ? selectedAdvisor.industryTypeOther
-                        : selectedAdvisor.industryType || "N/A"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Website</p>
-                    {selectedAdvisor.industryWebsite ? (
-                      <a
-                        href={
-                          selectedAdvisor.industryWebsite.startsWith("http")
-                            ? selectedAdvisor.industryWebsite
-                            : `https://${selectedAdvisor.industryWebsite}`
-                        }
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="font-medium text-blue-600 hover:underline flex items-center"
-                      >
-                        <Globe className="h-3 w-3 mr-1" /> Visit Website
-                      </a>
-                    ) : (
-                      <p className="font-medium text-gray-900">N/A</p>
-                    )}
-                  </div>
-                  <div className="md:col-span-2">
-                    <p className="text-xs text-gray-500">Address</p>
-                    <p className="font-medium text-gray-900">
-                      {selectedAdvisor.industryAddress || "N/A"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Expert Contact Information */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                  <UserCheck className="h-5 w-5 mr-2 text-green-600" />
-                  Expert Details
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg">
-                  <div>
-                    <p className="text-xs text-gray-500">Email</p>
-                    <a
-                      href={`mailto:${selectedAdvisor.emailId}`}
-                      className="font-medium text-blue-600 hover:underline flex items-center"
-                    >
-                      <Mail className="h-3 w-3 mr-1" />{" "}
-                      {selectedAdvisor.emailId || "N/A"}
-                    </a>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Phone</p>
-                    <a
-                      href={`tel:${selectedAdvisor.phoneNumber}`}
-                      className="font-medium text-blue-600 hover:underline flex items-center"
-                    >
-                      <Phone className="h-3 w-3 mr-1" />{" "}
-                      {selectedAdvisor.phoneNumber || "N/A"}
-                    </a>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Experience</p>
-                    <p className="font-medium text-gray-900">
-                      {selectedAdvisor.experienceYears
-                        ? `${selectedAdvisor.experienceYears} Years`
-                        : "N/A"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Area of Expertise</p>
-                    <p className="font-medium text-gray-900">
-                      {selectedAdvisor.areaOfExpertise || "N/A"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Interaction Details */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                  <Calendar className="h-5 w-5 mr-2 text-orange-600" />
-                  Interaction Details
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg">
-                  <div>
-                    <p className="text-xs text-gray-500">
-                      Frequency of Interaction
-                    </p>
-                    <p className="font-medium text-gray-900">
-                      {selectedAdvisor.frequencyOfInteraction
-                        ? `${selectedAdvisor.frequencyOfInteraction} times/year`
-                        : "N/A"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Date of Meeting</p>
-                    <p className="font-medium text-gray-900">
-                      {selectedAdvisor.dateOfMeeting
-                        ? new Date(
-                            selectedAdvisor.dateOfMeeting,
-                          ).toLocaleDateString()
-                        : "N/A"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Expense Incurred</p>
-                    <p className="font-medium text-gray-900">
-                      {selectedAdvisor.expenseIncurred
-                        ? `₹${selectedAdvisor.expenseIncurred}`
-                        : "N/A"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Verification Status</p>
-                    <StatusBadge status={selectedAdvisor.owiVerification} />
-                  </div>
-                </div>
-              </div>
-
-              {/* Additional Information */}
-              {(selectedAdvisor.suggestions ||
-                selectedAdvisor.collaborativeActivities) && (
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                    <FileText className="h-5 w-5 mr-2 text-purple-600" />
-                    Additional Information
-                  </h3>
-                  <div className="bg-gray-50 p-4 rounded-lg space-y-4">
-                    {selectedAdvisor.suggestions && (
-                      <div>
-                        <p className="text-xs text-gray-500 mb-1">
-                          Suggestions
-                        </p>
-                        <p className="text-gray-700">
-                          {selectedAdvisor.suggestions}
-                        </p>
-                      </div>
-                    )}
-                    {selectedAdvisor.collaborativeActivities && (
-                      <div>
-                        <p className="text-xs text-gray-500 mb-1">
-                          Collaborative Activities
-                        </p>
-                        <p className="text-gray-700">
-                          {selectedAdvisor.collaborativeActivities}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Document */}
-              {selectedAdvisor.approvalDocument && (
-                <div className="pt-4 border-t border-gray-200">
-                  <a
-                    href={`${API_URL}${selectedAdvisor.approvalDocument}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    <Download className="h-4 w-4 mr-2" /> View Approval Document
-                  </a>
-                </div>
-              )}
-            </div>
-
-            {/* Modal Footer */}
-            <div className="px-6 py-4 bg-gray-50 rounded-b-xl flex justify-end">
-              <button
-                onClick={() => {
-                  setShowAdvisorModal(false);
-                  setSelectedAdvisor(null);
-                }}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Laboratory by Industry Detail Modal */}
-      {showLaboratoryModal && selectedLaboratory && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            {/* Modal Header */}
-            <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-6 rounded-t-xl">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h2 className="text-xl font-bold">
-                    {selectedLaboratory.nameOfLaboratory}
-                  </h2>
-                  <p className="text-purple-100 mt-1">
-                    {selectedLaboratory.collaborativeIndustry}
-                  </p>
-                </div>
-                <button
-                  onClick={() => {
-                    setShowLaboratoryModal(false);
-                    setSelectedLaboratory(null);
-                  }}
-                  className="p-2 hover:bg-white/20 rounded-full transition-colors"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-            </div>
-
-            {/* Modal Body */}
-            <div className="p-6 space-y-6">
-              {/* Laboratory Information */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                  <Microscope className="h-5 w-5 mr-2 text-purple-600" />
-                  Laboratory Information
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg">
-                  <div>
-                    <p className="text-xs text-gray-500">Domain Area</p>
-                    <p className="font-medium text-gray-900">
-                      {selectedLaboratory.domainAreaOfIndustry || "N/A"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Laboratory Area</p>
-                    <p className="font-medium text-gray-900">
-                      {selectedLaboratory.laboratoryArea
-                        ? `${selectedLaboratory.laboratoryArea} sq.m`
-                        : "N/A"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Task ID</p>
-                    <p className="font-medium text-gray-900">
-                      {selectedLaboratory.taskId || "N/A"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">SIG Number</p>
-                    <p className="font-medium text-gray-900">
-                      {selectedLaboratory.sigNumber || "N/A"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Financial Details */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                  <FileText className="h-5 w-5 mr-2 text-green-600" />
-                  Financial Details
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-gray-50 p-4 rounded-lg">
-                  <div className="text-center p-3 bg-white rounded-lg border border-gray-200">
-                    <p className="text-xs text-gray-500">
-                      Total Amount Incurred
-                    </p>
-                    <p className="text-xl font-bold text-green-600">
-                      ₹{selectedLaboratory.totalAmountIncurred || 0}
-                    </p>
-                  </div>
-                  <div className="text-center p-3 bg-white rounded-lg border border-gray-200">
-                    <p className="text-xs text-gray-500">BIT Contribution</p>
-                    <p className="text-xl font-bold text-blue-600">
-                      ₹{selectedLaboratory.bitContribution || 0}
-                    </p>
-                  </div>
-                  <div className="text-center p-3 bg-white rounded-lg border border-gray-200">
-                    <p className="text-xs text-gray-500">Industry Support</p>
-                    <p className="text-xl font-bold text-indigo-600">
-                      ₹{selectedLaboratory.financialSupportFromIndustry || 0}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Equipment & Enhancement Details */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                  <Building2 className="h-5 w-5 mr-2 text-orange-600" />
-                  Equipment & Enhancements
-                </h3>
-                <div className="bg-gray-50 p-4 rounded-lg space-y-4">
-                  {selectedLaboratory.equipmentSponsored && (
-                    <div>
-                      <p className="text-xs text-gray-500 mb-1">
-                        Equipment Sponsored
-                      </p>
-                      <p className="text-gray-700">
-                        {selectedLaboratory.equipmentSponsored}
-                      </p>
-                    </div>
-                  )}
-                  {selectedLaboratory.equipmentEnhancement && (
-                    <div>
-                      <p className="text-xs text-gray-500 mb-1">
-                        Equipment Enhancement
-                      </p>
-                      <p className="text-gray-700">
-                        {selectedLaboratory.equipmentEnhancement}
-                      </p>
-                    </div>
-                  )}
-                  {selectedLaboratory.layoutDesignEnhancement && (
-                    <div>
-                      <p className="text-xs text-gray-500 mb-1">
-                        Layout Design Enhancement
-                      </p>
-                      <p className="text-gray-700">
-                        {selectedLaboratory.layoutDesignEnhancement}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Curriculum & Outcomes */}
-              {(selectedLaboratory.curriculumMapping ||
-                selectedLaboratory.expectedOutcomes) && (
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                    <GraduationCap className="h-5 w-5 mr-2 text-blue-600" />
-                    Curriculum & Outcomes
-                  </h3>
-                  <div className="bg-gray-50 p-4 rounded-lg space-y-4">
-                    {selectedLaboratory.curriculumMapping && (
-                      <div>
-                        <p className="text-xs text-gray-500 mb-1">
-                          Curriculum Mapping
-                        </p>
-                        <p className="text-gray-700">
-                          {selectedLaboratory.curriculumMapping}
-                        </p>
-                      </div>
-                    )}
-                    {selectedLaboratory.expectedOutcomes && (
-                      <div>
-                        <p className="text-xs text-gray-500 mb-1">
-                          Expected Outcomes
-                        </p>
-                        <p className="text-gray-700">
-                          {selectedLaboratory.expectedOutcomes}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Verification Status */}
-              <div className="flex items-center justify-between bg-gray-50 p-4 rounded-lg">
-                <div>
-                  <p className="text-xs text-gray-500">Verification Status</p>
-                  <StatusBadge status={selectedLaboratory.owiVerification} />
-                </div>
-              </div>
-
-              {/* Document */}
-              {selectedLaboratory.proofDocument && (
-                <div className="pt-4 border-t border-gray-200">
-                  <a
-                    href={`${API_URL}${selectedLaboratory.proofDocument}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-                  >
-                    <Download className="h-4 w-4 mr-2" /> View Proof Document
-                  </a>
-                </div>
-              )}
-            </div>
-
-            {/* Modal Footer */}
-            <div className="px-6 py-4 bg-gray-50 rounded-b-xl flex justify-end">
-              <button
-                onClick={() => {
-                  setShowLaboratoryModal(false);
-                  setSelectedLaboratory(null);
-                }}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-=======
       {/* Detail Modal */}
       {selectedItem && (
         <DetailModal
@@ -2557,7 +1492,6 @@ function DetailModal({ item, type, onClose }) {
           </div>
         </div>
       </div>
->>>>>>> Stashed changes
     </div>
   );
 }
