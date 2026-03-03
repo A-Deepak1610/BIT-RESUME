@@ -2,140 +2,212 @@ import React, { useState, useEffect } from "react";
 import useAuth from "../../store/UseAuth";
 import FormDataCard from "./forms/FormDataCard";
 
-const BASE_URL = import.meta.env.VITE_API_URL || "";
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:6001";
 
-const inferWorkTypeFromText = (text) => {
-  const normalized = (text || "").toLowerCase();
-  if (!normalized) return "";
-  if (normalized.includes("drone")) return "Drone";
-  if (normalized.includes("industrial training") || normalized.includes("training"))
-    return "Industrial Training Project";
-  if (normalized.includes("software")) return "Software Project";
+/* helpers */
+const fmtDate = (d) => {
+  if (!d) return "—";
+  try { return new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }); }
+  catch { return "—"; }
+};
+
+const inferWorkType = (text) => {
+  const n = (text || "").toLowerCase();
+  if (!n) return "";
+  if (n.includes("drone")) return "Drone";
+  if (n.includes("industrial training") || n.includes("training")) return "Industrial Training Project";
+  if (n.includes("software")) return "Software Project";
   return "";
 };
 
-const StatusBadge = ({ status }) => {
-  const map = {
-    pending_hod:      { label: "Pending Faculty Assignment",     cls: "bg-yellow-100 text-yellow-800 border border-yellow-300" },
-    pending_faculty:  { label: "Awaiting Faculty Response",       cls: "bg-blue-100 text-blue-800 border border-blue-300"   },
-    form_pending:     { label: "Awaiting Faculty Form Submission", cls: "bg-orange-100 text-orange-800 border border-orange-300" },
-    completed:        { label: "Completed",                        cls: "bg-green-100 text-green-800 border border-green-300" },
-    faculty_rejected: { label: "Rejected by Faculty",             cls: "bg-red-100 text-red-800 border border-red-300"     },
-  };
-  const { label, cls } = map[status] || { label: status, cls: "bg-gray-100 text-gray-700 border border-gray-300" };
-  return <span className={`px-2 py-1 rounded-full text-xs font-medium ${cls}`}>{label}</span>;
+const STATUS_MAP = {
+  pending_hod:      { label: "Pending Faculty Assignment",      bg: "bg-amber-50",  border: "border-amber-300",  text: "text-amber-700"  },
+  pending_faculty:  { label: "Awaiting Faculty Response",        bg: "bg-blue-50",   border: "border-blue-300",   text: "text-blue-700"   },
+  form_pending:     { label: "Awaiting Faculty Form Submission", bg: "bg-orange-50", border: "border-orange-300", text: "text-orange-700" },
+  completed:        { label: "Completed",                        bg: "bg-green-50",  border: "border-green-300",  text: "text-green-700"  },
+  faculty_rejected: { label: "Rejected by Faculty",             bg: "bg-red-50",    border: "border-red-300",    text: "text-red-700"    },
 };
 
-const InfoRow = ({ label, value }) => (
+const StatusBadge = ({ rawStatus }) => {
+  const s = STATUS_MAP[rawStatus] || { label: rawStatus || "Unknown", bg: "bg-gray-50", border: "border-gray-200", text: "text-gray-600" };
+  return (
+    <span className={`inline-flex items-center px-3 py-1 rounded text-sm font-medium border ${s.bg} ${s.border} ${s.text}`}>
+      {s.label}
+    </span>
+  );
+};
+
+const Field = ({ label, value }) => (
   <div>
-    <span className="font-medium text-gray-600 text-xs">{label}:</span>
-    <p className="text-gray-800 mt-0.5 text-sm">{value || "-"}</p>
+    <p className="text-sm font-semibold uppercase tracking-wide text-gray-500 mb-0.5">{label}</p>
+    <p className="text-base text-gray-800">{value || "—"}</p>
   </div>
 );
 
-const PrincipalCard = ({ work }) => (
-  <div className="bg-gray-50 rounded-lg p-4 space-y-3 text-sm">
-    <div className="flex justify-between items-center mb-3">
-      <h5 className="font-semibold text-gray-700 text-base">Principal Submission</h5>
-      <span className="text-xs text-gray-500">
-        {work.submitted_at ? new Date(work.submitted_at).toLocaleDateString() : ""}
-      </span>
+const AttachLink = ({ url }) =>
+  url ? (
+    <a href={url} target="_blank" rel="noreferrer"
+       className="inline-flex items-center gap-1.5 text-base text-blue-600 hover:text-blue-800 font-medium">
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+          d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+      </svg>
+      View Attachment
+    </a>
+  ) : null;
+
+const Panel = ({ title, date, children, accent }) => (
+  <div className="bg-white border border-gray-200 rounded p-4 space-y-3">
+    <div className="flex items-center justify-between pb-2 border-b border-gray-100">
+      <span className={`text-sm font-bold uppercase tracking-widest ${accent || "text-slate-500"}`}>{title}</span>
+      {date && <span className="text-sm text-gray-400">{date}</span>}
     </div>
-    <InfoRow label="Client Organization" value={work.client_organization} />
-    <InfoRow label="Work Description"    value={work.work_description}    />
-    <InfoRow
-      label="Expected Completion"
-      value={work.expected_completion_date ? new Date(work.expected_completion_date).toLocaleDateString() : "-"}
-    />
+    {children}
   </div>
 );
 
-const IQACCard = ({ ia, status }) => {
-  const done = status !== "pending_hod";
+/* Workflow Stepper */
+const STEPS = ["IQAC Review", "HOD Assignment", "Faculty Response"];
+
+const stepIndex = (s) => {
+  if (!s || s === "pending_hod") return 1;
+  if (["pending_faculty", "form_pending", "completed", "faculty_rejected"].includes(s)) return 2;
+  return 0;
+};
+
+const WorkflowStepper = ({ status }) => {
+  const done = stepIndex(status);
   return (
-    <div className="bg-gray-50 rounded-lg p-4 space-y-3 text-sm">
-      <div className="flex justify-between items-center mb-3">
-        <h5 className="font-semibold text-gray-700 text-base">IQAC Assignment</h5>
-        <span className="text-xs text-gray-500">
-          {ia.assigned_at ? new Date(ia.assigned_at).toLocaleDateString() : ""}
-        </span>
-      </div>
-      <InfoRow label="Assigned Department" value={ia.department_name} />
-      <InfoRow
-        label="Consultancy Work Type"
-        value={ia.consultancy_work_type || inferWorkTypeFromText(ia.iqac_remarks) || "-"}
-      />
-      <InfoRow label="IQAC Remarks" value={ia.iqac_remarks} />
-      <div className="flex items-center pt-2 border-t border-gray-200">
-        {done ? (
-          <>
-            <svg className="w-4 h-4 text-green-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-            </svg>
-            <span className="text-xs font-medium text-green-700">HOD Assigned</span>
-          </>
-        ) : (
-          <>
-            <svg className="w-4 h-4 text-yellow-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-            </svg>
-            <span className="text-xs font-medium text-yellow-700">Pending HOD Action</span>
-          </>
-        )}
-      </div>
+    <div className="flex items-center gap-0 mb-6">
+      {STEPS.map((label, i) => {
+        const completed = i < done;
+        const active    = i === done;
+        return (
+          <React.Fragment key={label}>
+            <div className="flex flex-col items-center min-w-0">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 text-sm font-bold transition-colors
+                ${completed ? "bg-blue-600 border-blue-600 text-white"
+                  : active   ? "bg-white border-amber-400 text-amber-500"
+                  :            "bg-white border-gray-300 text-gray-400"}`}>
+                {completed ? (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                ) : i + 1}
+              </div>
+              <span className={`mt-1.5 text-sm font-semibold whitespace-nowrap
+                ${completed ? "text-blue-600" : active ? "text-amber-600" : "text-gray-400"}`}>
+                {label}
+              </span>
+            </div>
+            {i < STEPS.length - 1 && (
+              <div className={`flex-1 h-0.5 mb-4 mx-1 ${completed ? "bg-blue-400" : "bg-gray-200"}`} />
+            )}
+          </React.Fragment>
+        );
+      })}
     </div>
   );
 };
 
-const HODCard = ({ ha, status }) => {
-  const done = status === "completed" || status === "faculty_rejected";
+/* Panel sub-components */
+const SubmissionPanel = ({ work }) => (
+  <Panel title="Principal Submission" date={fmtDate(work.submitted_at)} accent="text-slate-500">
+    <Field label="Project Title"       value={work.project_title} />
+    <Field label="Client Organisation" value={work.client_organization} />
+    <Field label="Work Description"    value={work.work_description} />
+    <Field label="Expected Completion" value={fmtDate(work.expected_completion_date)} />
+    <AttachLink url={work.attachment_url ? BASE_URL + work.attachment_url : null} />
+  </Panel>
+);
+
+const IqacPanel = ({ ia }) => (
+  <Panel title="IQAC Assignment" date={fmtDate(ia.assigned_at)} accent="text-blue-600">
+    <Field label="Department"   value={ia.department_name} />
+    <Field label="Work Type"    value={ia.consultancy_work_type || inferWorkType(ia.iqac_remarks)} />
+    <Field label="IQAC Remarks" value={ia.iqac_remarks} />
+  </Panel>
+);
+
+const HodPanel = ({ ha }) => (
+  <Panel title="HOD Assignment" date={fmtDate(ha.assigned_at)} accent="text-indigo-600">
+    <Field label="Assigned Faculty" value={ha.faculty_name} />
+    <Field label="HOD Remarks"      value={ha.hod_remarks} />
+  </Panel>
+);
+
+const FacultyPanel = ({ fr }) => {
+  const accepted = fr.response === "accepted";
   return (
-    <div className="bg-blue-50 rounded-lg p-4 space-y-3 text-sm">
-      <div className="flex justify-between items-center mb-3">
-        <h5 className="font-semibold text-gray-700 text-base">HOD Assignment</h5>
-        <span className="text-xs text-gray-500">
-          {ha.assigned_at ? new Date(ha.assigned_at).toLocaleDateString() : ""}
-        </span>
+    <Panel title="Faculty Response" date={fmtDate(fr.responded_at)}
+           accent={accepted ? "text-green-700" : "text-red-600"}>
+      <Field label="Decision"        value={accepted ? "✔ Accepted" : "✘ Rejected"} />
+      <Field label="Faculty Remarks" value={fr.faculty_remarks} />
+    </Panel>
+  );
+};
+
+/* Work Card */
+const WorkCard = ({ work, onAssign }) => {
+  const ia = work.iqac_assignment;
+  const ha = work.hod_assignment;
+  const fr = work.faculty_response;
+  return (
+    <div className="bg-white border border-gray-200 rounded shadow-sm overflow-hidden">
+      <div className="flex items-start justify-between px-5 py-3.5 border-b border-gray-100">
+        <div className="min-w-0">
+          <h4 className="text-base font-semibold text-gray-900 truncate">{work.project_title}</h4>
+          <p className="text-sm text-gray-500 mt-0.5">{work.client_organization}</p>
+        </div>
+        <div className="flex items-center gap-3 ml-4 flex-shrink-0">
+          <span className="text-sm text-gray-400">{fmtDate(work.submitted_at)}</span>
+          <StatusBadge rawStatus={work.status} />
+          {work.status === "pending_hod" && (
+            <button onClick={() => onAssign(work)}
+              className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-sm font-medium rounded transition-colors">
+              Assign Faculty
+            </button>
+          )}
+        </div>
       </div>
-      <InfoRow label="Assigned Faculty" value={ha.faculty_name} />
-      <InfoRow label="HOD Remarks"      value={ha.hod_remarks}  />
-      <div className="flex items-center pt-2 border-t border-blue-200">
-        {done ? (
-          <>
-            <svg className="w-4 h-4 text-green-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-            </svg>
-            <span className="text-xs font-medium text-green-700">Faculty Responded</span>
-          </>
+
+      <div className="px-5 py-3 border-b border-gray-100 bg-gray-50">
+        <WorkflowStepper status={work.status} />
+      </div>
+
+      <div className="p-4">
+        {fr ? (
+          <div className="grid grid-cols-4 gap-3">
+            <SubmissionPanel work={work} />
+            <IqacPanel ia={ia} />
+            <HodPanel  ha={ha} />
+            <FacultyPanel fr={fr} />
+          </div>
+        ) : ha ? (
+          <div className="grid grid-cols-3 gap-3">
+            <SubmissionPanel work={work} />
+            <IqacPanel ia={ia} />
+            <HodPanel  ha={ha} />
+          </div>
         ) : (
-          <>
-            <svg className="w-4 h-4 text-yellow-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-            </svg>
-            <span className="text-xs font-medium text-yellow-700">Waiting for Faculty Response</span>
-          </>
+          <div className="grid grid-cols-2 gap-3">
+            <SubmissionPanel work={work} />
+            {ia && <IqacPanel ia={ia} />}
+          </div>
         )}
       </div>
+
+      {work.form_data && (
+        <div className="border-t border-gray-100 p-4">
+          <FormDataCard formData={work.form_data} />
+        </div>
+      )}
     </div>
   );
 };
 
-const FacultyCard = ({ fr }) => (
-  <div className={`rounded-lg p-4 space-y-3 text-sm ${fr.response === "accepted" ? "bg-green-50" : "bg-red-50"}`}>
-    <div className="flex justify-between items-center mb-3">
-      <h5 className="font-semibold text-gray-700 text-base">Faculty Response</h5>
-      <span className={`px-2 py-1 rounded text-xs font-semibold ${
-        fr.response === "accepted" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-      }`}>
-        {fr.response === "accepted" ? "Accepted" : "Rejected"}
-      </span>
-    </div>
-    <InfoRow label="Faculty Remarks" value={fr.faculty_remarks} />
-    {fr.responded_at && (
-      <p className="text-xs text-gray-500">{new Date(fr.responded_at).toLocaleDateString()}</p>
-    )}
-  </div>
-);
+/* Main Component */
+const inputCls = "w-full px-3 py-2.5 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-slate-400 focus:border-slate-400 transition";
 
 const ConsultancyHod = () => {
   useAuth();
@@ -145,65 +217,44 @@ const ConsultancyHod = () => {
   const [myDept, setMyDept]           = useState({ department_id: null, department_name: "" });
   const [loading, setLoading]         = useState(true);
   const [error, setError]             = useState("");
-
-  const [showAssignForm, setShowAssignForm] = useState(false);
-  const [assignTarget, setAssignTarget]     = useState(null);
-
-  const [form, setForm] = useState({ faculty_id: "", hod_remarks: "" });
-  const [submitting, setSubmitting] = useState(false);
-  const [formError, setFormError]   = useState("");
+  const [showForm, setShowForm]       = useState(false);
+  const [assignTarget, setAssignTarget] = useState(null);
+  const [form, setForm]               = useState({ faculty_id: "", hod_remarks: "" });
+  const [submitting, setSubmitting]   = useState(false);
+  const [formError, setFormError]     = useState("");
 
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      setError("");
+    const load = async () => {
+      setLoading(true); setError("");
       try {
-        const [worksRes, facultyRes, deptRes] = await Promise.all([
+        const [wRes, fRes, dRes] = await Promise.all([
           fetch(`${BASE_URL}/api/hod/consultancyGet`, { credentials: "include" }),
           fetch(`${BASE_URL}/api/hod/facultyList`,    { credentials: "include" }),
           fetch(`${BASE_URL}/api/hod/myDepartment`,   { credentials: "include" }),
         ]);
-        if (!worksRes.ok) {
-          const err = await worksRes.json().catch(() => ({}));
-          throw new Error(err.error || `Failed to fetch works (${worksRes.status})`);
-        }
-        if (!facultyRes.ok) {
-          const err = await facultyRes.json().catch(() => ({}));
-          throw new Error(err.error || `Failed to fetch faculty (${facultyRes.status})`);
-        }
-        const worksData   = await worksRes.json();
-        const facultyData = await facultyRes.json();
-        setWorks(worksData.data   || []);
-        setFacultyList(facultyData.data || []);
-        if (deptRes.ok) {
-          const deptData = await deptRes.json();
-          setMyDept(deptData);
-        }
-      } catch (e) {
-        setError(e.message);
-      } finally {
-        setLoading(false);
-      }
+        if (!wRes.ok) throw new Error((await wRes.json().catch(() => ({}))).error || "Failed to fetch works");
+        if (!fRes.ok) throw new Error((await fRes.json().catch(() => ({}))).error || "Failed to fetch faculty");
+        const wJson = await wRes.json();
+        const fJson = await fRes.json();
+        setWorks(wJson.data || []);
+        setFacultyList(fJson.data || []);
+        if (dRes.ok) setMyDept(await dRes.json());
+      } catch (e) { setError(e.message); }
+      finally { setLoading(false); }
     };
-    fetchData();
+    load();
   }, []);
 
-  const openAssignForm = (work) => {
-    setAssignTarget({
-      workId:           work.id,
-      iqacAssignmentId: work.iqac_assignment?.id,
-      title:            work.project_title,
-    });
+  const openAssign = (work) => {
+    setAssignTarget({ workId: work.id, iqacAssignmentId: work.iqac_assignment?.id, title: work.project_title });
     setForm({ faculty_id: "", hod_remarks: "" });
     setFormError("");
-    setShowAssignForm(true);
+    setShowForm(true);
   };
 
   const closeForm = () => {
-    setShowAssignForm(false);
-    setAssignTarget(null);
-    setForm({ faculty_id: "", hod_remarks: "" });
-    setFormError("");
+    setShowForm(false); setAssignTarget(null);
+    setForm({ faculty_id: "", hod_remarks: "" }); setFormError("");
   };
 
   const handleSubmit = async (e) => {
@@ -216,9 +267,8 @@ const ConsultancyHod = () => {
     setFormError("");
     try {
       const res = await fetch(`${BASE_URL}/api/hod/consultancyAssign`, {
-        method:      "POST",
-        credentials: "include",
-        headers:     { "Content-Type": "application/json" },
+        method: "POST", credentials: "include",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           consultancy_work_id: assignTarget.workId,
           iqac_assignment_id:  assignTarget.iqacAssignmentId,
@@ -227,221 +277,125 @@ const ConsultancyHod = () => {
         }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
-
-      const worksRes  = await fetch(`${BASE_URL}/api/hod/consultancyGet`, { credentials: "include" });
-      const worksData = await worksRes.json();
-      setWorks(worksData.data || []);
+      if (!res.ok) throw new Error(data.error || "Request failed");
+      const wRes  = await fetch(`${BASE_URL}/api/hod/consultancyGet`, { credentials: "include" });
+      const wJson = await wRes.json();
+      setWorks(wJson.data || []);
       closeForm();
-    } catch (e) {
-      setFormError(e.message);
-    } finally {
-      setSubmitting(false);
-    }
+    } catch (e) { setFormError(e.message); }
+    finally { setSubmitting(false); }
   };
 
+  if (loading) return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <p className="text-gray-500 text-base">Loading assignments…</p>
+    </div>
+  );
+
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      {/* Header */}
-      <div className="mb-6">
-        <div className="flex items-center gap-3 mb-1">
-          <h1 className="text-2xl font-bold text-gray-800">HOD — Consultancy Management</h1>
+    <div className="min-h-screen bg-gray-50">
+      {/* Page header */}
+      <div className="bg-white border-b border-gray-200 px-6 py-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold text-gray-900 tracking-tight">HOD — Consultancy Management</h1>
+            <p className="text-sm text-gray-500 mt-1">
+              {myDept.department_name
+                ? `Consultancy works assigned to ${myDept.department_name}. Assign faculty from your department.`
+                : "Review IQAC-assigned works and assign faculty members."}
+            </p>
+          </div>
           {myDept.department_name && (
-            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700 border border-blue-200">
+            <span className="px-3 py-1 rounded text-sm font-medium bg-blue-50 text-blue-700 border border-blue-200">
               {myDept.department_name}
             </span>
           )}
         </div>
-        <p className="text-gray-500 text-sm">
-          {myDept.department_name
-            ? `Showing consultancy works assigned to ${myDept.department_name}. Assign from your mapped faculty below.`
-            : "Review IQAC assignments and assign faculty members to consultancy works"}
-        </p>
       </div>
 
-      {/* Loading / Error */}
-      {loading && (
-        <div className="flex justify-center items-center py-16">
-          <div className="animate-spin rounded-full h-10 w-10 border-4 border-blue-600 border-t-transparent" />
-          <span className="ml-3 text-gray-600">Loading assignments...</span>
-        </div>
+      {error && (
+        <div className="mx-6 mt-4 bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">{error}</div>
       )}
 
-      {!loading && error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 text-red-700">{error}</div>
-      )}
-
-      {!loading && !error && works.length === 0 && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
-          <svg className="w-12 h-12 text-gray-300 mx-auto mb-3" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 0v12h8V4H6z" clipRule="evenodd" />
+      {!error && works.length === 0 && (
+        <div className="text-center py-16 text-gray-400">
+          <svg className="mx-auto h-10 w-10 mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
-          {myDept.department_id
-            ? <p className="text-gray-500 font-medium">No consultancy works assigned to <span className="font-semibold text-gray-700">{myDept.department_name}</span> yet.</p>
-            : <p className="text-gray-500 font-medium">Your account is not mapped to any department. Contact IQAC admin.</p>
-          }
+          <p className="text-base font-medium text-gray-500">
+            {myDept.department_id
+              ? `No consultancy works assigned to ${myDept.department_name} yet.`
+              : "Your account is not mapped to any department. Contact IQAC admin."}
+          </p>
         </div>
       )}
 
-      {!loading && !error && works.length > 0 && (
-        <div className="flex gap-6">
-          {/* Works List */}
-          <div className={`${showAssignForm ? "w-2/3" : "w-full"} transition-all duration-300`}>
-            <div className="space-y-6">
-              {works.map((work) => {
-                const ia = work.iqac_assignment;
-                const ha = work.hod_assignment;
-                return (
-                  <div key={work.id} className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
-                    {(work.status === "completed" || work.status === "faculty_rejected" || work.status === "form_pending") && (
-                      <div className={`flex items-center gap-2 px-4 py-2 rounded-lg mb-4 text-sm font-medium ${
-                        work.status === "completed"
-                          ? "bg-green-100 text-green-800 border border-green-300"
-                          : work.status === "form_pending"
-                          ? "bg-orange-100 text-orange-800 border border-orange-300"
-                          : "bg-red-100 text-red-800 border border-red-300"
-                      }`}>
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                          {work.status === "completed" ? (
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                        ) : work.status === "form_pending" ? (
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-                        ) : (
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                        )}
-                        </svg>
-                        {work.status === "completed" ? "✅ Workflow Completed — Faculty has accepted the work" : work.status === "form_pending" ? "⏳ Faculty Accepted — Awaiting Form Submission" : "❌ Workflow Ended — Faculty rejected the work"}
-                      </div>
-                    )}
-                    <div className="flex justify-between items-start mb-6">
-                      <div>
-                        <h3 className="text-xl font-semibold text-gray-800">{work.project_title}</h3>
-                        <StatusBadge status={work.status} />
-                      </div>
-                      {work.status === "pending_hod" && (
-                        <button
-                          onClick={() => openAssignForm(work)}
-                          className="text-white px-4 py-2 rounded-lg text-sm font-medium transition duration-200"
-                          style={{ backgroundColor: "#0200e1" }}
-                          onMouseEnter={(e) => (e.target.style.backgroundColor = "#0056b3")}
-                          onMouseLeave={(e) => (e.target.style.backgroundColor = "#0200e1")}
-                        >
-                          Assign Faculty
-                        </button>
-                      )}
-                    </div>
-
-                    {ha ? (
-                      work.faculty_response ? (
-                        <div className="grid grid-cols-4 gap-4">
-                          <PrincipalCard work={work} />
-                          <IQACCard ia={ia} status={work.status} />
-                          <HODCard ha={ha} status={work.status} />
-                          <FacultyCard fr={work.faculty_response} />
-                        </div>
-                      ) : (
-                        <div className="grid grid-cols-3 gap-4">
-                          <PrincipalCard work={work} />
-                          <IQACCard ia={ia} status={work.status} />
-                          <HODCard ha={ha} status={work.status} />
-                        </div>
-                      )
-                    ) : (
-                      <div className="grid grid-cols-2 gap-6">
-                        <PrincipalCard work={work} />
-                        <IQACCard ia={ia} status={work.status} />
-                      </div>
-                    )}
-                    <FormDataCard formData={work.form_data} />
-                  </div>
-                );
-              })}
-            </div>
+      {!error && works.length > 0 && (
+        <div className="flex gap-6 p-6">
+          <div className={`${showForm ? "w-2/3" : "w-full"} space-y-4 transition-all duration-300`}>
+            {works.map((work) => (
+              <WorkCard key={work.id} work={work} onAssign={openAssign} />
+            ))}
           </div>
 
-          {/* Faculty Assignment Form - Right Panel */}
-          {showAssignForm && assignTarget && (
-            <div className="w-1/3">
-              <div className="bg-white rounded-lg shadow-md border border-gray-200 p-4 sticky top-4">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center">
-                    <div className="rounded-full p-2 mr-3" style={{ backgroundColor: "#0200e1" }}>
-                      <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                    <h2 className="text-lg font-semibold text-gray-800">HOD - Allot Faculty</h2>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={closeForm}
-                    className="text-gray-400 hover:text-gray-600 p-1 rounded-md hover:bg-gray-100 transition"
-                  >
+          {showForm && assignTarget && (
+            <div className="w-1/3 flex-shrink-0">
+              <div className="bg-white border border-gray-200 rounded shadow-sm sticky top-6">
+                <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+                  <h2 className="text-base font-semibold text-gray-800">HOD — Allot Faculty</h2>
+                  <button onClick={closeForm}
+                    className="text-gray-400 hover:text-gray-600 p-1 rounded-md hover:bg-gray-100 transition-colors">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   </button>
                 </div>
-                <p className="text-gray-500 text-xs mb-1 truncate">
-                  Work: <span className="font-medium text-gray-700">{assignTarget.title}</span>
-                </p>
-                <p className="text-gray-600 text-sm mb-5">
-                  Choose a faculty member from your department. The assignment will appear in the faculty portal.
-                </p>
-                {formError && (
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4 text-red-700 text-sm">{formError}</div>
-                )}
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit} className="p-4 space-y-4">
+                  <p className="text-sm text-gray-500 leading-relaxed">
+                    Assign a faculty member to{" "}
+                    <span className="font-medium text-gray-700">{assignTarget.title}</span>.
+                    {" "}The assignment will appear in the faculty portal.
+                  </p>
+                  {formError && (
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-red-700 text-sm">{formError}</div>
+                  )}
                   <div>
-                    <label className="block text-gray-700 font-medium mb-2 text-sm">
+                    <label className="block text-sm font-medium text-gray-600 mb-1">
                       Select Faculty <span className="text-red-500">*</span>
                     </label>
-                    <select
-                      value={form.faculty_id}
+                    <select value={form.faculty_id}
                       onChange={(e) => setForm((p) => ({ ...p, faculty_id: e.target.value }))}
-                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md outline-none"
-                      onFocus={(e) => (e.target.style.borderColor = "#0200e1")}
-                      onBlur={(e)  => (e.target.style.borderColor = "#d1d5db")}
-                      required
-                    >
+                      className={inputCls} required>
                       <option value="">Select Faculty Member</option>
                       {facultyList.map((f) => (
                         <option key={f.id} value={f.id}>{f.name}</option>
                       ))}
                     </select>
                     {facultyList.length === 0 && (
-                      <p className="text-xs text-yellow-600 mt-1">No faculty found in your department.</p>
+                      <p className="text-sm text-amber-600 mt-1">No faculty found in your department.</p>
                     )}
                   </div>
                   <div>
-                    <label className="block text-gray-700 font-medium mb-2 text-sm">HOD Remarks</label>
-                    <textarea
-                      value={form.hod_remarks}
+                    <label className="block text-sm font-medium text-gray-600 mb-1">
+                      HOD Remarks
+                    </label>
+                    <textarea value={form.hod_remarks}
                       onChange={(e) => setForm((p) => ({ ...p, hod_remarks: e.target.value }))}
-                      placeholder="Reason for faculty selection, workload considerations, milestones..."
-                      rows={4}
-                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md outline-none resize-vertical"
-                      onFocus={(e) => (e.target.style.borderColor = "#0200e1")}
-                      onBlur={(e)  => (e.target.style.borderColor = "#d1d5db")}
-                    />
+                      placeholder="Reason for faculty selection, workload considerations, milestones…"
+                      rows={4} className={`${inputCls} resize-vertical`} />
                   </div>
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className="w-full text-white font-medium py-3 px-4 rounded-md transition duration-200 flex items-center justify-center space-x-2 disabled:opacity-60"
-                    style={{ backgroundColor: "#0200e1" }}
-                    onMouseEnter={(e) => !submitting && (e.currentTarget.style.backgroundColor = "#0056b3")}
-                    onMouseLeave={(e) => !submitting && (e.currentTarget.style.backgroundColor = "#0200e1")}
-                  >
+                  <button type="submit" disabled={submitting}
+                    className="w-full bg-slate-800 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-base font-medium py-2.5 rounded transition-colors flex items-center justify-center gap-2">
                     {submitting ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
-                        <span>Assigning...</span>
+                        <span>Assigning…</span>
                       </>
                     ) : (
                       <>
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                            d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                         </svg>
                         <span>Assign Faculty &amp; Notify</span>
                       </>

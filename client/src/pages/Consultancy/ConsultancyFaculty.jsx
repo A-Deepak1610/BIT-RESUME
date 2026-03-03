@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import useAuth from "../../store/UseAuth";
 import DroneForm from "./forms/droneform";
 import IndustrialProjectForm from "./forms/industrialprojectform";
@@ -41,43 +41,90 @@ function mapWork(w) {
   };
 }
 
-function getStatusColor(status) {
-  switch (status) {
-    case "pending_faculty":
-      return "bg-yellow-100 text-yellow-800";
-    case "form_pending":
-      return "bg-orange-100 text-orange-800";
-    case "completed":
-      return "bg-green-100 text-green-800";
-    case "faculty_rejected":
-      return "bg-red-100 text-red-800";
-    case "pending_hod":
-      return "bg-blue-100 text-blue-800";
-    case "pending_iqac":
-      return "bg-purple-100 text-purple-800";
-    default:
-      return "bg-gray-100 text-gray-800";
-  }
-}
+/* ─── helpers ────────────────────────────────────────────────────── */
+const fmtDate = (d) => {
+  if (!d) return "—";
+  try { return new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }); }
+  catch { return "—"; }
+};
 
-function getStatusLabel(status) {
-  switch (status) {
-    case "pending_faculty":
-      return "Awaiting Your Response";
-    case "form_pending":
-      return "Form Pending";
-    case "completed":
-      return "Completed";
-    case "faculty_rejected":
-      return "Rejected";
-    case "pending_hod":
-      return "Pending HOD";
-    case "pending_iqac":
-      return "Pending IQAC";
-    default:
-      return status;
-  }
-}
+const STATUS_MAP = {
+  pending_faculty:  { label: "Awaiting Your Response", cls: "bg-amber-50 text-amber-700 border-amber-200" },
+  form_pending:     { label: "Form Pending",            cls: "bg-orange-50 text-orange-700 border-orange-200" },
+  completed:        { label: "Completed",               cls: "bg-green-50 text-green-700 border-green-200" },
+  faculty_rejected: { label: "Rejected",                cls: "bg-red-50 text-red-700 border-red-200" },
+  pending_hod:      { label: "Pending HOD",             cls: "bg-blue-50 text-blue-700 border-blue-200" },
+  pending_iqac:     { label: "Pending IQAC",            cls: "bg-purple-50 text-purple-700 border-purple-200" },
+};
+
+const StatusBadge = ({ rawStatus }) => {
+  const cfg = STATUS_MAP[rawStatus] || { label: rawStatus || "Unknown", cls: "bg-gray-50 text-gray-600 border-gray-200" };
+  return (
+    <span className={`inline-flex items-center px-3 py-1 rounded text-sm font-medium border ${cfg.cls}`}>
+      {cfg.label}
+    </span>
+  );
+};
+
+const Field = ({ label, value }) => (
+  <div>
+    <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-1">{label}</p>
+    <p className="text-base text-gray-800 leading-relaxed">{value || "—"}</p>
+  </div>
+);
+
+const Panel = ({ title, date, children, accent }) => (
+  <div className="bg-white border border-gray-200 rounded p-4 space-y-3">
+    <div className="flex items-center justify-between pb-2 border-b border-gray-100">
+      <span className={`text-sm font-bold uppercase tracking-widest ${accent || "text-slate-500"}`}>{title}</span>
+      {date && <span className="text-sm text-gray-400">{date}</span>}
+    </div>
+    {children}
+  </div>
+);
+
+const STEPS = ["IQAC Review", "HOD Assignment", "Faculty Response"];
+const stepIdx = (s) => {
+  if (!s || s === "pending_iqac") return 0;
+  if (s === "pending_hod") return 1;
+  if (s === "pending_faculty") return 2;
+  return 3;
+};
+
+const WorkflowStepper = ({ status }) => {
+  const done = stepIdx(status);
+  return (
+    <div className="flex items-center gap-0">
+      {STEPS.map((label, i) => {
+        const completed = i < done;
+        const active    = i === done;
+        return (
+          <React.Fragment key={label}>
+            <div className="flex flex-col items-center min-w-0">
+              <div className={`w-7 h-7 rounded-full flex items-center justify-center border-2 transition-colors
+                ${completed ? "bg-blue-600 border-blue-600 text-white"
+                  : active   ? "bg-white border-amber-400 text-amber-500"
+                  :            "bg-white border-gray-300 text-gray-400"}`}>
+                {completed ? (
+                  <svg className="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                ) : <span className="text-xs font-bold">{i + 1}</span>}
+              </div>
+              <span className={`mt-1 text-sm text-center leading-tight whitespace-nowrap
+                ${completed ? "text-blue-600 font-semibold" : active ? "text-amber-600 font-semibold" : "text-gray-400"}`}>
+                {label}
+              </span>
+            </div>
+            {i < STEPS.length - 1 && (
+              <div className={`flex-1 h-px mb-4 mx-1 ${completed ? "bg-blue-400" : "bg-gray-200"}`} />
+            )}
+          </React.Fragment>
+        );
+      })}
+    </div>
+  );
+};
 
 function normalizeWorkType(workType) {
   if (!workType) return "";
@@ -310,255 +357,163 @@ const ConsultancyFaculty = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="p-6 flex items-center justify-center min-h-64">
-        <div className="text-gray-500">Loading consultancy works...</div>
-      </div>
-    );
-  }
+  const inputCls = "w-full px-3 py-2.5 text-base border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-400 focus:border-slate-400 transition";
 
-  if (error) {
-    return (
-      <div className="p-6">
-        <div className="bg-red-50 border border-red-200 rounded-md p-4 text-red-700">
-          Error: {error}
-          <button
-            onClick={fetchWorks}
-            className="ml-4 text-sm underline hover:no-underline"
-          >
-            Retry
-          </button>
-        </div>
+  if (loading) return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <p className="text-gray-500 text-base">Loading consultancy works…</p>
+    </div>
+  );
+
+  if (error) return (
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="bg-red-50 border border-red-200 rounded p-4 text-red-700 text-sm">
+        {error}
+        <button onClick={fetchWorks} className="ml-4 underline hover:no-underline">Retry</button>
       </div>
-    );
-  }
+    </div>
+  );
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Consultancy Works</h1>
-        <p className="text-gray-600 mt-1">
-          Works assigned to you by your HOD. Accept or reject with remarks.
-        </p>
+    <div className="min-h-screen bg-gray-50">
+      {/* Page header */}
+      <div className="bg-white border-b border-gray-200 px-6 py-4">
+        <h1 className="text-2xl font-semibold text-gray-900 tracking-tight">Consultancy Works</h1>
+        <p className="text-sm text-gray-500 mt-1">Works assigned to you by your HOD. Accept or reject with remarks.</p>
       </div>
 
-      {submitMsg && (
-        <div
-          className={`mb-4 p-3 rounded-md text-sm ${
+      <div className="p-6">
+        {submitMsg && (
+          <div className={`mb-4 p-3 rounded text-sm border ${
             submitMsg.type === "success"
-              ? "bg-green-50 text-green-700 border border-green-200"
-              : "bg-red-50 text-red-700 border border-red-200"
-          }`}
-        >
-          {submitMsg.text}
-          <button onClick={() => setSubmitMsg(null)} className="ml-2 font-bold">
-            ×
-          </button>
-        </div>
-      )}
+              ? "bg-green-50 text-green-700 border-green-200"
+              : "bg-red-50 text-red-700 border-red-200"
+          }`}>
+            {submitMsg.text}
+            <button onClick={() => setSubmitMsg(null)} className="ml-2 font-bold">×</button>
+          </div>
+        )}
 
-      {works.length === 0 ? (
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center text-gray-500">
-          No consultancy works assigned to you yet.
-        </div>
-      ) : (
-        <div className="space-y-6">
-          {works.map((work) => (
-            <div
-              key={work.id}
-              className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden"
-            >
-              {/* Status Banner */}
-              {work.status === "completed" && (
-                <div className="flex items-center gap-2 px-6 py-2 text-sm font-medium bg-green-100 text-green-800 border-b border-green-300">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
-                  ✅ Workflow Completed — Form submitted successfully
-                </div>
-              )}
-              {work.status === "faculty_rejected" && (
-                <div className="flex items-center gap-2 px-6 py-2 text-sm font-medium bg-red-100 text-red-800 border-b border-red-300">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" /></svg>
-                  ❌ Workflow Ended — You rejected this work
-                </div>
-              )}
-              {work.status === "form_pending" && (
-                <div className="flex items-center gap-2 px-6 py-2 text-sm font-medium bg-orange-100 text-orange-800 border-b border-orange-300">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" /></svg>
-                  📋 You accepted this work — please fill and submit the {getFormTypeLabel(work.iqacAssignment?.workType)}
-                </div>
-              )}
-              {/* Header */}
-              <div className="bg-gray-50 border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-                <div>
-                  <h2 className="text-lg font-semibold text-gray-900">
-                    {work.workType}
-                  </h2>
-                  <p className="text-sm text-gray-600">{work.clientOrganization}</p>
-                </div>
-                <span
-                  className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                    work.status
-                  )}`}
-                >
-                  {getStatusLabel(work.status)}
-                </span>
-              </div>
-
-              {/* 4-column workflow */}
-              <div className="grid grid-cols-1 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-gray-200">
-                {/* Column 1: Principal Submission */}
-                <div className="p-4">
-                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
-                    Principal Submission
-                  </h3>
-                  <div className="space-y-2 text-sm">
-                    <p className="text-gray-700">{work.workDescription}</p>
-                    {work.expectedCompletionDate && (
-                      <p className="text-gray-500">
-                        <span className="font-medium">Due:</span>{" "}
-                        {new Date(work.expectedCompletionDate).toLocaleDateString()}
-                      </p>
-                    )}
-                    {work.submittedAt && (
-                      <p className="text-gray-500">
-                        <span className="font-medium">Submitted:</span>{" "}
-                        {new Date(work.submittedAt).toLocaleDateString()}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Column 2: IQAC Assignment */}
-                <div className="p-4">
-                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
-                    IQAC Assignment
-                  </h3>
-                  {work.iqacAssignment ? (
-                    <div className="space-y-2 text-sm">
-                      <p>
-                        <span className="font-medium text-gray-700">Department:</span>{" "}
-                        {work.iqacAssignment.assignedDepartment}
-                      </p>
-                      {work.iqacAssignment.iqacRemarks && (
-                        <p>
-                          <span className="font-medium text-gray-700">Remarks:</span>{" "}
-                          <span className="text-gray-600">
-                            {work.iqacAssignment.iqacRemarks}
-                          </span>
-                        </p>
-                      )}
-                      {work.iqacAssignment.assignedAt && (
-                        <p className="text-gray-500">
-                          {new Date(work.iqacAssignment.assignedAt).toLocaleDateString()}
-                        </p>
-                      )}
+        {works.length === 0 ? (
+          <div className="text-center py-16 text-gray-400">
+            <svg className="mx-auto h-10 w-10 mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <p className="text-base font-medium text-gray-500">No consultancy works assigned to you yet.</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {works.map((work) => {
+              const ia = work.iqacAssignment;
+              const ha = work.hodAssignment;
+              const fr = work.facultyResponse;
+              return (
+                <div key={work.id} className="bg-white border border-gray-200 rounded shadow-sm overflow-hidden">
+                  {/* Card header */}
+                  <div className="flex items-start justify-between px-5 py-3.5 border-b border-gray-100">
+                    <div className="min-w-0">
+                      <h4 className="text-base font-semibold text-gray-900 truncate">{work.workType}</h4>
+                      <p className="text-sm text-gray-500 mt-0.5">{work.clientOrganization}</p>
                     </div>
-                  ) : (
-                    <p className="text-sm text-gray-400 italic">Not yet assigned</p>
-                  )}
-                </div>
-
-                {/* Column 3: HOD Assignment */}
-                <div className="p-4">
-                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
-                    HOD Assignment
-                  </h3>
-                  {work.hodAssignment ? (
-                    <div className="space-y-2 text-sm">
-                      <p>
-                        <span className="font-medium text-gray-700">Faculty:</span>{" "}
-                        {work.hodAssignment.assignedFaculty}
-                      </p>
-                      {work.hodAssignment.hodRemarks && (
-                        <p>
-                          <span className="font-medium text-gray-700">Remarks:</span>{" "}
-                          <span className="text-gray-600">
-                            {work.hodAssignment.hodRemarks}
-                          </span>
-                        </p>
+                    <div className="flex items-center gap-3 ml-4 flex-shrink-0">
+                      <span className="text-sm text-gray-400">{fmtDate(work.submittedAt)}</span>
+                      <StatusBadge rawStatus={work.status} />
+                      {work.status === "pending_faculty" && (
+                        <button
+                          onClick={() => { setSelectedWork(work); setResponseForm({ action: "accept", remarks: "" }); setSubmitMsg(null); }}
+                          className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-sm font-medium rounded transition-colors">
+                          Respond
+                        </button>
                       )}
-                      {work.hodAssignment.assignedAt && (
-                        <p className="text-gray-500">
-                          {new Date(work.hodAssignment.assignedAt).toLocaleDateString()}
-                        </p>
-                      )}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-gray-400 italic">Not yet assigned</p>
-                  )}
-                </div>
-
-                {/* Column 4: Faculty Response */}
-                <div className="p-4">
-                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
-                    Faculty Response
-                  </h3>
-                  {work.facultyResponse ? (
-                    <div className="space-y-2 text-sm">
-                      <span
-                        className={`px-2 py-1 rounded text-xs font-semibold ${
-                          work.facultyResponse.response === "accepted"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-red-100 text-red-800"
-                        }`}
-                      >
-                        {work.facultyResponse.response === "accepted" ? "Accepted" : "Rejected"}
-                      </span>
-                      {work.facultyResponse.facultyRemarks && (
-                        <p className="text-gray-600">{work.facultyResponse.facultyRemarks}</p>
-                      )}
-                      {work.facultyResponse.respondedAt && (
-                        <p className="text-gray-500">
-                          {new Date(work.facultyResponse.respondedAt).toLocaleDateString()}
-                        </p>
-                      )}
-                      {/* Show Fill Form button when accepted but form not yet submitted */}
                       {work.status === "form_pending" && (
                         <button
-                          onClick={() => {
-                            setFormSubmitMsg(null);
-                            setActiveFormWork(work);
-                          }}
-                          className="mt-3 w-full bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold py-2 px-3 rounded-md transition flex items-center justify-center gap-2"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                          </svg>
-                          Fill {getFormTypeLabel(work.iqacAssignment?.workType)}
+                          onClick={() => { setFormSubmitMsg(null); setActiveFormWork(work); }}
+                          className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-sm font-medium rounded transition-colors">
+                          Fill {getFormTypeLabel(ia?.workType)}
                         </button>
                       )}
                     </div>
-                  ) : work.status === "pending_faculty" ? (
-                    <div className="space-y-2">
-                      <p className="text-sm text-yellow-700 italic mb-2">Awaiting your response</p>
-                      <button
-                        onClick={() => {
-                          setSelectedWork(work);
-                          setResponseForm({ action: "accept", remarks: "" });
-                          setSubmitMsg(null);
-                        }}
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-3 rounded-md transition"
-                      >
-                        Respond
-                      </button>
-                    </div>
-                  ) : (
-                    <p className="text-sm text-gray-400 italic">No response yet</p>
-                  )}
+                  </div>
+
+                  {/* Stepper */}
+                  <div className="px-5 py-3 border-b border-gray-100 bg-gray-50">
+                    <WorkflowStepper status={work.status} />
+                  </div>
+
+                  {/* Panels */}
+                  <div className="p-4">
+                    {fr ? (
+                      <div className="grid grid-cols-4 gap-3">
+                        <Panel title="Principal Submission" date={fmtDate(work.submittedAt)} accent="text-slate-500">
+                          <Field label="Work Description"    value={work.workDescription} />
+                          <Field label="Expected Completion" value={fmtDate(work.expectedCompletionDate)} />
+                        </Panel>
+                        {ia && (
+                          <Panel title="IQAC Assignment" date={fmtDate(ia.assignedAt)} accent="text-blue-600">
+                            <Field label="Department" value={ia.assignedDepartment} />
+                            <Field label="Work Type"  value={ia.workType} />
+                            <Field label="Remarks"    value={ia.iqacRemarks} />
+                          </Panel>
+                        )}
+                        {ha && (
+                          <Panel title="HOD Assignment" date={fmtDate(ha.assignedAt)} accent="text-indigo-600">
+                            <Field label="Faculty" value={ha.assignedFaculty} />
+                            <Field label="Remarks" value={ha.hodRemarks} />
+                          </Panel>
+                        )}
+                        <Panel title="Faculty Response" date={fmtDate(fr.respondedAt)}
+                               accent={fr.response === "accepted" ? "text-green-700" : "text-red-600"}>
+                          <Field label="Decision" value={fr.response === "accepted" ? "✔ Accepted" : "✘ Rejected"} />
+                          <Field label="Remarks"  value={fr.facultyRemarks} />
+                        </Panel>
+                      </div>
+                    ) : ha ? (
+                      <div className="grid grid-cols-3 gap-3">
+                        <Panel title="Principal Submission" date={fmtDate(work.submittedAt)} accent="text-slate-500">
+                          <Field label="Work Description"    value={work.workDescription} />
+                          <Field label="Expected Completion" value={fmtDate(work.expectedCompletionDate)} />
+                        </Panel>
+                        {ia && (
+                          <Panel title="IQAC Assignment" date={fmtDate(ia.assignedAt)} accent="text-blue-600">
+                            <Field label="Department" value={ia.assignedDepartment} />
+                            <Field label="Work Type"  value={ia.workType} />
+                            <Field label="Remarks"    value={ia.iqacRemarks} />
+                          </Panel>
+                        )}
+                        <Panel title="HOD Assignment" date={fmtDate(ha.assignedAt)} accent="text-indigo-600">
+                          <Field label="Faculty" value={ha.assignedFaculty} />
+                          <Field label="Remarks" value={ha.hodRemarks} />
+                        </Panel>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 gap-3">
+                        <Panel title="Principal Submission" date={fmtDate(work.submittedAt)} accent="text-slate-500">
+                          <Field label="Work Description"    value={work.workDescription} />
+                          <Field label="Expected Completion" value={fmtDate(work.expectedCompletionDate)} />
+                        </Panel>
+                        {ia && (
+                          <Panel title="IQAC Assignment" date={fmtDate(ia.assignedAt)} accent="text-blue-600">
+                            <Field label="Department" value={ia.assignedDepartment} />
+                            <Field label="Work Type"  value={ia.workType} />
+                            <Field label="Remarks"    value={ia.iqacRemarks} />
+                          </Panel>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+              );
+            })}
+          </div>
+        )}
+      </div>
 
       {/* Form Submission Message Toast */}
       {formSubmitMsg && !activeFormWork && (
-        <div className={`fixed bottom-6 right-6 z-50 p-4 rounded-lg shadow-xl text-sm font-medium max-w-sm ${
+        <div className={`fixed bottom-6 right-6 z-50 p-4 rounded shadow-xl text-sm font-medium max-w-sm border ${
           formSubmitMsg.type === "success"
-            ? "bg-green-50 text-green-800 border border-green-300"
-            : "bg-red-50 text-red-800 border border-red-300"
+            ? "bg-green-50 text-green-800 border-green-200"
+            : "bg-red-50 text-red-800 border-red-200"
         }`}>
           {formSubmitMsg.text}
           <button onClick={() => setFormSubmitMsg(null)} className="ml-3 font-bold text-lg leading-none">×</button>
@@ -576,9 +531,9 @@ const ConsultancyFaculty = () => {
         return (
           <div className="fixed inset-0 z-50 bg-white overflow-y-auto">
             {/* Header bar */}
-            <div className="sticky top-0 z-10 bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between shadow-sm">
+            <div className="sticky top-0 z-10 bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-bold text-gray-900">{getFormTypeLabel(wt)}</h2>
+                <h2 className="text-base font-semibold text-gray-900">{getFormTypeLabel(wt)}</h2>
                 <p className="text-sm text-gray-500">{activeFormWork.workType} — {activeFormWork.clientOrganization}</p>
               </div>
               <button
@@ -624,125 +579,83 @@ const ConsultancyFaculty = () => {
       {/* Response Modal */}
       {selectedWork && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900">
-                Respond to Consultancy Work
-              </h2>
+          <div className="bg-white rounded shadow-xl w-full max-w-md">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
+              <div>
+                <h2 className="text-base font-semibold text-gray-900">Respond to Consultancy Work</h2>
+                <p className="text-sm text-gray-500 mt-0.5">{selectedWork.workType} — {selectedWork.clientOrganization}</p>
+              </div>
               <button
-                onClick={() => {
-                  setSelectedWork(null);
-                  setSubmitMsg(null);
-                }}
-                className="text-gray-400 hover:text-gray-600 text-xl font-bold"
+                onClick={() => { setSelectedWork(null); setSubmitMsg(null); }}
+                className="text-gray-400 hover:text-gray-600 p-1 rounded hover:bg-gray-100 transition"
               >
-                ×
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
             </div>
 
-            <div className="px-6 py-4">
-              <p className="text-sm text-gray-600 mb-1">
-                <span className="font-medium">{selectedWork.workType}</span>
-              </p>
-              <p className="text-xs text-gray-500 mb-4">
-                {selectedWork.clientOrganization}
-              </p>
-
+            <div className="p-5 space-y-4">
               {submitMsg && (
-                <div
-                  className={`mb-4 p-3 rounded-md text-sm ${
-                    submitMsg.type === "success"
-                      ? "bg-green-50 text-green-700 border border-green-200"
-                      : "bg-red-50 text-red-700 border border-red-200"
-                  }`}
-                >
+                <div className={`p-3 rounded text-sm border ${
+                  submitMsg.type === "success"
+                    ? "bg-green-50 text-green-700 border-green-200"
+                    : "bg-red-50 text-red-700 border-red-200"
+                }`}>
                   {submitMsg.text}
                 </div>
               )}
 
               <form onSubmit={handleSubmitResponse} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Your Decision
-                  </label>
-                  <div className="flex space-x-3">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setResponseForm((f) => ({ ...f, action: "accept" }))
-                      }
-                      className={`flex-1 py-2 px-4 rounded-md text-sm font-medium border transition ${
+                  <label className="block text-sm font-medium text-gray-600 mb-2">Your Decision</label>
+                  <div className="flex gap-3">
+                    <button type="button"
+                      onClick={() => setResponseForm((f) => ({ ...f, action: "accept" }))}
+                      className={`flex-1 py-2 px-4 rounded text-sm font-medium border transition ${
                         responseForm.action === "accept"
                           ? "bg-green-600 text-white border-green-600"
                           : "bg-white text-gray-700 border-gray-300 hover:border-green-400"
-                      }`}
-                    >
+                      }`}>
                       Accept
                     </button>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setResponseForm((f) => ({ ...f, action: "reject" }))
-                      }
-                      className={`flex-1 py-2 px-4 rounded-md text-sm font-medium border transition ${
+                    <button type="button"
+                      onClick={() => setResponseForm((f) => ({ ...f, action: "reject" }))}
+                      className={`flex-1 py-2 px-4 rounded text-sm font-medium border transition ${
                         responseForm.action === "reject"
                           ? "bg-red-600 text-white border-red-600"
                           : "bg-white text-gray-700 border-gray-300 hover:border-red-400"
-                      }`}
-                    >
+                      }`}>
                       Reject
                     </button>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Remarks{" "}
-                    {responseForm.action === "reject" && (
-                      <span className="text-red-500">*</span>
-                    )}
+                  <label className="block text-sm font-medium text-gray-600 mb-1">
+                    Remarks {responseForm.action === "reject" && <span className="text-red-500">*</span>}
                   </label>
                   <textarea
                     value={responseForm.remarks}
-                    onChange={(e) =>
-                      setResponseForm((f) => ({ ...f, remarks: e.target.value }))
-                    }
+                    onChange={(e) => setResponseForm((f) => ({ ...f, remarks: e.target.value }))}
                     required={responseForm.action === "reject"}
                     rows={4}
-                    placeholder={
-                      responseForm.action === "accept"
-                        ? "Optional remarks..."
-                        : "Please provide a reason for rejection..."
-                    }
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder={responseForm.action === "accept" ? "Optional remarks…" : "Please provide a reason for rejection…"}
+                    className="w-full border border-gray-300 rounded px-3 py-2.5 text-base focus:outline-none focus:ring-1 focus:ring-slate-400 focus:border-slate-400 transition resize-vertical"
                   />
                 </div>
 
-                <div className="flex space-x-3 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSelectedWork(null);
-                      setSubmitMsg(null);
-                    }}
-                    className="flex-1 py-2 px-4 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition"
-                  >
+                <div className="flex gap-3 pt-1">
+                  <button type="button"
+                    onClick={() => { setSelectedWork(null); setSubmitMsg(null); }}
+                    className="flex-1 py-2.5 px-4 rounded text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition">
                     Cancel
                   </button>
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className={`flex-1 py-2 px-4 rounded-md text-sm font-medium text-white transition ${
-                      responseForm.action === "accept"
-                        ? "bg-green-600 hover:bg-green-700"
-                        : "bg-red-600 hover:bg-red-700"
-                    } disabled:opacity-50`}
-                  >
-                    {submitting
-                      ? "Submitting..."
-                      : responseForm.action === "accept"
-                      ? "Confirm Accept"
-                      : "Confirm Reject"}
+                  <button type="submit" disabled={submitting}
+                    className={`flex-1 py-2.5 px-4 rounded text-sm font-medium text-white transition disabled:opacity-50 ${
+                      responseForm.action === "accept" ? "bg-slate-800 hover:bg-slate-700" : "bg-red-600 hover:bg-red-700"
+                    }`}>
+                    {submitting ? "Submitting…" : responseForm.action === "accept" ? "Confirm Accept" : "Confirm Reject"}
                   </button>
                 </div>
               </form>
