@@ -20,16 +20,37 @@ type HODAssignRequest struct {
 }
 
 // GET /api/hod/consultancyGet
-// Returns all consultancy works that IQAC has assigned (no department filter - single HOD)
+// Returns consultancy works assigned to this HOD's department only
 func HandleHODGet(c *gin.Context) {
 	cookie, err := c.Cookie("BITRESUME")
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Missing auth cookie"})
 		return
 	}
-	_, err = utils.ParseJWT(cookie)
+	claims, err := utils.ParseJWT(cookie)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})
+		return
+	}
+	hodIDFloat, ok := claims["id"].(float64)
+	if !ok || hodIDFloat == 0 {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user id in token"})
+		return
+	}
+	hodID := int64(hodIDFloat)
+
+	// Resolve the department assigned to this HOD
+	var hodDeptID int64
+	err = config.DB.QueryRow(
+		`SELECT department_id FROM hod_department WHERE hod_id = ?`, hodID,
+	).Scan(&hodDeptID)
+	if err == sql.ErrNoRows {
+		c.JSON(http.StatusOK, gin.H{"data": []map[string]interface{}{}})
+		return
+	}
+	if err != nil {
+		log.Printf("[hod] hod_department lookup error: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("DB error: %v", err)})
 		return
 	}
 
@@ -49,10 +70,11 @@ func HandleHODGet(c *gin.Context) {
 		LEFT JOIN login fl ON fl.id = ha.faculty_id
 		LEFT JOIN faculty_responses fr ON fr.consultancy_work_id = cw.id
 		WHERE cw.status IN ('pending_hod', 'pending_faculty', 'form_pending', 'completed', 'faculty_rejected')
+		  AND ia.department_id = ?
 		ORDER BY cw.created_at DESC
 	`
 
-	rows, err := config.DB.Query(query)
+	rows, err := config.DB.Query(query, hodDeptID)
 	if err != nil {
 		log.Printf("[hod] query error: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("DB query error: %v", err)})
@@ -170,25 +192,32 @@ func HandleHODGet(c *gin.Context) {
 }
 
 // GET /api/hod/facultyList
-// Returns all faculty members (single HOD - no department filter)
+// Returns only faculty members mapped to this HOD via hod_faculty_mapping
 func HandleHODFacultyList(c *gin.Context) {
 	cookie, err := c.Cookie("BITRESUME")
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Missing auth cookie"})
 		return
 	}
-	_, err = utils.ParseJWT(cookie)
+	claims, err := utils.ParseJWT(cookie)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})
 		return
 	}
+	hodIDFloat, ok := claims["id"].(float64)
+	if !ok || hodIDFloat == 0 {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user id in token"})
+		return
+	}
+	hodID := int64(hodIDFloat)
 
 	rows, err := config.DB.Query(`
-		SELECT id, user_name
-		FROM login
-		WHERE role = 'faculty'
-		ORDER BY user_name ASC
-	`)
+		SELECT l.id, l.user_name
+		FROM login l
+		JOIN hod_faculty_mapping hfm ON hfm.faculty_id = l.id
+		WHERE hfm.hod_id = ?
+		ORDER BY l.user_name ASC
+	`, hodID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("DB error: %v", err)})
 		return
@@ -236,6 +265,21 @@ func HandleHODAssign(c *gin.Context) {
 	var req HODAssignRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Validate faculty is mapped to this HOD
+	var mappingCount int
+	err = config.DB.QueryRow(
+		`SELECT COUNT(*) FROM hod_faculty_mapping WHERE hod_id = ? AND faculty_id = ?`,
+		assignedBy, req.FacultyID,
+	).Scan(&mappingCount)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("DB error checking faculty mapping: %v", err)})
+		return
+	}
+	if mappingCount == 0 {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Selected faculty is not assigned under your department"})
 		return
 	}
 
@@ -305,6 +349,45 @@ func HandleHODAssign(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, gin.H{"message": "Faculty assigned successfully"})
+}
+
+// GET /api/hod/myDepartment
+// Returns the HOD's assigned department name and id
+func HandleHODMyDepartment(c *gin.Context) {
+	cookie, err := c.Cookie("BITRESUME")
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Missing auth cookie"})
+		return
+	}
+	claims, err := utils.ParseJWT(cookie)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})
+		return
+	}
+	hodIDFloat, ok := claims["id"].(float64)
+	if !ok || hodIDFloat == 0 {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user id in token"})
+		return
+	}
+	hodID := int64(hodIDFloat)
+
+	var deptID int64
+	var deptName string
+	err = config.DB.QueryRow(`
+		SELECT hd.department_id, d.department_name
+		FROM hod_department hd
+		JOIN departments d ON d.id = hd.department_id
+		WHERE hd.hod_id = ?
+	`, hodID).Scan(&deptID, &deptName)
+	if err == sql.ErrNoRows {
+		c.JSON(http.StatusOK, gin.H{"department_id": nil, "department_name": ""})
+		return
+	}
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("DB error: %v", err)})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"department_id": deptID, "department_name": deptName})
 }
 
 // stringOrEmpty safely unwraps a sql.NullString

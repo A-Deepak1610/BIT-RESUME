@@ -142,6 +142,7 @@ const ConsultancyHod = () => {
 
   const [works, setWorks]             = useState([]);
   const [facultyList, setFacultyList] = useState([]);
+  const [myDept, setMyDept]           = useState({ department_id: null, department_name: "" });
   const [loading, setLoading]         = useState(true);
   const [error, setError]             = useState("");
 
@@ -157,9 +158,10 @@ const ConsultancyHod = () => {
       setLoading(true);
       setError("");
       try {
-        const [worksRes, facultyRes] = await Promise.all([
+        const [worksRes, facultyRes, deptRes] = await Promise.all([
           fetch(`${BASE_URL}/api/hod/consultancyGet`, { credentials: "include" }),
           fetch(`${BASE_URL}/api/hod/facultyList`,    { credentials: "include" }),
+          fetch(`${BASE_URL}/api/hod/myDepartment`,   { credentials: "include" }),
         ]);
         if (!worksRes.ok) {
           const err = await worksRes.json().catch(() => ({}));
@@ -173,6 +175,10 @@ const ConsultancyHod = () => {
         const facultyData = await facultyRes.json();
         setWorks(worksData.data   || []);
         setFacultyList(facultyData.data || []);
+        if (deptRes.ok) {
+          const deptData = await deptRes.json();
+          setMyDept(deptData);
+        }
       } catch (e) {
         setError(e.message);
       } finally {
@@ -238,8 +244,19 @@ const ConsultancyHod = () => {
     <div className="min-h-screen bg-gray-50 p-4">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800 mb-2">HOD - Consultancy Management</h1>
-        <p className="text-gray-600">Review IQAC assignments and assign faculty members to consultancy works</p>
+        <div className="flex items-center gap-3 mb-1">
+          <h1 className="text-2xl font-bold text-gray-800">HOD — Consultancy Management</h1>
+          {myDept.department_name && (
+            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700 border border-blue-200">
+              {myDept.department_name}
+            </span>
+          )}
+        </div>
+        <p className="text-gray-500 text-sm">
+          {myDept.department_name
+            ? `Showing consultancy works assigned to ${myDept.department_name}. Assign from your mapped faculty below.`
+            : "Review IQAC assignments and assign faculty members to consultancy works"}
+        </p>
       </div>
 
       {/* Loading / Error */}
@@ -259,7 +276,10 @@ const ConsultancyHod = () => {
           <svg className="w-12 h-12 text-gray-300 mx-auto mb-3" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 0v12h8V4H6z" clipRule="evenodd" />
           </svg>
-          <p className="text-gray-500 font-medium">No consultancy works assigned to your department yet.</p>
+          {myDept.department_id
+            ? <p className="text-gray-500 font-medium">No consultancy works assigned to <span className="font-semibold text-gray-700">{myDept.department_name}</span> yet.</p>
+            : <p className="text-gray-500 font-medium">Your account is not mapped to any department. Contact IQAC admin.</p>
+          }
         </div>
       )}
 

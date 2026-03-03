@@ -180,6 +180,7 @@ func RegisterRoutes(r *gin.Engine) {
 	// HOD Consultancy Routes (auth via cookie parsed in handler)
 	r.GET("/api/hod/consultancyGet", consultancy.HandleHODGet)
 	r.GET("/api/hod/facultyList", consultancy.HandleHODFacultyList)
+	r.GET("/api/hod/myDepartment", consultancy.HandleHODMyDepartment)
 	r.POST("/api/hod/consultancyAssign", consultancy.HandleHODAssign)
 
 	// Faculty Consultancy Work Routes (principal-assigned works workflow)
