@@ -9,7 +9,7 @@ import (
 	"bitresume/config"
 )
 
-func main() {
+func createOwiTables() {
 	// Initialize database connection
 	config.InitDB()
 	defer config.DB.Close()

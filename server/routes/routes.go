@@ -31,6 +31,8 @@ import (
 	"bitresume/api/upload-view/workshops"
 	"bitresume/middleware"
 
+	consultancy "bitresume/api/consultancy"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -163,7 +165,26 @@ func RegisterRoutes(r *gin.Engine) {
 		facultyOnly.GET("/owi/trainingToIndustry", outsideworld.HandleTrainingToIndustryGet)
 		facultyOnly.PUT("/owi/trainingToIndustry/:id", outsideworld.HandleTrainingToIndustryUpdate)
 		facultyOnly.DELETE("/owi/trainingToIndustry/:id", outsideworld.HandleTrainingToIndustryDelete)
+
 	}
+
+	// Consultancy Works - open routes (auth via cookie parsed in handler)
+	r.POST("/api/principal/consultancyPost", consultancy.HandleConsultancyPost)
+	r.GET("/api/principal/consultancyGet", consultancy.HandleConsultancyGet)
+	r.POST("/api/principal/consultancyUpload", consultancy.HandleFileUpload)
+
+	// IQAC Consultancy Routes (auth via cookie parsed in handler)
+	r.GET("/api/iqac/consultancyGet", consultancy.HandleIQACGet)
+	r.POST("/api/iqac/consultancyAssign", consultancy.HandleIQACAssign)
+
+	// HOD Consultancy Routes (auth via cookie parsed in handler)
+	r.GET("/api/hod/consultancyGet", consultancy.HandleHODGet)
+	r.GET("/api/hod/facultyList", consultancy.HandleHODFacultyList)
+	r.POST("/api/hod/consultancyAssign", consultancy.HandleHODAssign)
+
+	// Faculty Consultancy Work Routes (principal-assigned works workflow)
+	r.GET("/api/faculty/consultancyWorkGet", consultancy.HandleFacultyGet)
+	r.POST("/api/faculty/consultancyWorkRespond", consultancy.HandleFacultyRespond)
 
 	bothStudentFacultyAdmin := r.Group("/api")
 	bothStudentFacultyAdmin.Use(middleware.AuthorizeRoles("faculty", "student", "Admin"))
