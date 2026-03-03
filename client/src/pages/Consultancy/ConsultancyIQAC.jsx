@@ -1,5 +1,6 @@
 ﻿import React, { useState, useEffect } from "react";
 import useAuth from "../../store/UseAuth";
+import FormDataCard from "./forms/FormDataCard";
 
 // â”€â”€ Helper sub-components â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
@@ -152,7 +153,7 @@ const ConsultancyIQAC = () => {
             submittedAt: w.submitted_at ? new Date(w.submitted_at).toLocaleDateString() : "",
             status: ia ? "Assigned to Department" : "Pending Assignment",
             rawStatus: w.status,
-            attachmentUrl: w.attachment_url || null,
+            attachmentUrl: `${import.meta.env.VITE_API_URL}${w.attachment_url}` || null,
             assignedDepartment: ia ? ia.department_name : null,
             assignedAt: ia ? new Date(ia.assigned_at).toLocaleDateString() : null,
             iqacRemarks: ia ? ia.iqac_remarks : null,
@@ -175,6 +176,7 @@ const ConsultancyIQAC = () => {
                     : null,
                 }
               : null,
+            formData: w.form_data || null,
           };
         });
 
@@ -338,6 +340,7 @@ const ConsultancyIQAC = () => {
                       </div>
                     </div>
                   )}
+                  <FormDataCard formData={work.formData} />
                 </div>
               ))}
             </div>
@@ -383,8 +386,6 @@ const ConsultancyIQAC = () => {
                     <option value="Software Project">Software Project</option>
                     <option value="Industrial Training Project">Industrial Training Project</option>
                     <option value="Drone">Drone</option>
-                    <option value="Research & Development">Research &amp; Development</option>
-                    <option value="Other">Other</option>
                   </select>
                 </div>
 

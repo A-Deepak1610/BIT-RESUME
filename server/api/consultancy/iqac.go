@@ -112,6 +112,7 @@ func HandleIQACGet(c *gin.Context) {
 			"iqac_assignment":          nil,
 			"hod_assignment":           nil,
 			"faculty_response":         nil,
+			"form_data":                nil,
 		}
 
 		if expDate.Valid {
@@ -162,6 +163,10 @@ func HandleIQACGet(c *gin.Context) {
 				"faculty_remarks": stringOrEmpty(frRemarks),
 				"responded_at":    stringOrEmpty(frRespondedAt),
 			}
+		}
+
+		if status == "completed" {
+			work["form_data"] = FetchFormDataForWork(id)
 		}
 
 		works = append(works, work)

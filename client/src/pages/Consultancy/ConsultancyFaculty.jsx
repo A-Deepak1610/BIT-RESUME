@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
 import useAuth from "../../store/UseAuth";
+import DroneForm from "./forms/droneform";
+import IndustrialProjectForm from "./forms/industrialprojectform";
+import ProjectDeclarationForm from "./forms/projectdeclarationform";
 
 const BASE_URL = import.meta.env.VITE_API_URL || "";
 
@@ -17,6 +20,7 @@ function mapWork(w) {
           assignedDepartment: w.iqac_assignment.department_name,
           iqacRemarks: w.iqac_assignment.iqac_remarks,
           assignedAt: w.iqac_assignment.assigned_at,
+          workType: w.iqac_assignment.consultancy_work_type || "",
         }
       : null,
     hodAssignment: w.hod_assignment
@@ -41,6 +45,8 @@ function getStatusColor(status) {
   switch (status) {
     case "pending_faculty":
       return "bg-yellow-100 text-yellow-800";
+    case "form_pending":
+      return "bg-orange-100 text-orange-800";
     case "completed":
       return "bg-green-100 text-green-800";
     case "faculty_rejected":
@@ -58,8 +64,10 @@ function getStatusLabel(status) {
   switch (status) {
     case "pending_faculty":
       return "Awaiting Your Response";
+    case "form_pending":
+      return "Form Pending";
     case "completed":
-      return "Accepted";
+      return "Completed";
     case "faculty_rejected":
       return "Rejected";
     case "pending_hod":
@@ -68,6 +76,30 @@ function getStatusLabel(status) {
       return "Pending IQAC";
     default:
       return status;
+  }
+}
+
+function normalizeWorkType(workType) {
+  if (!workType) return "";
+  const map = {
+    "drone": "drone",
+    "Drone": "drone",
+    "industrial_project": "industrial_project",
+    "Industrial Training Project": "industrial_project",
+    "Industrial Project": "industrial_project",
+    "project_declaration": "project_declaration",
+    "Project Declaration": "project_declaration",
+    "Software Project": "project_declaration",
+  };
+  return map[workType] ?? workType.toLowerCase().replace(/\s+/g, "_");
+}
+
+function getFormTypeLabel(workType) {
+  switch (normalizeWorkType(workType)) {
+    case "drone": return "Drone Form";
+    case "industrial_project": return "Industrial Project Form";
+    case "project_declaration": return "Project Declaration Form";
+    default: return workType || "Form";
   }
 }
 
@@ -83,6 +115,11 @@ const ConsultancyFaculty = () => {
   });
   const [submitting, setSubmitting] = useState(false);
   const [submitMsg, setSubmitMsg] = useState(null);
+
+  // Form submission state
+  const [activeFormWork, setActiveFormWork] = useState(null);
+  const [formSubmitting, setFormSubmitting] = useState(false);
+  const [formSubmitMsg, setFormSubmitMsg] = useState(null);
 
   const fetchWorks = async () => {
     try {
@@ -141,6 +178,135 @@ const ConsultancyFaculty = () => {
       setSubmitMsg({ type: "error", text: err.message });
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  // Handle form submission (after faculty accepts and fills the IQAC-assigned form)
+  const handleFormSubmit = async (formData) => {
+    if (!activeFormWork) return;
+    setFormSubmitting(true);
+    setFormSubmitMsg(null);
+    try {
+      const workType = normalizeWorkType(activeFormWork.iqacAssignment?.workType);
+
+      // Upload file if present
+      let fileUrl = "";
+      const fileObj =
+        formData.quotationFile ||
+        formData.quotationReportFile ||
+        null;
+      if (fileObj instanceof File) {
+        const uploadFD = new FormData();
+        uploadFD.append("file", fileObj);
+        const upRes = await fetch(`${BASE_URL}/api/principal/consultancyUpload`, {
+          method: "POST",
+          credentials: "include",
+          body: uploadFD,
+        });
+        if (!upRes.ok) {
+          const upErr = await upRes.json();
+          throw new Error("File upload failed: " + (upErr.error || "Unknown error"));
+        }
+        const upData = await upRes.json();
+        fileUrl = upData.url || "";
+      }
+
+      // Build common payload
+      const payload = {
+        consultancy_work_id: activeFormWork.id,
+        form_type: workType,
+        owi_ref_no: formData.owiRefNo || "BITCPP",
+        quotation_file_url: fileUrl,
+        financial_split: formData.financialSplit || "",
+        members: (formData.members || []).map((m, i) => ({
+          s_no: i + 1,
+          name: m.name || "",
+          designation: m.designation || "",
+          department: m.department || "",
+          financial_split: m.financialSplit || "",
+          amount: String(m.amount || "0"),
+        })),
+      };
+
+      if (workType === "drone") {
+        Object.assign(payload, {
+          duration_from: formData.projectDurationFrom || "",
+          duration_to: formData.projectDurationTo || "",
+          total_amount_with_gst: parseFloat(formData.totalAmountWithGST) || 0,
+          total_amount_without_gst: parseFloat(formData.totalAmountWithoutGST) || 0,
+          equipment: (formData.equipment || []).map((eq) => ({
+            item: eq.item || "",
+            calibration_done_readily_available: !!eq.calibrationDoneReadilyAvailable,
+            requires_maintenance: !!eq.requiresMaintenance,
+          })),
+          activities: (formData.activities || []).map((act) => ({
+            proposed_activity: act.proposedActivity || "",
+            description: act.description || "",
+            availability: act.availability || "",
+            start_date: act.startDate || "",
+            end_date: act.endDate || "",
+            responsible: act.responsible || "",
+          })),
+        });
+      } else if (workType === "industrial_project") {
+        Object.assign(payload, {
+          duration_from: formData.trainingDurationFrom || "",
+          duration_to: formData.trainingDurationTo || "",
+          total_amount_with_gst: parseFloat(formData.totalAmountWithGst) || 0,
+          total_amount_without_gst: parseFloat(formData.totalAmountWithoutGst) || 0,
+          travel_plans: (formData.travelPlans || []).map((tp) => ({
+            proposed_activity: tp.proposedActivity || "",
+            required_on_duty_date: tp.requiredOnDutyDate || "",
+            travel_required: tp.travelRequired || "",
+            requested_travel_allowance: parseFloat(tp.requestedTravelAllowance) || 0,
+            requested_dearness_allowance: parseFloat(tp.requestedDearnessAllowance) || 0,
+            responsible_persons: tp.responsiblePersons || "",
+          })),
+          additional_resources: (formData.additionalResources || []).map((ar) => ({
+            proposed_activity: ar.proposedActivity || "",
+            description: ar.description || "",
+            availability_of_consumables: ar.availabilityOfConsumables || "",
+            responsible_persons: ar.responsiblePersons || "",
+          })),
+        });
+      } else if (workType === "project_declaration") {
+        Object.assign(payload, {
+          duration_from: formData.projectDurationFrom || "",
+          duration_to: formData.projectDurationTo || "",
+          total_amount_with_gst: parseFloat(formData.totalAmountWithGst) || 0,
+          total_amount_without_gst: parseFloat(formData.totalAmountWithoutGst) || 0,
+          equipment: (formData.equipment || []).map((eq) => ({
+            item: eq.item || "",
+            calibration_done_readily_available: !!eq.calibrationDoneReadilyAvailable,
+            requires_maintenance: !!eq.requiresMaintenance,
+          })),
+          activities: (formData.activities || []).map((act) => ({
+            proposed_activity: act.proposedActivity || "",
+            description: act.description || "",
+            availability: act.availability || "",
+            start_date: act.startDate || "",
+            end_date: act.endDate || "",
+            responsible: act.responsible || "",
+          })),
+        });
+      }
+
+      const res = await fetch(`${BASE_URL}/api/faculty/consultancyFormSubmit`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Form submission failed");
+
+      setFormSubmitMsg({ type: "success", text: "Form submitted successfully! Work marked as completed." });
+      setActiveFormWork(null);
+      await fetchWorks();
+    } catch (err) {
+      setFormSubmitMsg({ type: "error", text: err.message });
+    } finally {
+      setFormSubmitting(false);
     }
   };
 
@@ -203,19 +369,23 @@ const ConsultancyFaculty = () => {
               key={work.id}
               className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden"
             >
-              {/* Completed / Rejected Banner */}
-              {(work.status === "completed" || work.status === "faculty_rejected") && (
-                <div className={`flex items-center gap-2 px-6 py-2 text-sm font-medium ${
-                  work.status === "completed"
-                    ? "bg-green-100 text-green-800 border-b border-green-300"
-                    : "bg-red-100 text-red-800 border-b border-red-300"
-                }`}>
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    {work.status === "completed"
-                      ? <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      : <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />}
-                  </svg>
-                  {work.status === "completed" ? "✅ Workflow Completed — You have accepted this work" : "❌ Workflow Ended — You rejected this work"}
+              {/* Status Banner */}
+              {work.status === "completed" && (
+                <div className="flex items-center gap-2 px-6 py-2 text-sm font-medium bg-green-100 text-green-800 border-b border-green-300">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
+                  ✅ Workflow Completed — Form submitted successfully
+                </div>
+              )}
+              {work.status === "faculty_rejected" && (
+                <div className="flex items-center gap-2 px-6 py-2 text-sm font-medium bg-red-100 text-red-800 border-b border-red-300">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" /></svg>
+                  ❌ Workflow Ended — You rejected this work
+                </div>
+              )}
+              {work.status === "form_pending" && (
+                <div className="flex items-center gap-2 px-6 py-2 text-sm font-medium bg-orange-100 text-orange-800 border-b border-orange-300">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" /></svg>
+                  📋 You accepted this work — please fill and submit the {getFormTypeLabel(work.iqacAssignment?.workType)}
                 </div>
               )}
               {/* Header */}
@@ -333,26 +503,35 @@ const ConsultancyFaculty = () => {
                             : "bg-red-100 text-red-800"
                         }`}
                       >
-                        {work.facultyResponse.response === "accepted"
-                          ? "Accepted"
-                          : "Rejected"}
+                        {work.facultyResponse.response === "accepted" ? "Accepted" : "Rejected"}
                       </span>
                       {work.facultyResponse.facultyRemarks && (
-                        <p className="text-gray-600">
-                          {work.facultyResponse.facultyRemarks}
-                        </p>
+                        <p className="text-gray-600">{work.facultyResponse.facultyRemarks}</p>
                       )}
                       {work.facultyResponse.respondedAt && (
                         <p className="text-gray-500">
                           {new Date(work.facultyResponse.respondedAt).toLocaleDateString()}
                         </p>
                       )}
+                      {/* Show Fill Form button when accepted but form not yet submitted */}
+                      {work.status === "form_pending" && (
+                        <button
+                          onClick={() => {
+                            setFormSubmitMsg(null);
+                            setActiveFormWork(work);
+                          }}
+                          className="mt-3 w-full bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold py-2 px-3 rounded-md transition flex items-center justify-center gap-2"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                          Fill {getFormTypeLabel(work.iqacAssignment?.workType)}
+                        </button>
+                      )}
                     </div>
                   ) : work.status === "pending_faculty" ? (
                     <div className="space-y-2">
-                      <p className="text-sm text-yellow-700 italic mb-2">
-                        Awaiting your response
-                      </p>
+                      <p className="text-sm text-yellow-700 italic mb-2">Awaiting your response</p>
                       <button
                         onClick={() => {
                           setSelectedWork(work);
@@ -373,6 +552,74 @@ const ConsultancyFaculty = () => {
           ))}
         </div>
       )}
+
+      {/* Form Submission Message Toast */}
+      {formSubmitMsg && !activeFormWork && (
+        <div className={`fixed bottom-6 right-6 z-50 p-4 rounded-lg shadow-xl text-sm font-medium max-w-sm ${
+          formSubmitMsg.type === "success"
+            ? "bg-green-50 text-green-800 border border-green-300"
+            : "bg-red-50 text-red-800 border border-red-300"
+        }`}>
+          {formSubmitMsg.text}
+          <button onClick={() => setFormSubmitMsg(null)} className="ml-3 font-bold text-lg leading-none">×</button>
+        </div>
+      )}
+
+      {/* Full-Screen Form Overlay */}
+      {activeFormWork && (() => {
+      const wt = normalizeWorkType(activeFormWork.iqacAssignment?.workType);
+        const commonProps = {
+          selectedWork: activeFormWork,
+          onBack: () => setActiveFormWork(null),
+          onSubmit: handleFormSubmit,
+        };
+        return (
+          <div className="fixed inset-0 z-50 bg-white overflow-y-auto">
+            {/* Header bar */}
+            <div className="sticky top-0 z-10 bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between shadow-sm">
+              <div>
+                <h2 className="text-lg font-bold text-gray-900">{getFormTypeLabel(wt)}</h2>
+                <p className="text-sm text-gray-500">{activeFormWork.workType} — {activeFormWork.clientOrganization}</p>
+              </div>
+              <button
+                onClick={() => setActiveFormWork(null)}
+                className="text-gray-400 hover:text-gray-700 text-2xl font-bold leading-none"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Error message inside overlay */}
+            {formSubmitMsg?.type === "error" && (
+              <div className="mx-6 mt-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-md text-sm">
+                {formSubmitMsg.text}
+                <button onClick={() => setFormSubmitMsg(null)} className="ml-3 font-bold">×</button>
+              </div>
+            )}
+
+            {formSubmitting && (
+              <div className="mx-6 mt-4 p-3 bg-blue-50 border border-blue-200 text-blue-700 rounded-md text-sm flex items-center gap-2">
+                <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                </svg>
+                Submitting form...
+              </div>
+            )}
+
+            <div className="px-4 py-4">
+              {wt === "drone" && <DroneForm {...commonProps} />}
+              {wt === "industrial_project" && <IndustrialProjectForm {...commonProps} />}
+              {wt === "project_declaration" && <ProjectDeclarationForm {...commonProps} />}
+              {!wt && (
+                <div className="p-8 text-center text-gray-500">
+                  No form type has been assigned by IQAC for this work.
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Response Modal */}
       {selectedWork && (

@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from "react";
 import useAuth from "../../store/UseAuth";
+import FormDataCard from "./forms/FormDataCard";
+
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:6001";
 
 const ConsultancyPrincipal = () => {
   const { user } = useAuth();
@@ -34,7 +37,7 @@ const ConsultancyPrincipal = () => {
           workDescription: work.work_description,
           expectedCompletionDate: work.expected_completion_date,
           submittedAt: new Date(work.submitted_at).toLocaleDateString(),
-          attachmentUrl: work.attachment_url ?? null,
+          attachmentUrl: work.attachment_url ? `${BASE_URL}${work.attachment_url}` : null,
           iqacAssignment: work.iqac_assignment
             ? {
                 assignedDepartment: work.iqac_assignment.department_name,
@@ -63,21 +66,22 @@ const ConsultancyPrincipal = () => {
                   : "",
               }
             : null,
+          formData: work.form_data || null,
           rawStatus: work.status,
           status: {
             iqac: {
-              completed: ["pending_hod", "pending_faculty", "completed", "faculty_rejected"].includes(work.status),
+              completed: ["pending_hod", "pending_faculty", "form_pending", "completed", "faculty_rejected"].includes(work.status),
               pending: work.status === "pending_iqac",
               label: "IQAC Review",
             },
             hod: {
-              completed: ["pending_faculty", "completed", "faculty_rejected"].includes(work.status),
+              completed: ["pending_faculty", "form_pending", "completed", "faculty_rejected"].includes(work.status),
               pending: work.status === "pending_hod",
               label: "HOD Assignment",
             },
             faculty: {
-              completed: ["completed", "faculty_rejected"].includes(work.status),
-              pending: work.status === "pending_faculty",
+              completed: ["completed"].includes(work.status),
+              pending: ["pending_faculty", "form_pending"].includes(work.status),
               label: "Faculty Execution",
             },
           },
@@ -125,7 +129,7 @@ const ConsultancyPrincipal = () => {
       }
 
       const result = await res.json();
-      setUploadedFile({ url: result.url, filename: result.filename });
+      setUploadedFile({ url: `${BASE_URL}${result.url}`, filename: result.filename });
     } catch (err) {
       console.error("File upload error:", err);
       alert("File upload failed. Please try again.");
@@ -174,7 +178,7 @@ const ConsultancyPrincipal = () => {
         workDescription: saved.work_description,
         expectedCompletionDate: saved.expected_completion_date,
         submittedAt: new Date(saved.submitted_at).toLocaleDateString(),
-        attachmentUrl: saved.attachment_url ?? null,
+        attachmentUrl: saved.attachment_url ? `${BASE_URL}${saved.attachment_url}` : null,
         iqacAssignment: null,
         hodAssignment: null,
         facultyResponse: null,
@@ -444,18 +448,28 @@ const ConsultancyPrincipal = () => {
               <h3 className="text-lg font-semibold text-gray-800">Submitted Consultancy Works</h3>
               {submittedWorks.map((work) => (
                 <div key={work.id} className="bg-white rounded-lg shadow-md border border-gray-200 p-4">
-                  {(work.rawStatus === "completed" || work.rawStatus === "faculty_rejected") && (
-                    <div className={`flex items-center gap-2 px-4 py-2 rounded-lg mb-4 text-sm font-medium ${
-                      work.rawStatus === "completed"
-                        ? "bg-green-100 text-green-800 border border-green-300"
-                        : "bg-red-100 text-red-800 border border-red-300"
-                    }`}>
+                  {work.rawStatus === "completed" && (
+                    <div className="flex items-center gap-2 px-4 py-2 rounded-lg mb-4 text-sm font-medium bg-green-100 text-green-800 border border-green-300">
                       <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        {work.rawStatus === "completed"
-                          ? <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                          : <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />}
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
-                      {work.rawStatus === "completed" ? "✅ Workflow Completed — Faculty has accepted the work" : "❌ Workflow Ended — Faculty rejected the work"}
+                      ✅ Workflow Completed — Faculty has accepted the work
+                    </div>
+                  )}
+                  {work.rawStatus === "faculty_rejected" && (
+                    <div className="flex items-center gap-2 px-4 py-2 rounded-lg mb-4 text-sm font-medium bg-red-100 text-red-800 border border-red-300">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                      </svg>
+                      ❌ Workflow Ended — Faculty rejected the work
+                    </div>
+                  )}
+                  {work.rawStatus === "form_pending" && (
+                    <div className="flex items-center gap-2 px-4 py-2 rounded-lg mb-4 text-sm font-medium bg-orange-100 text-orange-800 border border-orange-300">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                      </svg>
+                      📋 Faculty accepted — awaiting form submission
                     </div>
                   )}
                   <div className="flex justify-between items-start mb-4">
@@ -696,6 +710,7 @@ const ConsultancyPrincipal = () => {
                       </div>
                     </div>
                   )}
+                  <FormDataCard formData={work.formData} />
                 </div>
               ))}
             </div>

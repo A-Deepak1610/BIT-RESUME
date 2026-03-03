@@ -209,6 +209,7 @@ func HandleConsultancyGet(c *gin.Context) {
 			"iqac_assignment":          nil,
 			"hod_assignment":           nil,
 			"faculty_response":         nil,
+			"form_data":                nil,
 		}
 
 		if expDate.Valid {
@@ -306,6 +307,10 @@ func HandleConsultancyGet(c *gin.Context) {
 					return ""
 				}(),
 			}
+		}
+
+		if status == "completed" {
+			work["form_data"] = FetchFormDataForWork(id)
 		}
 
 		works = append(works, work)

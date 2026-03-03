@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import useAuth from "../../store/UseAuth";
+import FormDataCard from "./forms/FormDataCard";
 
 const BASE_URL = import.meta.env.VITE_API_URL || "";
 
@@ -15,10 +16,11 @@ const inferWorkTypeFromText = (text) => {
 
 const StatusBadge = ({ status }) => {
   const map = {
-    pending_hod:      { label: "Pending Faculty Assignment", cls: "bg-yellow-100 text-yellow-800 border border-yellow-300" },
-    pending_faculty:  { label: "Awaiting Faculty Response",  cls: "bg-blue-100 text-blue-800 border border-blue-300"   },
-    completed:        { label: "Completed",                  cls: "bg-green-100 text-green-800 border border-green-300" },
-    faculty_rejected: { label: "Rejected by Faculty",        cls: "bg-red-100 text-red-800 border border-red-300"     },
+    pending_hod:      { label: "Pending Faculty Assignment",     cls: "bg-yellow-100 text-yellow-800 border border-yellow-300" },
+    pending_faculty:  { label: "Awaiting Faculty Response",       cls: "bg-blue-100 text-blue-800 border border-blue-300"   },
+    form_pending:     { label: "Awaiting Faculty Form Submission", cls: "bg-orange-100 text-orange-800 border border-orange-300" },
+    completed:        { label: "Completed",                        cls: "bg-green-100 text-green-800 border border-green-300" },
+    faculty_rejected: { label: "Rejected by Faculty",             cls: "bg-red-100 text-red-800 border border-red-300"     },
   };
   const { label, cls } = map[status] || { label: status, cls: "bg-gray-100 text-gray-700 border border-gray-300" };
   return <span className={`px-2 py-1 rounded-full text-xs font-medium ${cls}`}>{label}</span>;
@@ -271,18 +273,24 @@ const ConsultancyHod = () => {
                 const ha = work.hod_assignment;
                 return (
                   <div key={work.id} className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
-                    {(work.status === "completed" || work.status === "faculty_rejected") && (
+                    {(work.status === "completed" || work.status === "faculty_rejected" || work.status === "form_pending") && (
                       <div className={`flex items-center gap-2 px-4 py-2 rounded-lg mb-4 text-sm font-medium ${
                         work.status === "completed"
                           ? "bg-green-100 text-green-800 border border-green-300"
+                          : work.status === "form_pending"
+                          ? "bg-orange-100 text-orange-800 border border-orange-300"
                           : "bg-red-100 text-red-800 border border-red-300"
                       }`}>
                         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                          {work.status === "completed"
-                            ? <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                            : <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />}
+                          {work.status === "completed" ? (
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        ) : work.status === "form_pending" ? (
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                        ) : (
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                        )}
                         </svg>
-                        {work.status === "completed" ? "✅ Workflow Completed — Faculty has accepted the work" : "❌ Workflow Ended — Faculty rejected the work"}
+                        {work.status === "completed" ? "✅ Workflow Completed — Faculty has accepted the work" : work.status === "form_pending" ? "⏳ Faculty Accepted — Awaiting Form Submission" : "❌ Workflow Ended — Faculty rejected the work"}
                       </div>
                     )}
                     <div className="flex justify-between items-start mb-6">
@@ -324,6 +332,7 @@ const ConsultancyHod = () => {
                         <IQACCard ia={ia} status={work.status} />
                       </div>
                     )}
+                    <FormDataCard formData={work.form_data} />
                   </div>
                 );
               })}

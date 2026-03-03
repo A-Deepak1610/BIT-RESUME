@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"time"
 
 	"github.com/go-sql-driver/mysql"
 	_ "github.com/go-sql-driver/mysql"
@@ -47,7 +48,7 @@ func InitDB() {
 		log.Fatalf("Failed to register TLS config: %v", err)
 	}
 
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?tls=custom",
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?tls=custom&parseTime=true&timeout=30s&readTimeout=30s&writeTimeout=30s",
 		dbUser,
 		dbPassword,
 		dbHost,
@@ -63,6 +64,8 @@ func InitDB() {
 
 	DB.SetMaxOpenConns(10)
 	DB.SetMaxIdleConns(5)
+	DB.SetConnMaxLifetime(3 * time.Minute) // recycle connections before server closes them
+	DB.SetConnMaxIdleTime(1 * time.Minute) // drop idle connections quickly
 
 	// Auto-create consultancy_works table if it doesn't exist
 	createConsultancyTable := `
@@ -84,6 +87,10 @@ func InitDB() {
 	if _, err := DB.Exec(createConsultancyTable); err != nil {
 		log.Fatalf("Failed to create consultancy_works table: %v", err)
 	}
+
+	// Ensure status column is VARCHAR(50) to support all status values including form_pending.
+	// This handles the case where the table was originally created with an ENUM column.
+	_, _ = DB.Exec(`ALTER TABLE consultancy_works MODIFY COLUMN status VARCHAR(50) NOT NULL DEFAULT 'pending_iqac'`)
 
 	fmt.Print("Successfully connected to the database!!")
 }

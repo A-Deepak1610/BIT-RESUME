@@ -185,6 +185,7 @@ func RegisterRoutes(r *gin.Engine) {
 	// Faculty Consultancy Work Routes (principal-assigned works workflow)
 	r.GET("/api/faculty/consultancyWorkGet", consultancy.HandleFacultyGet)
 	r.POST("/api/faculty/consultancyWorkRespond", consultancy.HandleFacultyRespond)
+	r.POST("/api/faculty/consultancyFormSubmit", consultancy.HandleFacultyFormSubmit)
 
 	bothStudentFacultyAdmin := r.Group("/api")
 	bothStudentFacultyAdmin.Use(middleware.AuthorizeRoles("faculty", "student", "Admin"))

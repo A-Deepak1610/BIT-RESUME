@@ -48,7 +48,7 @@ func HandleHODGet(c *gin.Context) {
 		LEFT JOIN hod_assignments ha ON ha.consultancy_work_id = cw.id
 		LEFT JOIN login fl ON fl.id = ha.faculty_id
 		LEFT JOIN faculty_responses fr ON fr.consultancy_work_id = cw.id
-		WHERE cw.status IN ('pending_hod', 'pending_faculty', 'completed', 'faculty_rejected')
+		WHERE cw.status IN ('pending_hod', 'pending_faculty', 'form_pending', 'completed', 'faculty_rejected')
 		ORDER BY cw.created_at DESC
 	`
 
@@ -126,6 +126,7 @@ func HandleHODGet(c *gin.Context) {
 			},
 			"hod_assignment":   nil,
 			"faculty_response": nil,
+			"form_data":        nil,
 		}
 
 		if expDate.Valid {
@@ -152,6 +153,10 @@ func HandleHODGet(c *gin.Context) {
 				"faculty_remarks": stringOrEmpty(frRemarks),
 				"responded_at":    stringOrEmpty(frRespondedAt),
 			}
+		}
+
+		if status == "completed" {
+			work["form_data"] = FetchFormDataForWork(id)
 		}
 
 		works = append(works, work)

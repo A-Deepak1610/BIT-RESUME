@@ -254,7 +254,9 @@ func HandleFacultyRespond(c *gin.Context) {
 	}
 
 	// Update consultancy_works status
-	newStatus := "completed"
+	// accepted → form_pending (faculty must now fill the IQAC-assigned form)
+	// rejected → faculty_rejected
+	newStatus := "form_pending"
 	if req.Response == "rejected" {
 		newStatus = "faculty_rejected"
 	}
