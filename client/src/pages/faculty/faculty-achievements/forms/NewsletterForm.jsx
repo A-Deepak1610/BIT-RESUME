@@ -196,7 +196,8 @@ export default function NewsletterForm() {
         }
       } catch (error) {
         console.error("Error submitting form", error);
-        alert("Failed to submit form. Please try again.");
+        const errorMessage = error.response?.data?.error || error.response?.data?.details || error.message || "Unknown error";
+        alert(`Failed to submit form: ${errorMessage}`);
       } finally {
         setIsSubmitting(false);
       }

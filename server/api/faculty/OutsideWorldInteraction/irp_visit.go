@@ -61,6 +61,7 @@ func HandleIrpVisitForm(c *gin.Context) {
 	}
 
 	apexProofPath := saveFile("apexProof")
+	geotagPhotosPath := saveFile("geotagPhotos")
 	irpFormSignedPath := saveFile("irpFormSigned")
 	consolidatedDocumentPath := saveFile("consolidatedDocument")
 
@@ -74,22 +75,23 @@ func HandleIrpVisitForm(c *gin.Context) {
 
 	// Insert into database
 	query := `INSERT INTO faculty_irp_visit (
-		faculty, sig_number, task_id, special_labs_involved, special_lab,
+		faculty_id, faculty, sig_number, task_id, special_labs_involved, special_lab,
 		number_of_faculty, claimed_for_faculty, claimed_for_department,
 		type_of_approval, is_irp_visit_part_of_mou, mou_name,
 		mou_points_discussed, from_date, to_date, mode_of_interaction,
 		purpose_of_visit, amount_incurred, number_of_industry,
-		apex_proof, irp_form_signed, consolidated_document, verification_status
-	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Initiated')`
+		apex_proof, geotag_photos, irp_form_signed, consolidated_document, verification_status
+	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Initiated')`
 
 	_, err := config.DB.Exec(query,
-		nullString(formData["faculty"]), nullString(formData["sigNumber"]), nullString(formData["taskID"]),
+		facultyID, nullString(formData["faculty"]), nullString(formData["sigNumber"]), nullString(formData["taskID"]),
 		nullString(formData["specialLabsInvolved"]), nullString(formData["specialLab"]),
 		nullString(formData["numberOfFaculty"]), nullString(formData["claimedForFaculty"]), nullString(formData["claimedForDepartment"]),
 		nullString(formData["typeOfApproval"]), nullString(formData["isIrpVisitPartOfMou"]), nullString(formData["mouName"]),
 		nullString(formData["mouPointsDiscussed"]), nullString(formData["fromDate"]), nullString(formData["toDate"]),
 		nullString(formData["modeOfInteraction"]), nullString(formData["purposeOfVisit"]), nullString(formData["amountIncurred"]),
-		nullString(formData["numberOfIndustry"]), nullString(apexProofPath), nullString(irpFormSignedPath), nullString(consolidatedDocumentPath),
+		nullString(formData["numberOfIndustry"]), nullString(apexProofPath), nullString(geotagPhotosPath),
+		nullString(irpFormSignedPath), nullString(consolidatedDocumentPath),
 	)
 
 	if err != nil {
@@ -112,8 +114,8 @@ func FetchIrpVisit(c *gin.Context) {
 	          number_of_faculty, claimed_for_faculty, claimed_for_department, type_of_approval, 
 			  is_irp_visit_part_of_mou, mou_name, mou_points_discussed, from_date, to_date, 
 			  mode_of_interaction, purpose_of_visit, amount_incurred, number_of_industry, 
-			  apex_proof, irp_form_signed, consolidated_document, verification_status, created_at
-	          FROM faculty_irp_visit WHERE faculty = ? ORDER BY created_at DESC`
+			  apex_proof, geotag_photos, irp_form_signed, consolidated_document, verification_status, created_at
+	          FROM faculty_irp_visit WHERE faculty_id = ? ORDER BY created_at DESC`
 
 	rows, err := config.DB.Query(query, facultyID)
 	if err != nil {
@@ -126,20 +128,20 @@ func FetchIrpVisit(c *gin.Context) {
 	var results []map[string]interface{}
 	for rows.Next() {
 		var (
-			id                                                                       int
-			faculty, sigNumber, taskID, specialLabsInvolved, specialLab              sql.NullString
-			numberOfFaculty, claimedForFaculty, claimedForDepartment, typeOfApproval sql.NullString
-			isIrpVisitPartOfMou, mouName, mouPointsDiscussed, fromDate, toDate       sql.NullString
-			modeOfInteraction, purposeOfVisit, amountIncurred, numberOfIndustry      sql.NullString
-			apexProof, irpFormSigned, consolidatedDocument, verificationStatus       sql.NullString
-			createdAt                                                                []uint8
+			id                                                                               int
+			faculty, sigNumber, taskID, specialLabsInvolved, specialLab                      sql.NullString
+			numberOfFaculty, claimedForFaculty, claimedForDepartment, typeOfApproval         sql.NullString
+			isIrpVisitPartOfMou, mouName, mouPointsDiscussed, fromDate, toDate               sql.NullString
+			modeOfInteraction, purposeOfVisit, amountIncurred, numberOfIndustry              sql.NullString
+			apexProof, geotagPhotos, irpFormSigned, consolidatedDocument, verificationStatus sql.NullString
+			createdAt                                                                        []uint8
 		)
 
 		if err := rows.Scan(&id, &faculty, &sigNumber, &taskID, &specialLabsInvolved, &specialLab,
 			&numberOfFaculty, &claimedForFaculty, &claimedForDepartment, &typeOfApproval,
 			&isIrpVisitPartOfMou, &mouName, &mouPointsDiscussed, &fromDate, &toDate,
 			&modeOfInteraction, &purposeOfVisit, &amountIncurred, &numberOfIndustry,
-			&apexProof, &irpFormSigned, &consolidatedDocument, &verificationStatus, &createdAt); err != nil {
+			&apexProof, &geotagPhotos, &irpFormSigned, &consolidatedDocument, &verificationStatus, &createdAt); err != nil {
 			log.Println("Error scanning IRP Visit:", err)
 			continue
 		}
@@ -165,6 +167,7 @@ func FetchIrpVisit(c *gin.Context) {
 			"amount_incurred":          amountIncurred.String,
 			"number_of_industry":       numberOfIndustry.String,
 			"apex_proof":               apexProof.String,
+			"geotag_photos":            geotagPhotos.String,
 			"irp_form_signed":          irpFormSigned.String,
 			"consolidated_document":    consolidatedDocument.String,
 			"verification_status":      verificationStatus.String,

@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import useAuth from "../../../../store/UseAuth";
 import { ArrowLeft, Save, UploadCloud, FileText, X } from "lucide-react";
 import SpecialLabDropdown from "../../../../components/shared/SpecialLabDropdown";
 
@@ -8,6 +9,7 @@ const RequiredAst = () => <span className="text-red-500 ml-0.5">*</span>;
 
 export default function Faculty_Industry_ProjectsForm() {
   const navigate = useNavigate();
+  const { name } = useAuth();
   const [formData, setFormData] = useState({
     faculty: "",
     taskID: "",
@@ -52,6 +54,13 @@ export default function Faculty_Industry_ProjectsForm() {
 
   const [errors, setErrors] = useState({});
   const [dragActive, setDragActive] = useState(false);
+
+  // Auto-fill faculty name from logged-in user
+  useEffect(() => {
+    if (name) {
+      setFormData((prev) => ({ ...prev, faculty: name }));
+    }
+  }, [name]);
 
   // Options
   const yesNoOptions = ["Choose an option", "yes", "No"];
@@ -184,7 +193,8 @@ export default function Faculty_Industry_ProjectsForm() {
         }
       } catch (error) {
         console.error("Error submitting Industry Project:", error);
-        alert("Failed to submit project details. Please try again.");
+        const errorMessage = error.response?.data?.error || error.response?.data?.details || error.message || "Unknown error";
+        alert(`Failed to submit project details: ${errorMessage}`);
       }
     }
   };

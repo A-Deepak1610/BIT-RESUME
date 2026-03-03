@@ -96,9 +96,9 @@ func HandleTrainedByIndustryForm(c *gin.Context) {
 		nullString(formData["industryName"]), nullString(formData["domainArea"]), nullString(formData["typeOfIndustry"]),
 		nullString(formData["othersSpecify"]), nullString(formData["modeOfTraining"]), nullString(formData["durationInDays"]),
 		nullString(formData["startDate"]), nullString(formData["endDate"]), nullString(formData["industryWebsite"]),
-		nullString(formData["trainer1Name"]), nullString(formData["trainer1_designation"]), nullString(formData["trainer1Email"]),
+		nullString(formData["trainer1Name"]), nullString(formData["trainer1Designation"]), nullString(formData["trainer1Email"]),
 		nullString(formData["trainer1Phone"]), nullString(formData["trainer2Applicable"]), nullString(formData["trainer2Name"]),
-		nullString(formData["trainer2_designation"]), nullString(formData["trainer2Email"]), nullString(formData["trainer2Phone"]),
+		nullString(formData["trainer2Designation"]), nullString(formData["trainer2Email"]), nullString(formData["trainer2Phone"]),
 		nullString(formData["outcome"]), nullString(proofDocumentPath),
 	)
 

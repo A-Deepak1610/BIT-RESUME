@@ -77,6 +77,22 @@ func HandleIndustryProjectsForm(c *gin.Context) {
 		return s
 	}
 
+	// Helper function for nullable integers
+	nullInt := func(s string) interface{} {
+		if s == "" || s == "Choose an option" {
+			return nil
+		}
+		return s // MySQL will convert string to int
+	}
+
+	// Helper function for nullable dates
+	nullDate := func(s string) interface{} {
+		if s == "" {
+			return nil
+		}
+		return s
+	}
+
 	// Insert into database
 	query := `INSERT INTO faculty_industry_projects (
 		faculty, task_id, special_labs_involved, special_lab,
@@ -90,19 +106,19 @@ func HandleIndustryProjectsForm(c *gin.Context) {
 
 	_, err := config.DB.Exec(query,
 		nullString(formData["faculty"]), nullString(formData["taskID"]), nullString(formData["specialLabsInvolved"]),
-		nullString(formData["specialLab"]), nullString(formData["numberOfFaculty"]),
+		nullString(formData["specialLab"]), nullInt(formData["numberOfFaculty"]),
 		nullString(formData["faculty2"]), nullString(formData["faculty2SIG"]),
 		nullString(formData["faculty3"]), nullString(formData["faculty3SIG"]),
 		nullString(formData["faculty4"]), nullString(formData["faculty4SIG"]),
 		nullString(formData["faculty5"]), nullString(formData["faculty5SIG"]),
-		nullString(formData["numberOfStudents"]),
+		nullInt(formData["numberOfStudents"]),
 		nullString(formData["student1"]), nullString(formData["student2"]),
 		nullString(formData["student3"]), nullString(formData["student4"]),
 		nullString(formData["student5"]),
 		nullString(formData["industryName"]), nullString(formData["typeOfIndustry"]),
 		nullString(formData["othersSpecify"]), nullString(formData["industryProject"]),
-		nullString(formData["projectTitle"]), nullString(formData["durationMonths"]),
-		nullString(formData["startDate"]), nullString(formData["endDate"]),
+		nullString(formData["projectTitle"]), nullInt(formData["durationMonths"]),
+		nullDate(formData["startDate"]), nullDate(formData["endDate"]),
 		nullString(formData["outcome"]), nullString(proofPath),
 	)
 

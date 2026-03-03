@@ -1,14 +1,26 @@
 import React, { useState } from "react";
 import useAuth from "../../store/UseAuth";
 
+const inferWorkTypeFromText = (text) => {
+  const normalized = (text || "").toLowerCase();
+  if (!normalized) return "";
+  if (normalized.includes("drone")) return "Drone";
+  if (normalized.includes("industrial training") || normalized.includes("training")) {
+    return "Industrial Training Project";
+  }
+  if (normalized.includes("software")) return "Software Project";
+  return "";
+};
+
 const ConsultancyHod = () => {
-  const { user } = useAuth();
+  useAuth();
   
   // Mock data for consultancy works assigned to HOD's department by IQAC
   const [assignedWorks, setAssignedWorks] = useState([
     {
       id: 1,
       projectTitle: "Smart City IoT Infrastructure Audit",
+      workType: "Drone",
       clientOrganization: "City Municipal Corporation",
       workDescription: "Comprehensive audit and assessment of existing IoT infrastructure for smart city initiatives. This includes evaluation of current systems, security analysis, and recommendations for improvements.",
       expectedCompletionDate: "2026-06-15",
@@ -25,6 +37,7 @@ const ConsultancyHod = () => {
     {
       id: 2,
       projectTitle: "Digital Transformation Strategy",
+      workType: "Software Project",
       clientOrganization: "Regional Development Authority",
       workDescription: "Development of comprehensive digital transformation roadmap for government services modernization including process optimization and technology integration.",
       expectedCompletionDate: "2026-08-30",
@@ -37,6 +50,7 @@ const ConsultancyHod = () => {
       assignedFaculty: "Prof. R. Gupta (IoT & Networks)",
       hodRemarks: "Prof. Gupta's background in system analysis makes him suitable for this strategic project.",
       targetCompletionDate: "2026-08-15",
+      facultyAssignedAt: "2026-02-16",
       facultyResponse: {
         response: "accepted",
         responseDate: "2026-02-17",
@@ -46,9 +60,9 @@ const ConsultancyHod = () => {
   ]);
 
   const [showAssignForm, setShowAssignForm] = useState(false);
-  const [selectedWork, setSelectedWork] = useState(null);
   const [facultyAssignment, setFacultyAssignment] = useState({
     selectedWorkId: "",
+    workType: "",
     faculty: "",
     targetDate: "",
     remarks: ""
@@ -65,9 +79,12 @@ const ConsultancyHod = () => {
   ];
 
   const handleAssignFaculty = (work) => {
-    setSelectedWork(work);
     setFacultyAssignment({
       selectedWorkId: work.id.toString(),
+      workType:
+        work.workType ||
+        inferWorkTypeFromText(work.iqacRemarks) ||
+        inferWorkTypeFromText(work.workDescription),
       faculty: "",
       targetDate: "",
       remarks: ""
@@ -92,6 +109,7 @@ const ConsultancyHod = () => {
         work.id.toString() === facultyAssignment.selectedWorkId 
           ? {
               ...work,
+              workType: facultyAssignment.workType,
               assignedFaculty: facultyAssignment.faculty,
               hodRemarks: facultyAssignment.remarks,
               targetCompletionDate: facultyAssignment.targetDate,
@@ -103,9 +121,9 @@ const ConsultancyHod = () => {
 
     // Reset form and close
     setShowAssignForm(false);
-    setSelectedWork(null);
     setFacultyAssignment({
       selectedWorkId: "",
+      workType: "",
       faculty: "",
       targetDate: "",
       remarks: ""
@@ -114,9 +132,9 @@ const ConsultancyHod = () => {
 
   const closeForm = () => {
     setShowAssignForm(false);
-    setSelectedWork(null);
     setFacultyAssignment({
       selectedWorkId: "",
+      workType: "",
       faculty: "",
       targetDate: "",
       remarks: ""
@@ -169,7 +187,10 @@ const ConsultancyHod = () => {
                   <div className="grid grid-cols-4 gap-4">
                     {/* Principal Submission */}
                     <div className="bg-gray-50 rounded-lg p-4 space-y-3 text-sm">
-                      <h5 className="font-semibold text-gray-700 mb-3 text-base">Principal Submission</h5>
+                      <div className="flex justify-between items-center mb-3">
+                        <h5 className="font-semibold text-gray-700 text-base">Principal Submission</h5>
+                        <span className="text-xs text-gray-500">{work.submittedAt}</span>
+                      </div>
                       <div>
                         <span className="font-medium text-gray-600">Client Organization:</span>
                         <p className="text-gray-800 mt-1">{work.clientOrganization}</p>
@@ -190,10 +211,23 @@ const ConsultancyHod = () => {
 
                     {/* IQAC Assignment */}
                     <div className="bg-gray-50 rounded-lg p-4 space-y-3 text-sm">
-                      <h5 className="font-semibold text-gray-700 mb-3 text-base">IQAC Assignment</h5>
+                      <div className="flex justify-between items-center mb-3">
+                        <h5 className="font-semibold text-gray-700 text-base">IQAC Assignment</h5>
+                        <span className="text-xs text-gray-500">{work.assignedAt}</span>
+                      </div>
                       <div>
                         <span className="font-medium text-gray-600">Assigned Department:</span>
                         <p className="text-gray-800 font-semibold mt-1">{work.assignedDepartment}</p>
+                      </div>
+
+                      <div>
+                        <span className="font-medium text-gray-600">Consultancy Work:</span>
+                        <p className="text-gray-800 mt-1">
+                          {work.workType ||
+                            inferWorkTypeFromText(work.iqacRemarks) ||
+                            inferWorkTypeFromText(work.workDescription) ||
+                            "-"}
+                        </p>
                       </div>
                       
                       <div>
@@ -204,7 +238,10 @@ const ConsultancyHod = () => {
 
                     {/* HOD Assignment */}
                     <div className="bg-blue-50 rounded-lg p-4 space-y-3 text-sm">
-                      <h5 className="font-semibold text-gray-700 mb-3 text-base">HOD Assignment</h5>
+                      <div className="flex justify-between items-center mb-3">
+                        <h5 className="font-semibold text-gray-700 text-base">HOD Assignment</h5>
+                        <span className="text-xs text-gray-500">{work.facultyAssignedAt || ''}</span>
+                      </div>
                       <div>
                         <span className="font-medium text-gray-600">Assigned Faculty:</span>
                         <p className="text-gray-800 font-semibold mt-1">{work.assignedFaculty}</p>
@@ -229,7 +266,10 @@ const ConsultancyHod = () => {
                         ? 'bg-green-50' 
                         : 'bg-red-50'
                     }`}>
-                      <h5 className="font-semibold text-gray-700 mb-3 text-base">Faculty Response</h5>
+                      <div className="flex justify-between items-center mb-3">
+                        <h5 className="font-semibold text-gray-700 text-base">Faculty Response</h5>
+                        <span className="text-xs text-gray-500">{work.facultyResponse.responseDate}</span>
+                      </div>
                       <div>
                         <span className="font-medium text-gray-600">Response:</span>
                         <p className={`font-semibold mt-1 ${
@@ -276,7 +316,10 @@ const ConsultancyHod = () => {
                   <div className="grid grid-cols-3 gap-6">
                     {/* Principal's Submission */}
                     <div className="bg-gray-50 rounded-lg p-4 space-y-3 text-sm">
-                      <h5 className="font-semibold text-gray-700 mb-3 text-base">Principal Submission</h5>
+                      <div className="flex justify-between items-center mb-3">
+                        <h5 className="font-semibold text-gray-700 text-base">Principal Submission</h5>
+                        <span className="text-xs text-gray-500">{work.submittedAt}</span>
+                      </div>
                       <div>
                         <span className="font-medium text-gray-600">Client Organization:</span>
                         <p className="text-gray-800 mt-1">{work.clientOrganization}</p>
@@ -297,10 +340,23 @@ const ConsultancyHod = () => {
 
                     {/* IQAC Assignment */}
                     <div className="bg-gray-50 rounded-lg p-4 space-y-3 text-sm">
-                      <h5 className="font-semibold text-gray-700 mb-3 text-base">IQAC Assignment</h5>
+                      <div className="flex justify-between items-center mb-3">
+                        <h5 className="font-semibold text-gray-700 text-base">IQAC Assignment</h5>
+                        <span className="text-xs text-gray-500">{work.assignedAt}</span>
+                      </div>
                       <div>
                         <span className="font-medium text-gray-600">Assigned Department:</span>
                         <p className="text-gray-800 font-semibold mt-1">{work.assignedDepartment}</p>
+                      </div>
+
+                      <div>
+                        <span className="font-medium text-gray-600">Consultancy Work:</span>
+                        <p className="text-gray-800 mt-1">
+                          {work.workType ||
+                            inferWorkTypeFromText(work.iqacRemarks) ||
+                            inferWorkTypeFromText(work.workDescription) ||
+                            "-"}
+                        </p>
                       </div>
                       
                       <div>
@@ -311,7 +367,10 @@ const ConsultancyHod = () => {
 
                     {/* HOD Assignment */}
                     <div className="bg-blue-50 rounded-lg p-4 space-y-3 text-sm">
-                      <h5 className="font-semibold text-gray-700 mb-3 text-base">HOD Assignment</h5>
+                      <div className="flex justify-between items-center mb-3">
+                        <h5 className="font-semibold text-gray-700 text-base">HOD Assignment</h5>
+                        <span className="text-xs text-gray-500">{work.facultyAssignedAt || ''}</span>
+                      </div>
                       <div>
                         <span className="font-medium text-gray-600">Assigned Faculty:</span>
                         <p className="text-gray-800 font-semibold mt-1">{work.assignedFaculty}</p>
@@ -342,7 +401,10 @@ const ConsultancyHod = () => {
                   <div className="grid grid-cols-2 gap-6">
                     {/* Principal's Submission */}
                     <div className="bg-gray-50 rounded-lg p-4 space-y-3 text-sm">
-                      <h5 className="font-semibold text-gray-700 mb-3 text-base">Principal Submission</h5>
+                      <div className="flex justify-between items-center mb-3">
+                        <h5 className="font-semibold text-gray-700 text-base">Principal Submission</h5>
+                        <span className="text-xs text-gray-500">{work.submittedAt}</span>
+                      </div>
                       <div>
                         <span className="font-medium text-gray-600">Client Organization:</span>
                         <p className="text-gray-800 mt-1">{work.clientOrganization}</p>
@@ -363,10 +425,23 @@ const ConsultancyHod = () => {
 
                     {/* IQAC Assignment */}
                     <div className="bg-gray-50 rounded-lg p-4 space-y-3 text-sm">
-                      <h5 className="font-semibold text-gray-700 mb-3 text-base">IQAC Assignment</h5>
+                      <div className="flex justify-between items-center mb-3">
+                        <h5 className="font-semibold text-gray-700 text-base">IQAC Assignment</h5>
+                        <span className="text-xs text-gray-500">{work.assignedAt}</span>
+                      </div>
                       <div>
                         <span className="font-medium text-gray-600">Assigned Department:</span>
                         <p className="text-gray-800 font-semibold mt-1">{work.assignedDepartment}</p>
+                      </div>
+
+                      <div>
+                        <span className="font-medium text-gray-600">Consultancy Work:</span>
+                        <p className="text-gray-800 mt-1">
+                          {work.workType ||
+                            inferWorkTypeFromText(work.iqacRemarks) ||
+                            inferWorkTypeFromText(work.workDescription) ||
+                            "-"}
+                        </p>
                       </div>
                       
                       <div>
@@ -427,8 +502,8 @@ const ConsultancyHod = () => {
                     Select Consultancy Work
                   </label>
                   <select
-                    name="selectedWorkId"
-                    value={facultyAssignment.selectedWorkId}
+                    name="workType"
+                    value={facultyAssignment.workType}
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:border-opacity-50 outline-none"
                     style={{ '--tw-ring-color': '#9b9aff', '--tw-ring-opacity': '0.5' }}
@@ -436,7 +511,10 @@ const ConsultancyHod = () => {
                     onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
                     required
                   >
-                    <option value={selectedWork?.id || ""}>{selectedWork?.projectTitle}</option>
+                    <option value="">Select Work Type</option>
+                    <option value="Software Project">Software Project</option>
+                    <option value="Industrial Training Project">Industrial Training Project</option>
+                    <option value="Drone">Drone</option>
                   </select>
                 </div>
 

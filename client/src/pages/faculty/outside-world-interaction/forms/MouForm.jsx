@@ -1,6 +1,7 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import useAuth from "../../../../store/UseAuth";
 import {
   ArrowLeft,
   Save,
@@ -296,7 +297,8 @@ const Step1_FacultyInfo = ({ formData, handleChange, errors }) => (
         name="faculty"
         value={formData.faculty}
         onChange={handleChange}
-        placeholder="Enter faculty name"
+        placeholder="Auto-filled from profile"
+        disabled
       />
       <InputField
         label="SIG Number"
@@ -847,6 +849,7 @@ const STEPS = [
 
 export default function MoUForm() {
   const navigate = useNavigate();
+  const { name, rollno } = useAuth();
   const [currentStep, setCurrentStep] = useState(0);
   const [errors, setErrors] = useState({});
   const [dragActiveStates, setDragActiveStates] = useState({});
@@ -894,6 +897,13 @@ export default function MoUForm() {
     owiVerification: "Initiated",
   });
 
+  // Auto-fill faculty name from logged-in user
+  useEffect(() => {
+    if (name) {
+      setFormData((prev) => ({ ...prev, faculty: name }));
+    }
+  }, [name]);
+
   const handleChange = useCallback(
     (e) => {
       const { name, value } = e.target;
@@ -906,7 +916,7 @@ export default function MoUForm() {
   const handleFileSelect = useCallback(
     (name, file) => {
       setFormData((prev) => ({ ...prev, [name]: file }));
-      if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
+      if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));  
     },
     [errors],
   );
@@ -1010,7 +1020,8 @@ export default function MoUForm() {
         }
       } catch (error) {
         console.error("Error submitting MoU:", error);
-        alert("Failed to submit MoU. Please try again.");
+        const errorMessage = error.response?.data?.error || error.response?.data?.details || error.message || "Unknown error";
+        alert(`Failed to submit MoU: ${errorMessage}`);
       }
     }
   };

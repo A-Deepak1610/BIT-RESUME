@@ -299,7 +299,10 @@ const ConsultancyPrincipal = () => {
                     <div className="grid grid-cols-4 gap-4">
                       {/* Principal Submission */}
                       <div className="bg-gray-50 rounded-lg p-4 space-y-3 text-sm">
-                        <h5 className="font-semibold text-gray-700 mb-3 text-base">Principal Submission</h5>
+                        <div className="flex justify-between items-center mb-3">
+                          <h5 className="font-semibold text-gray-700 text-base">Principal Submission</h5>
+                          <span className="text-xs text-gray-500">{work.submittedAt}</span>
+                        </div>
                         <div>
                           <span className="font-medium text-gray-600">Client Organization:</span>
                           <p className="text-gray-800 mt-1">{work.clientOrganization}</p>
@@ -320,7 +323,10 @@ const ConsultancyPrincipal = () => {
 
                       {/* IQAC Assignment */}
                       <div className="bg-gray-50 rounded-lg p-4 space-y-3 text-sm">
-                        <h5 className="font-semibold text-gray-700 mb-3 text-base">IQAC Assignment</h5>
+                        <div className="flex justify-between items-center mb-3">
+                          <h5 className="font-semibold text-gray-700 text-base">IQAC Assignment</h5>
+                          <span className="text-xs text-gray-500">{work.iqacAssignment?.assignedAt || ''}</span>
+                        </div>
                         <div>
                           <span className="font-medium text-gray-600">Assigned Department:</span>
                           <p className="text-gray-800 font-semibold mt-1">{work.iqacAssignment.assignedDepartment}</p>
@@ -334,7 +340,10 @@ const ConsultancyPrincipal = () => {
 
                       {/* HOD Assignment */}
                       <div className="bg-blue-50 rounded-lg p-4 space-y-3 text-sm">
-                        <h5 className="font-semibold text-gray-700 mb-3 text-base">HOD Assignment</h5>
+                        <div className="flex justify-between items-center mb-3">
+                          <h5 className="font-semibold text-gray-700 text-base">HOD Assignment</h5>
+                          <span className="text-xs text-gray-500">{work.hodAssignment?.assignedAt || ''}</span>
+                        </div>
                         <div>
                           <span className="font-medium text-gray-600">Assigned Faculty:</span>
                           <p className="text-gray-800 font-semibold mt-1">{work.hodAssignment.assignedFaculty}</p>
@@ -359,7 +368,10 @@ const ConsultancyPrincipal = () => {
                           ? 'bg-green-50' 
                           : 'bg-red-50'
                       }`}>
-                        <h5 className="font-semibold text-gray-700 mb-3 text-base">Faculty Response</h5>
+                        <div className="flex justify-between items-center mb-3">
+                          <h5 className="font-semibold text-gray-700 text-base">Faculty Response</h5>
+                          <span className="text-xs text-gray-500">{work.facultyResponse.responseDate}</span>
+                        </div>
                         <div>
                           <span className="font-medium text-gray-600">Response:</span>
                           <p className={`font-semibold mt-1 ${
@@ -406,7 +418,10 @@ const ConsultancyPrincipal = () => {
                     <div className="grid grid-cols-3 gap-4">
                       {/* Left - Work Details */}
                       <div className="bg-gray-50 rounded-lg p-4 space-y-3 text-sm">
-                        <h5 className="font-semibold text-gray-700 mb-3 text-base">Principal Submission</h5>
+                        <div className="flex justify-between items-center mb-3">
+                          <h5 className="font-semibold text-gray-700 text-base">Principal Submission</h5>
+                          <span className="text-xs text-gray-500">{work.submittedAt}</span>
+                        </div>
                         <div>
                           <span className="font-medium text-gray-600">Client Organization:</span>
                           <p className="text-gray-800 mt-1">{work.clientOrganization}</p>
@@ -434,7 +449,10 @@ const ConsultancyPrincipal = () => {
 
                       {/* Middle - IQAC Assignment */}
                       <div className="bg-gray-50 rounded-lg p-4 space-y-3 text-sm">
-                        <h5 className="font-semibold text-gray-700 mb-3 text-base">IQAC Assignment</h5>
+                        <div className="flex justify-between items-center mb-3">
+                          <h5 className="font-semibold text-gray-700 text-base">IQAC Assignment</h5>
+                          <span className="text-xs text-gray-500">{work.iqacAssignment?.assignedAt || ''}</span>
+                        </div>
                         <div>
                           <span className="font-medium text-gray-600">Assigned Department:</span>
                           <p className="text-gray-800 font-semibold mt-1">{work.iqacAssignment.assignedDepartment}</p>
@@ -571,7 +589,10 @@ const ConsultancyPrincipal = () => {
                     <div className="grid grid-cols-2 gap-6">
                       {/* Left Side - Work Description */}
                       <div className="bg-gray-50 rounded-lg p-4 space-y-3 text-sm">
-                        <h5 className="font-semibold text-gray-700 mb-3 text-base">Principal Submission</h5>
+                        <div className="flex justify-between items-center mb-3">
+                          <h5 className="font-semibold text-gray-700 text-base">Principal Submission</h5>
+                          <span className="text-xs text-gray-500">{work.submittedAt}</span>
+                        </div>
                         <div>
                           <span className="font-medium text-gray-600">Client Organization:</span>
                           <p className="text-gray-800 mt-1">{work.clientOrganization}</p>

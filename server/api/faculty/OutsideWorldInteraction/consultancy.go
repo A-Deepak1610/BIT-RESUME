@@ -127,7 +127,7 @@ func HandleConsultancyForm(c *gin.Context) {
 
 	// Insert into database
 	query := `INSERT INTO faculty_consultancy (
-		faculty, task_id, special_labs_involved, special_lab,
+		faculty_id, faculty, task_id, special_labs_involved, special_lab,
 		faculty2_involved, faculty2, faculty2_sig,
 		faculty3_involved, faculty3, faculty3_sig,
 		faculty4_involved, faculty4, faculty4_sig,
@@ -149,10 +149,10 @@ func HandleConsultancyForm(c *gin.Context) {
 		audit_documents, work_logs, invoice_receipt, transaction_proof,
 		geotag_photos, consultancy_report, consolidated_document, visiting_card,
 		partnership_deed, noc_premises, non_disclosure_agreement, verification_status
-	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Initiated')`
+	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Initiated')`
 
 	_, err := config.DB.Exec(query,
-		nullString(formData["faculty"]), nullString(formData["taskID"]), nullString(formData["specialLabsInvolved"]),
+		nullString(facultyID), nullString(formData["faculty"]), nullString(formData["taskID"]), nullString(formData["specialLabsInvolved"]),
 		nullString(formData["specialLab"]), nullString(formData["faculty2Involved"]), nullString(formData["faculty2"]),
 		nullString(formData["faculty2SIG"]), nullString(formData["faculty3Involved"]), nullString(formData["faculty3"]),
 		nullString(formData["faculty3SIG"]), nullString(formData["faculty4Involved"]), nullString(formData["faculty4"]),
@@ -202,7 +202,7 @@ func FetchConsultancy(c *gin.Context) {
 		return
 	}
 
-	query := `SELECT id, faculty, task_id, special_labs_involved, special_lab,
+	query := `SELECT id, faculty_id, faculty, task_id, special_labs_involved, special_lab,
 		faculty2_involved, faculty2, faculty2_sig,
 		faculty3_involved, faculty3, faculty3_sig,
 		faculty4_involved, faculty4, faculty4_sig,
@@ -224,7 +224,7 @@ func FetchConsultancy(c *gin.Context) {
 		audit_documents, work_logs, invoice_receipt, transaction_proof,
 		geotag_photos, consultancy_report, consolidated_document, visiting_card,
 		partnership_deed, noc_premises, non_disclosure_agreement, verification_status, created_at
-	          FROM faculty_consultancy WHERE faculty = ? ORDER BY created_at DESC`
+	          FROM faculty_consultancy WHERE faculty_id = ? ORDER BY created_at DESC`
 
 	rows, err := config.DB.Query(query, facultyID)
 	if err != nil {
@@ -238,7 +238,7 @@ func FetchConsultancy(c *gin.Context) {
 	for rows.Next() {
 		var (
 			id                                                                      int
-			faculty, taskID, specialLabsInvolved, specialLab                        sql.NullString
+			facultyIDRes, faculty, taskID, specialLabsInvolved, specialLab          sql.NullString
 			faculty2Involved, faculty2, faculty2SIG                                 sql.NullString
 			faculty3Involved, faculty3, faculty3SIG                                 sql.NullString
 			faculty4Involved, faculty4, faculty4SIG                                 sql.NullString
@@ -265,7 +265,7 @@ func FetchConsultancy(c *gin.Context) {
 			createdAt                                                               []uint8
 		)
 
-		if err := rows.Scan(&id, &faculty, &taskID, &specialLabsInvolved, &specialLab,
+		if err := rows.Scan(&id, &facultyIDRes, &faculty, &taskID, &specialLabsInvolved, &specialLab,
 			&faculty2Involved, &faculty2, &faculty2SIG,
 			&faculty3Involved, &faculty3, &faculty3SIG,
 			&faculty4Involved, &faculty4, &faculty4SIG,
@@ -293,6 +293,7 @@ func FetchConsultancy(c *gin.Context) {
 
 		results = append(results, map[string]interface{}{
 			"id":                               id,
+			"faculty_id":                       facultyIDRes.String,
 			"faculty":                          faculty.String,
 			"task_id":                          taskID.String,
 			"special_labs_involved":            specialLabsInvolved.String,
