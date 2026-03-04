@@ -10,7 +10,7 @@ import {
   UserCheck,
   Loader2,
 } from "lucide-react";
-import SpecialLabDropdown from "../components/SpecialLabDropdown";
+import SpecialLabDropdown from "../../../../components/shared/SpecialLabDropdown";
 
 const API_URL = import.meta.env.VITE_API_URL;
 const RequiredAst = () => <span className="text-red-500 ml-0.5">*</span>;
