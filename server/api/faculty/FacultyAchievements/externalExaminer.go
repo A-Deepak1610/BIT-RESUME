@@ -23,9 +23,13 @@ func HandleExternalExaminerForm(c *gin.Context) {
 	// Parse form fields
 	taskID := c.PostForm("taskID")
 	specialLabsInvolved := c.PostForm("specialLabsInvolved")
+	specialLab := c.PostForm("specialLab")
 	collegeName := c.PostForm("collegeName")
 	instituteAddress := c.PostForm("instituteAddress")
 	purposeOfVisit := c.PostForm("purposeOfVisit")
+	nameOfExamination := c.PostForm("nameOfExamination")
+	departmentOfQP := c.PostForm("departmentOfQP")
+	subjectOfQP := c.PostForm("subjectOfQP")
 	numberOfDays := c.PostForm("numberOfDays")
 	fromDate := c.PostForm("fromDate")
 	toDate := c.PostForm("toDate")
@@ -57,15 +61,16 @@ func HandleExternalExaminerForm(c *gin.Context) {
 
 	// Insert into database
 	query := `INSERT INTO faculty_external_examiner (
-		faculty_id, task_id, special_labs_involved, college_name, 
-		institute_address, purpose_of_visit, number_of_days, 
-		from_date, to_date, document_proof
-	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+		faculty_id, task_id, special_labs_involved, special_lab, college_name, 
+		institute_address, purpose_of_visit, name_of_examination, department_of_qp,
+		subject_of_qp, number_of_days, from_date, to_date, document_proof
+	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
 	_, err := config.DB.Exec(query,
-		facultyID, nullString(taskID), nullString(specialLabsInvolved), 
-		nullString(collegeName), nullString(instituteAddress), 
-		nullString(purposeOfVisit), nullString(numberOfDays),
+		facultyID, nullString(taskID), nullString(specialLabsInvolved),
+		nullString(specialLab), nullString(collegeName), nullString(instituteAddress),
+		nullString(purposeOfVisit), nullString(nameOfExamination), nullString(departmentOfQP),
+		nullString(subjectOfQP), nullString(numberOfDays),
 		nullString(fromDate), nullString(toDate), nullString(documentPath),
 	)
 
@@ -85,9 +90,10 @@ func FetchExternalExaminer(c *gin.Context) {
 		return
 	}
 
-	query := `SELECT id, task_id, special_labs_involved, college_name, 
-	          institute_address, purpose_of_visit, number_of_days, 
-	          from_date, to_date, document_proof, status, remarks, created_at
+	query := `SELECT id, task_id, special_labs_involved, special_lab, college_name, 
+	          institute_address, purpose_of_visit, name_of_examination, department_of_qp,
+	          subject_of_qp, number_of_days, from_date, to_date, document_proof, 
+	          status, remarks, created_at
 	          FROM faculty_external_examiner WHERE faculty_id = ? ORDER BY created_at DESC`
 
 	rows, err := config.DB.Query(query, facultyID)
@@ -102,36 +108,42 @@ func FetchExternalExaminer(c *gin.Context) {
 	for rows.Next() {
 		var (
 			id                                                                     int
-			taskID, specialLabs, collegeName, address, purpose, documentProof     sql.NullString
-			status, remarks                                                        sql.NullString
+			taskID, specialLabsInvolved, specialLab, collegeName, address, purpose sql.NullString
+			nameOfExamination, departmentOfQP, subjectOfQP                         sql.NullString
+			documentProof, status, remarks                                         sql.NullString
 			fromDate, toDate                                                       sql.NullString
 			numberOfDays                                                           sql.NullInt64
 			createdAt                                                              []uint8
 		)
 
 		if err := rows.Scan(
-			&id, &taskID, &specialLabs, &collegeName,
-			&address, &purpose, &numberOfDays,
-			&fromDate, &toDate, &documentProof, &status, &remarks, &createdAt,
+			&id, &taskID, &specialLabsInvolved, &specialLab, &collegeName,
+			&address, &purpose, &nameOfExamination, &departmentOfQP,
+			&subjectOfQP, &numberOfDays, &fromDate, &toDate, &documentProof,
+			&status, &remarks, &createdAt,
 		); err != nil {
 			log.Println("Error scanning external examiner:", err)
 			continue
 		}
 
 		records = append(records, map[string]interface{}{
-			"id":                     id,
-			"task_id":                taskID.String,
-			"special_labs_involved":  specialLabs.String,
-			"college_name":           collegeName.String,
-			"institute_address":      address.String,
-			"purpose_of_visit":       purpose.String,
-			"number_of_days":         numberOfDays.Int64,
-			"from_date":              fromDate.String,
-			"to_date":                toDate.String,
-			"document_proof":         documentProof.String,
-			"status":                 status.String,
-			"remarks":                remarks.String,
-			"created_at":             string(createdAt),
+			"id":                    id,
+			"task_id":               taskID.String,
+			"special_labs_involved": specialLabsInvolved.String,
+			"special_lab":           specialLab.String,
+			"college_name":          collegeName.String,
+			"institute_address":     address.String,
+			"purpose_of_visit":      purpose.String,
+			"name_of_examination":   nameOfExamination.String,
+			"department_of_qp":      departmentOfQP.String,
+			"subject_of_qp":         subjectOfQP.String,
+			"number_of_days":        numberOfDays.Int64,
+			"from_date":             fromDate.String,
+			"to_date":               toDate.String,
+			"document_proof":        documentProof.String,
+			"status":                status.String,
+			"remarks":               remarks.String,
+			"created_at":            string(createdAt),
 		})
 	}
 
