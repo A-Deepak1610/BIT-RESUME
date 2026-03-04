@@ -260,7 +260,7 @@ export default function GuestLectureForm() {
         data.append("photos", formData.photos);
 
         const response = await axios.post(
-          `${API_URL}api/faculty/guestLecturePost`,
+          `${API_URL}/api/faculty/guestLecturePost`,
           data,
           {
             withCredentials: true,

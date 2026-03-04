@@ -121,13 +121,16 @@ const FacultyAchievements = () => {
   };
   const fetchNewsletters = async () => {
     try {
-      const response = await fetch(`${API_URL}api/faculty/newsLetterFormsGet`, {
-        method: "GET",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `${API_URL}/api/faculty/newsLetterFormsGet`,
+        {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
         },
-      });
+      );
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
@@ -141,7 +144,7 @@ const FacultyAchievements = () => {
 
   const fetchEContent = async () => {
     try {
-      const response = await fetch(`${API_URL}api/faculty/eContentGet`, {
+      const response = await fetch(`${API_URL}/api/faculty/eContentGet`, {
         method: "GET",
         credentials: "include",
         headers: {
@@ -161,7 +164,7 @@ const FacultyAchievements = () => {
 
   const fetchEventsAttended = async () => {
     try {
-      const response = await fetch(`${API_URL}api/faculty/eventsAttendedGet`, {
+      const response = await fetch(`${API_URL}/api/faculty/eventsAttendedGet`, {
         method: "GET",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -178,11 +181,14 @@ const FacultyAchievements = () => {
 
   const fetchEventsOrganized = async () => {
     try {
-      const response = await fetch(`${API_URL}api/faculty/eventsOrganizedGet`, {
-        method: "GET",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-      });
+      const response = await fetch(
+        `${API_URL}/api/faculty/eventsOrganizedGet`,
+        {
+          method: "GET",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+        },
+      );
       if (!response.ok)
         throw new Error(`HTTP error! Status: ${response.status}`);
       const data = await response.json();
@@ -196,7 +202,7 @@ const FacultyAchievements = () => {
   const fetchExternalExaminer = async () => {
     try {
       const response = await fetch(
-        `${API_URL}api/faculty/externalExaminerGet`,
+        `${API_URL}/api/faculty/externalExaminerGet`,
         {
           method: "GET",
           credentials: "include",
@@ -215,11 +221,14 @@ const FacultyAchievements = () => {
 
   const fetchJournalReviewer = async () => {
     try {
-      const response = await fetch(`${API_URL}api/faculty/journalReviewerGet`, {
-        method: "GET",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-      });
+      const response = await fetch(
+        `${API_URL}/api/faculty/journalReviewerGet`,
+        {
+          method: "GET",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+        },
+      );
       if (!response.ok)
         throw new Error(`HTTP error! Status: ${response.status}`);
       const data = await response.json();
@@ -232,7 +241,7 @@ const FacultyAchievements = () => {
 
   const fetchGuestLectures = async () => {
     try {
-      const response = await fetch(`${API_URL}api/faculty/guestLectureGet`, {
+      const response = await fetch(`${API_URL}/api/faculty/guestLectureGet`, {
         method: "GET",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -250,7 +259,7 @@ const FacultyAchievements = () => {
   const fetchInternationalVisits = async () => {
     try {
       const response = await fetch(
-        `${API_URL}api/faculty/internationalVisitGet`,
+        `${API_URL}/api/faculty/internationalVisitGet`,
         {
           method: "GET",
           credentials: "include",
@@ -269,7 +278,7 @@ const FacultyAchievements = () => {
 
   const fetchAwards = async () => {
     try {
-      const response = await fetch(`${API_URL}api/faculty/awardGet`, {
+      const response = await fetch(`${API_URL}/api/faculty/awardGet`, {
         method: "GET",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -286,7 +295,7 @@ const FacultyAchievements = () => {
 
   const fetchOnlineCourses = async () => {
     try {
-      const response = await fetch(`${API_URL}api/faculty/onlineCourseGet`, {
+      const response = await fetch(`${API_URL}/api/faculty/onlineCourseGet`, {
         method: "GET",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -304,7 +313,7 @@ const FacultyAchievements = () => {
   const fetchPaperPresentations = async () => {
     try {
       const response = await fetch(
-        `${API_URL}api/faculty/paperPresentationGet`,
+        `${API_URL}/api/faculty/paperPresentationGet`,
         {
           method: "GET",
           credentials: "include",
@@ -323,7 +332,7 @@ const FacultyAchievements = () => {
 
   const fetchResourcePerson = async () => {
     try {
-      const response = await fetch(`${API_URL}api/faculty/resourcePersonGet`, {
+      const response = await fetch(`${API_URL}/api/faculty/resourcePersonGet`, {
         method: "GET",
         credentials: "include",
         headers: { "Content-Type": "application/json" },

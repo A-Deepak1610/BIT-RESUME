@@ -191,7 +191,7 @@ export default function ExternalExaminerForm() {
         data.append("toDate", formData.toDate);
 
         const response = await axios.post(
-          `${API_URL}api/faculty/externalExaminerPost`,
+          `${API_URL}/api/faculty/externalExaminerPost`,
           data,
           {
             withCredentials: true,

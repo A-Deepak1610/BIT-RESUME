@@ -168,7 +168,7 @@ export default function EContentForm() {
         data.append("documentProof", formData.documentProof);
 
         const response = await axios.post(
-          `${API_URL}api/faculty/eContentFormPost`,
+          `${API_URL}/api/faculty/eContentFormPost`,
           data,
           {
             withCredentials: true,
@@ -185,8 +185,8 @@ export default function EContentForm() {
       } catch (error) {
         console.error("Error submitting form:", error);
         const errorMessage =
-          error.response?.data?.error ||   
-          error.response?.data?.details ||  
+          error.response?.data?.error ||
+          error.response?.data?.details ||
           error.message ||
           "Unknown error";
         alert(`Failed to submit form: ${errorMessage}`);

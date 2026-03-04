@@ -9,7 +9,6 @@ import (
 	"os"
 	"path/filepath"
 	"time"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -43,6 +42,7 @@ func HandleAwardForm(c *gin.Context) {
 	if _, err := os.Stat(uploadDir); os.IsNotExist(err) {
 		os.MkdirAll(uploadDir, os.ModePerm)
 	}
+
 
 	// Photo Proofs
 	photoFile, _ := c.FormFile("photoProofs")

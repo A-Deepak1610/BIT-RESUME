@@ -166,7 +166,7 @@ export default function InternationalVisitForm() {
         data.append("documentProof", formData.documentProof);
 
         const response = await axios.post(
-          `${API_URL}api/faculty/internationalVisitPost`,
+          `${API_URL}/api/faculty/internationalVisitPost`,
           data,
           {
             withCredentials: true,

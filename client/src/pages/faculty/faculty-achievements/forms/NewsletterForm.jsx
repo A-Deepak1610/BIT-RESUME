@@ -180,7 +180,7 @@ export default function NewsletterForm() {
 
       try {
         const response = await axios.post(
-          `${API_URL}api/faculty/newsLetterFormsPost`,
+          `${API_URL}/api/faculty/newsLetterFormsPost`,
           submitData,
           {
             headers: {
@@ -196,7 +196,11 @@ export default function NewsletterForm() {
         }
       } catch (error) {
         console.error("Error submitting form", error);
-        const errorMessage = error.response?.data?.error || error.response?.data?.details || error.message || "Unknown error";
+        const errorMessage =
+          error.response?.data?.error ||
+          error.response?.data?.details ||
+          error.message ||
+          "Unknown error";
         alert(`Failed to submit form: ${errorMessage}`);
       } finally {
         setIsSubmitting(false);

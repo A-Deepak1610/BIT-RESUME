@@ -1,13 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import {
-  ArrowLeft,
-  Save,
-  UploadCloud,
-  FileText,
-  X,
-} from "lucide-react";
+import { ArrowLeft, Save, UploadCloud, FileText, X } from "lucide-react";
 import SpecialLabDropdown from "../../../../components/shared/SpecialLabDropdown";
 
 const RequiredAst = () => <span className="text-red-500 ml-0.5">*</span>;
@@ -218,18 +212,10 @@ const EVENT_LEVEL_OPTIONS = [
 ];
 
 // Organization Sector Options
-const ORGANIZATION_SECTOR_OPTIONS = [
-  "Select Sector",
-  "Private",
-  "Government",
-];
+const ORGANIZATION_SECTOR_OPTIONS = ["Select Sector", "Private", "Government"];
 
 // Event Mode Options
-const EVENT_MODE_OPTIONS = [
-  "Select Mode",
-  "Online",
-  "Offline",
-];
+const EVENT_MODE_OPTIONS = ["Select Mode", "Online", "Offline"];
 
 // Event Duration Options
 const EVENT_DURATION_OPTIONS = [
@@ -348,7 +334,10 @@ export default function EventsAttendedForm() {
     e.stopPropagation();
     setDragActive((prev) => ({ ...prev, [fieldName]: false }));
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      setFormData((prev) => ({ ...prev, [fieldName]: e.dataTransfer.files[0] }));
+      setFormData((prev) => ({
+        ...prev,
+        [fieldName]: e.dataTransfer.files[0],
+      }));
       if (errors[fieldName]) {
         setErrors((prev) => {
           const newErrors = { ...prev };
@@ -372,38 +361,63 @@ export default function EventsAttendedForm() {
       newErrors.otherEventType = "Please specify event type";
     }
     if (!formData.topicName) newErrors.topicName = "Topic Name is required";
-    if (!formData.organizerType || formData.organizerType === "Select Organizer Type") {
+    if (
+      !formData.organizerType ||
+      formData.organizerType === "Select Organizer Type"
+    ) {
       newErrors.organizerType = "Organizer Type is required";
     }
     if (formData.organizerType === "Industry") {
-      if (!formData.industryNameText) newErrors.industryNameText = "Industry Name is required";
-      if (!formData.industryAddress) newErrors.industryAddress = "Industry Address is required";
+      if (!formData.industryNameText)
+        newErrors.industryNameText = "Industry Name is required";
+      if (!formData.industryAddress)
+        newErrors.industryAddress = "Industry Address is required";
     }
-    if ((formData.organizerType === "Foreign Institute" || formData.organizerType === "Institute in India") && !formData.instituteName) {
+    if (
+      (formData.organizerType === "Foreign Institute" ||
+        formData.organizerType === "Institute in India") &&
+      !formData.instituteName
+    ) {
       newErrors.instituteName = "Institute Name is required";
     }
     if (!formData.eventLevel || formData.eventLevel === "Select Event Level") {
       newErrors.eventLevel = "Event Level is required";
     }
     if (!formData.eventTitle) newErrors.eventTitle = "Event Title is required";
-    if (!formData.organizationSector || formData.organizationSector === "Select Sector") {
+    if (
+      !formData.organizationSector ||
+      formData.organizationSector === "Select Sector"
+    ) {
       newErrors.organizationSector = "Organization Sector is required";
     }
-    if (!formData.eventOrganizer) newErrors.eventOrganizer = "Event Organizer is required";
+    if (!formData.eventOrganizer)
+      newErrors.eventOrganizer = "Event Organizer is required";
     if (!formData.eventMode || formData.eventMode === "Select Mode") {
       newErrors.eventMode = "Event Mode is required";
     }
-    if (!formData.eventLocation) newErrors.eventLocation = "Event Location is required";
-    if (!formData.eventDuration || formData.eventDuration === "Select Duration Type") {
+    if (!formData.eventLocation)
+      newErrors.eventLocation = "Event Location is required";
+    if (
+      !formData.eventDuration ||
+      formData.eventDuration === "Select Duration Type"
+    ) {
       newErrors.eventDuration = "Event Duration is required";
     }
     if (!formData.startDate) newErrors.startDate = "Start Date is required";
     if (!formData.endDate) newErrors.endDate = "End Date is required";
-    if (!formData.durationInDays) newErrors.durationInDays = "Duration in days is required";
-    if (!formData.sponsorshipType || formData.sponsorshipType === "Select Sponsorship Type") {
+    if (!formData.durationInDays)
+      newErrors.durationInDays = "Duration in days is required";
+    if (
+      !formData.sponsorshipType ||
+      formData.sponsorshipType === "Select Sponsorship Type"
+    ) {
       newErrors.sponsorshipType = "Sponsorship Type is required";
     }
-    if ((formData.sponsorshipType === "Funding Agency" || formData.sponsorshipType === "Others") && !formData.fundingAgencyName) {
+    if (
+      (formData.sponsorshipType === "Funding Agency" ||
+        formData.sponsorshipType === "Others") &&
+      !formData.fundingAgencyName
+    ) {
       newErrors.fundingAgencyName = "Funding Agency / Other name is required";
     }
     if (!formData.outcome || formData.outcome === "Select Outcome") {
@@ -412,7 +426,8 @@ export default function EventsAttendedForm() {
     if (formData.outcome === "Others" && !formData.otherOutcome) {
       newErrors.otherOutcome = "Please specify outcome";
     }
-    if (!formData.certificateProof) newErrors.certificateProof = "Certificate Proof is required";
+    if (!formData.certificateProof)
+      newErrors.certificateProof = "Certificate Proof is required";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -468,14 +483,14 @@ export default function EventsAttendedForm() {
         }
 
         const response = await axios.post(
-          `${API_URL}api/faculty/eventsAttendedPost`,
+          `${API_URL}/api/faculty/eventsAttendedPost`,
           data,
           {
             withCredentials: true,
             headers: {
               "Content-Type": "multipart/form-data",
             },
-          }
+          },
         );
 
         if (response.status === 200) {
@@ -507,8 +522,8 @@ export default function EventsAttendedForm() {
           errors[fieldName]
             ? "border-red-500"
             : dragActive[fieldName]
-            ? "border-indigo-500 bg-indigo-50"
-            : "border-gray-300"
+              ? "border-indigo-500 bg-indigo-50"
+              : "border-gray-300"
         } border-dashed rounded-md cursor-pointer hover:border-indigo-500 transition-colors bg-white`}
         onDragEnter={(e) => handleDrag(e, fieldName)}
         onDragLeave={(e) => handleDrag(e, fieldName)}
@@ -592,7 +607,10 @@ export default function EventsAttendedForm() {
             {/* Section 1: Basic Info */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label htmlFor="taskID" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="taskID"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Task ID <RequiredAst />
                 </label>
                 <input
@@ -646,7 +664,10 @@ export default function EventsAttendedForm() {
             {formData.specialLabsInvolved === "yes" && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label htmlFor="specialLab" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="specialLab"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     Special Lab <RequiredAst />
                   </label>
                   <SpecialLabDropdown
@@ -661,7 +682,9 @@ export default function EventsAttendedForm() {
                     } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                   />
                   {errors.specialLab && (
-                    <p className="mt-1 text-sm text-red-600">{errors.specialLab}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.specialLab}
+                    </p>
                   )}
                 </div>
               </div>
@@ -670,7 +693,10 @@ export default function EventsAttendedForm() {
             {/* Event Type & Topic */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label htmlFor="eventType" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="eventType"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Event Type <RequiredAst />
                 </label>
                 <select
@@ -683,18 +709,27 @@ export default function EventsAttendedForm() {
                   } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                 >
                   {EVENT_TYPE_OPTIONS.map((option) => (
-                    <option key={option} value={option} disabled={option === "Select Event Type"}>
+                    <option
+                      key={option}
+                      value={option}
+                      disabled={option === "Select Event Type"}
+                    >
                       {option}
                     </option>
                   ))}
                 </select>
                 {errors.eventType && (
-                  <p className="mt-1 text-sm text-red-600">{errors.eventType}</p>
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.eventType}
+                  </p>
                 )}
 
                 {formData.eventType === "Other" && (
                   <div className="mt-3">
-                    <label htmlFor="otherEventType" className="block text-sm font-medium text-gray-700 mb-1">
+                    <label
+                      htmlFor="otherEventType"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
                       If Others, Please Specify <RequiredAst />
                     </label>
                     <input
@@ -704,19 +739,26 @@ export default function EventsAttendedForm() {
                       value={formData.otherEventType}
                       onChange={handleChange}
                       className={`block w-full px-3 py-2 border ${
-                        errors.otherEventType ? "border-red-500" : "border-gray-300"
+                        errors.otherEventType
+                          ? "border-red-500"
+                          : "border-gray-300"
                       } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                       placeholder="Specify event type"
                     />
                     {errors.otherEventType && (
-                      <p className="mt-1 text-sm text-red-600">{errors.otherEventType}</p>
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.otherEventType}
+                      </p>
                     )}
                   </div>
                 )}
               </div>
 
               <div>
-                <label htmlFor="topicName" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="topicName"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Topic Name <RequiredAst />
                 </label>
                 <input
@@ -731,7 +773,9 @@ export default function EventsAttendedForm() {
                   placeholder="Enter Topic Name"
                 />
                 {errors.topicName && (
-                  <p className="mt-1 text-sm text-red-600">{errors.topicName}</p>
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.topicName}
+                  </p>
                 )}
               </div>
             </div>
@@ -739,7 +783,10 @@ export default function EventsAttendedForm() {
             {/* PS Domain & Level */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label htmlFor="psDomain" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="psDomain"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   PS Domain
                 </label>
                 <select
@@ -750,7 +797,11 @@ export default function EventsAttendedForm() {
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                 >
                   {PS_DOMAIN_OPTIONS.map((option) => (
-                    <option key={option} value={option} disabled={option === "Select PS Domain"}>
+                    <option
+                      key={option}
+                      value={option}
+                      disabled={option === "Select PS Domain"}
+                    >
                       {option}
                     </option>
                   ))}
@@ -758,7 +809,10 @@ export default function EventsAttendedForm() {
               </div>
 
               <div>
-                <label htmlFor="psDomainLevel" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="psDomainLevel"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   PS Domain - Level
                 </label>
                 <select
@@ -769,7 +823,11 @@ export default function EventsAttendedForm() {
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                 >
                   {PS_DOMAIN_LEVEL_OPTIONS.map((option) => (
-                    <option key={option} value={option} disabled={option === "Select Level"}>
+                    <option
+                      key={option}
+                      value={option}
+                      disabled={option === "Select Level"}
+                    >
                       {option}
                     </option>
                   ))}
@@ -780,7 +838,10 @@ export default function EventsAttendedForm() {
             {/* Organizer Type */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label htmlFor="organizerType" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="organizerType"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Organizer Type <RequiredAst />
                 </label>
                 <select
@@ -793,19 +854,28 @@ export default function EventsAttendedForm() {
                   } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                 >
                   {ORGANIZER_TYPE_OPTIONS.map((option) => (
-                    <option key={option} value={option} disabled={option === "Select Organizer Type"}>
+                    <option
+                      key={option}
+                      value={option}
+                      disabled={option === "Select Organizer Type"}
+                    >
                       {option}
                     </option>
                   ))}
                 </select>
                 {errors.organizerType && (
-                  <p className="mt-1 text-sm text-red-600">{errors.organizerType}</p>
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.organizerType}
+                  </p>
                 )}
               </div>
 
               {formData.organizerType === "Others" && (
                 <div>
-                  <label htmlFor="otherOrganizerName" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="otherOrganizerName"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     Other Organizer Name <RequiredAst />
                   </label>
                   <input
@@ -826,7 +896,10 @@ export default function EventsAttendedForm() {
               <>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label htmlFor="industryNameText" className="block text-sm font-medium text-gray-700 mb-1">
+                    <label
+                      htmlFor="industryNameText"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
                       Industry Name (Text) <RequiredAst />
                     </label>
                     <input
@@ -836,17 +909,24 @@ export default function EventsAttendedForm() {
                       value={formData.industryNameText}
                       onChange={handleChange}
                       className={`mt-1 block w-full px-3 py-2 border ${
-                        errors.industryNameText ? "border-red-500" : "border-gray-300"
+                        errors.industryNameText
+                          ? "border-red-500"
+                          : "border-gray-300"
                       } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                       placeholder="Enter Industry Name"
                     />
                     {errors.industryNameText && (
-                      <p className="mt-1 text-sm text-red-600">{errors.industryNameText}</p>
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.industryNameText}
+                      </p>
                     )}
                   </div>
 
                   <div>
-                    <label htmlFor="industryAddress" className="block text-sm font-medium text-gray-700 mb-1">
+                    <label
+                      htmlFor="industryAddress"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
                       Address of the Industry <RequiredAst />
                     </label>
                     <input
@@ -856,19 +936,26 @@ export default function EventsAttendedForm() {
                       value={formData.industryAddress}
                       onChange={handleChange}
                       className={`mt-1 block w-full px-3 py-2 border ${
-                        errors.industryAddress ? "border-red-500" : "border-gray-300"
+                        errors.industryAddress
+                          ? "border-red-500"
+                          : "border-gray-300"
                       } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                       placeholder="Enter Industry Address"
                     />
                     {errors.industryAddress && (
-                      <p className="mt-1 text-sm text-red-600">{errors.industryAddress}</p>
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.industryAddress}
+                      </p>
                     )}
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 gap-6">
                   <div>
-                    <label htmlFor="industryNameSelect" className="block text-sm font-medium text-gray-700 mb-1">
+                    <label
+                      htmlFor="industryNameSelect"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
                       Industry Name (Select)
                     </label>
                     <select
@@ -879,7 +966,11 @@ export default function EventsAttendedForm() {
                       className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                     >
                       {INDUSTRY_NAME_SELECT_OPTIONS.map((option) => (
-                        <option key={option} value={option} disabled={option === "Select Industry"}>
+                        <option
+                          key={option}
+                          value={option}
+                          disabled={option === "Select Industry"}
+                        >
                           {option}
                         </option>
                       ))}
@@ -890,10 +981,14 @@ export default function EventsAttendedForm() {
             )}
 
             {/* Institute Name - shown when Organizer Type is Foreign Institute or Institute in India */}
-            {(formData.organizerType === "Foreign Institute" || formData.organizerType === "Institute in India") && (
+            {(formData.organizerType === "Foreign Institute" ||
+              formData.organizerType === "Institute in India") && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label htmlFor="instituteName" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="instituteName"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     Mention the name of Institute <RequiredAst />
                   </label>
                   <input
@@ -903,12 +998,16 @@ export default function EventsAttendedForm() {
                     value={formData.instituteName}
                     onChange={handleChange}
                     className={`mt-1 block w-full px-3 py-2 border ${
-                      errors.instituteName ? "border-red-500" : "border-gray-300"
+                      errors.instituteName
+                        ? "border-red-500"
+                        : "border-gray-300"
                     } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                     placeholder="Enter Institute Name"
                   />
                   {errors.instituteName && (
-                    <p className="mt-1 text-sm text-red-600">{errors.instituteName}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.instituteName}
+                    </p>
                   )}
                 </div>
               </div>
@@ -917,7 +1016,10 @@ export default function EventsAttendedForm() {
             {/* Event Details */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label htmlFor="eventLevel" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="eventLevel"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Event Level <RequiredAst />
                 </label>
                 <select
@@ -930,18 +1032,27 @@ export default function EventsAttendedForm() {
                   } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                 >
                   {EVENT_LEVEL_OPTIONS.map((option) => (
-                    <option key={option} value={option} disabled={option === "Select Event Level"}>
+                    <option
+                      key={option}
+                      value={option}
+                      disabled={option === "Select Event Level"}
+                    >
                       {option}
                     </option>
                   ))}
                 </select>
                 {errors.eventLevel && (
-                  <p className="mt-1 text-sm text-red-600">{errors.eventLevel}</p>
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.eventLevel}
+                  </p>
                 )}
               </div>
 
               <div>
-                <label htmlFor="eventTitle" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="eventTitle"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Event Title <RequiredAst />
                 </label>
                 <input
@@ -956,7 +1067,9 @@ export default function EventsAttendedForm() {
                   placeholder="Enter Event Title"
                 />
                 {errors.eventTitle && (
-                  <p className="mt-1 text-sm text-red-600">{errors.eventTitle}</p>
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.eventTitle}
+                  </p>
                 )}
               </div>
             </div>
@@ -964,7 +1077,10 @@ export default function EventsAttendedForm() {
             {/* Organization Sector & Event Organizer */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label htmlFor="organizationSector" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="organizationSector"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Organization Sector <RequiredAst />
                 </label>
                 <select
@@ -973,22 +1089,33 @@ export default function EventsAttendedForm() {
                   value={formData.organizationSector}
                   onChange={handleChange}
                   className={`mt-1 block w-full px-3 py-2 border ${
-                    errors.organizationSector ? "border-red-500" : "border-gray-300"
+                    errors.organizationSector
+                      ? "border-red-500"
+                      : "border-gray-300"
                   } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                 >
                   {ORGANIZATION_SECTOR_OPTIONS.map((option) => (
-                    <option key={option} value={option} disabled={option === "Select Sector"}>
+                    <option
+                      key={option}
+                      value={option}
+                      disabled={option === "Select Sector"}
+                    >
                       {option}
                     </option>
                   ))}
                 </select>
                 {errors.organizationSector && (
-                  <p className="mt-1 text-sm text-red-600">{errors.organizationSector}</p>
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.organizationSector}
+                  </p>
                 )}
               </div>
 
               <div>
-                <label htmlFor="eventOrganizer" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="eventOrganizer"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Event Organizer <RequiredAst />
                 </label>
                 <input
@@ -1003,7 +1130,9 @@ export default function EventsAttendedForm() {
                   placeholder="Enter Event Organizer"
                 />
                 {errors.eventOrganizer && (
-                  <p className="mt-1 text-sm text-red-600">{errors.eventOrganizer}</p>
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.eventOrganizer}
+                  </p>
                 )}
               </div>
             </div>
@@ -1011,7 +1140,10 @@ export default function EventsAttendedForm() {
             {/* Event Mode & Location */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label htmlFor="eventMode" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="eventMode"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Event Mode <RequiredAst />
                 </label>
                 <select
@@ -1024,18 +1156,27 @@ export default function EventsAttendedForm() {
                   } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                 >
                   {EVENT_MODE_OPTIONS.map((option) => (
-                    <option key={option} value={option} disabled={option === "Select Mode"}>
+                    <option
+                      key={option}
+                      value={option}
+                      disabled={option === "Select Mode"}
+                    >
                       {option}
                     </option>
                   ))}
                 </select>
                 {errors.eventMode && (
-                  <p className="mt-1 text-sm text-red-600">{errors.eventMode}</p>
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.eventMode}
+                  </p>
                 )}
               </div>
 
               <div>
-                <label htmlFor="eventLocation" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="eventLocation"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Event Location <RequiredAst />
                 </label>
                 <input
@@ -1050,7 +1191,9 @@ export default function EventsAttendedForm() {
                   placeholder="Enter Event Location"
                 />
                 {errors.eventLocation && (
-                  <p className="mt-1 text-sm text-red-600">{errors.eventLocation}</p>
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.eventLocation}
+                  </p>
                 )}
               </div>
             </div>
@@ -1058,7 +1201,10 @@ export default function EventsAttendedForm() {
             {/* Event Duration & Dates */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
-                <label htmlFor="eventDuration" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="eventDuration"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Event Duration <RequiredAst />
                 </label>
                 <select
@@ -1071,18 +1217,27 @@ export default function EventsAttendedForm() {
                   } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                 >
                   {EVENT_DURATION_OPTIONS.map((option) => (
-                    <option key={option} value={option} disabled={option === "Select Duration Type"}>
+                    <option
+                      key={option}
+                      value={option}
+                      disabled={option === "Select Duration Type"}
+                    >
                       {option}
                     </option>
                   ))}
                 </select>
                 {errors.eventDuration && (
-                  <p className="mt-1 text-sm text-red-600">{errors.eventDuration}</p>
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.eventDuration}
+                  </p>
                 )}
               </div>
 
               <div>
-                <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="startDate"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Start Date <RequiredAst />
                 </label>
                 <input
@@ -1096,12 +1251,17 @@ export default function EventsAttendedForm() {
                   } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                 />
                 {errors.startDate && (
-                  <p className="mt-1 text-sm text-red-600">{errors.startDate}</p>
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.startDate}
+                  </p>
                 )}
               </div>
 
               <div>
-                <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="endDate"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   End Date <RequiredAst />
                 </label>
                 <input
@@ -1123,7 +1283,10 @@ export default function EventsAttendedForm() {
             {/* Duration in days */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label htmlFor="durationInDays" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="durationInDays"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Duration (in days) <RequiredAst />
                 </label>
                 <input
@@ -1139,7 +1302,9 @@ export default function EventsAttendedForm() {
                   min="1"
                 />
                 {errors.durationInDays && (
-                  <p className="mt-1 text-sm text-red-600">{errors.durationInDays}</p>
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.durationInDays}
+                  </p>
                 )}
               </div>
             </div>
@@ -1147,7 +1312,10 @@ export default function EventsAttendedForm() {
             {/* Sponsorship */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label htmlFor="sponsorshipType" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="sponsorshipType"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Type of Sponsorship <RequiredAst />
                 </label>
                 <select
@@ -1156,22 +1324,33 @@ export default function EventsAttendedForm() {
                   value={formData.sponsorshipType}
                   onChange={handleChange}
                   className={`mt-1 block w-full px-3 py-2 border ${
-                    errors.sponsorshipType ? "border-red-500" : "border-gray-300"
+                    errors.sponsorshipType
+                      ? "border-red-500"
+                      : "border-gray-300"
                   } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                 >
                   {SPONSORSHIP_TYPE_OPTIONS.map((option) => (
-                    <option key={option} value={option} disabled={option === "Select Sponsorship Type"}>
+                    <option
+                      key={option}
+                      value={option}
+                      disabled={option === "Select Sponsorship Type"}
+                    >
                       {option}
                     </option>
                   ))}
                 </select>
                 {errors.sponsorshipType && (
-                  <p className="mt-1 text-sm text-red-600">{errors.sponsorshipType}</p>
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.sponsorshipType}
+                  </p>
                 )}
               </div>
 
               <div>
-                <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="amount"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Amount, in Rs
                 </label>
                 <input
@@ -1188,11 +1367,16 @@ export default function EventsAttendedForm() {
             </div>
 
             {/* Funding Agency Name - shown when sponsorship is Funding Agency or Others */}
-            {(formData.sponsorshipType === "Funding Agency" || formData.sponsorshipType === "Others") && (
+            {(formData.sponsorshipType === "Funding Agency" ||
+              formData.sponsorshipType === "Others") && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label htmlFor="fundingAgencyName" className="block text-sm font-medium text-gray-700 mb-1">
-                    Name of the funding agency or If Others, Please Specify <RequiredAst />
+                  <label
+                    htmlFor="fundingAgencyName"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Name of the funding agency or If Others, Please Specify{" "}
+                    <RequiredAst />
                   </label>
                   <input
                     type="text"
@@ -1201,24 +1385,35 @@ export default function EventsAttendedForm() {
                     value={formData.fundingAgencyName}
                     onChange={handleChange}
                     className={`mt-1 block w-full px-3 py-2 border ${
-                      errors.fundingAgencyName ? "border-red-500" : "border-gray-300"
+                      errors.fundingAgencyName
+                        ? "border-red-500"
+                        : "border-gray-300"
                     } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                     placeholder="Enter name"
                   />
                   {errors.fundingAgencyName && (
-                    <p className="mt-1 text-sm text-red-600">{errors.fundingAgencyName}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.fundingAgencyName}
+                    </p>
                   )}
                 </div>
               </div>
             )}
 
             {/* Apex Proof */}
-            <FileUpload fieldName="apexProof" label="Apex Proof" required={false} />
+            <FileUpload
+              fieldName="apexProof"
+              label="Apex Proof"
+              required={false}
+            />
 
             {/* Outcome */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label htmlFor="outcome" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="outcome"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Outcome of the attended event <RequiredAst />
                 </label>
                 <select
@@ -1231,7 +1426,11 @@ export default function EventsAttendedForm() {
                   } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                 >
                   {OUTCOME_OPTIONS.map((option) => (
-                    <option key={option} value={option} disabled={option === "Select Outcome"}>
+                    <option
+                      key={option}
+                      value={option}
+                      disabled={option === "Select Outcome"}
+                    >
                       {option}
                     </option>
                   ))}
@@ -1242,7 +1441,10 @@ export default function EventsAttendedForm() {
 
                 {formData.outcome === "Others" && (
                   <div className="mt-3">
-                    <label htmlFor="otherOutcome" className="block text-sm font-medium text-gray-700 mb-1">
+                    <label
+                      htmlFor="otherOutcome"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
                       If Others, Please Specify <RequiredAst />
                     </label>
                     <input
@@ -1252,12 +1454,16 @@ export default function EventsAttendedForm() {
                       value={formData.otherOutcome}
                       onChange={handleChange}
                       className={`block w-full px-3 py-2 border ${
-                        errors.otherOutcome ? "border-red-500" : "border-gray-300"
+                        errors.otherOutcome
+                          ? "border-red-500"
+                          : "border-gray-300"
                       } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                       placeholder="Specify outcome"
                     />
                     {errors.otherOutcome && (
-                      <p className="mt-1 text-sm text-red-600">{errors.otherOutcome}</p>
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.otherOutcome}
+                      </p>
                     )}
                   </div>
                 )}
@@ -1266,8 +1472,16 @@ export default function EventsAttendedForm() {
 
             {/* File Uploads */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <FileUpload fieldName="certificateProof" label="Certificate Proof" required={true} />
-              <FileUpload fieldName="geotagPhotos" label="Upload Geotag Photos" required={false} />
+              <FileUpload
+                fieldName="certificateProof"
+                label="Certificate Proof"
+                required={true}
+              />
+              <FileUpload
+                fieldName="geotagPhotos"
+                label="Upload Geotag Photos"
+                required={false}
+              />
             </div>
 
             {/* Actions */}

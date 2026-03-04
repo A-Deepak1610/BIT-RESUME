@@ -481,7 +481,7 @@ export default function PaperForm() {
         }
 
         const response = await axios.post(
-          `${API_URL}api/faculty/paperPresentationPost`,
+          `${API_URL}/api/faculty/paperPresentationPost`,
           data,
           {
             withCredentials: true,
