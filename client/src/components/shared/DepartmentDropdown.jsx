@@ -37,7 +37,7 @@ export default function DepartmentDropdown({
     const fetchDepartments = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`${API_URL}api/departments`, {
+        const response = await axios.get(`${API_URL}/api/departments`, {
           withCredentials: true,
         });
         if (response.data.success && response.data.departments) {

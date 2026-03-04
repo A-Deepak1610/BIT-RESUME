@@ -187,7 +187,7 @@ export default function JournalReviewerForm() {
         data.append("documentProof", formData.documentProof);
 
         const response = await axios.post(
-          `${API_URL}api/faculty/journalReviewerPost`,
+          `${API_URL}/api/faculty/journalReviewerPost`,
           data,
           {
             withCredentials: true,

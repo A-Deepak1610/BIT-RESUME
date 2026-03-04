@@ -322,7 +322,7 @@ export default function AwardForm() {
         data.append("documentProof", formData.documentProof);
 
         const response = await axios.post(
-          `${API_URL}api/faculty/awardPost`,
+          `${API_URL}/api/faculty/awardPost`,
           data,
           {
             withCredentials: true,

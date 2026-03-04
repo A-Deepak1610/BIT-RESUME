@@ -353,7 +353,7 @@ export default function OnlineCourseForm() {
         data.append("claimedFor", formData.claimedFor);
 
         const response = await axios.post(
-          `${API_URL}api/faculty/onlineCoursePost`,
+          `${API_URL}/api/faculty/onlineCoursePost`,
           data,
           {
             withCredentials: true,

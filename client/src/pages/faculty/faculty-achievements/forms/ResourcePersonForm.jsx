@@ -238,7 +238,7 @@ export default function ResourcePersonForm() {
       }
 
       const response = await axios.post(
-        `${API_URL}api/faculty/resourcePersonPost`,
+        `${API_URL}/api/faculty/resourcePersonPost`,
         submitData,
         {
           headers: { "Content-Type": "multipart/form-data" },

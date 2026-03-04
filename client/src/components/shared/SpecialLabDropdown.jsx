@@ -37,7 +37,7 @@ export default function SpecialLabDropdown({
     const fetchLabs = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`${API_URL}api/speciallabs`, {
+        const response = await axios.get(`${API_URL}/api/speciallabs`, {
           withCredentials: true,
         });
         if (response.data.success && response.data.labs) {
