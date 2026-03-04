@@ -185,12 +185,12 @@ export default function Faculty_Trained_by_IndustryForm() {
       try {
         const data = new FormData();
 
-        // Append all text fields
+        // Append all text fields (skip faculty as it's set by backend from session)
         Object.keys(formData).forEach((key) => {
           if (
+            key !== "faculty" && // Don't send faculty - backend uses rollNo from session
             formData[key] !== null &&
-            typeof formData[key] !== "object" &&
-            key !== "owiVerification"
+            typeof formData[key] !== "object"
           ) {
             data.append(key, formData[key]);
           }

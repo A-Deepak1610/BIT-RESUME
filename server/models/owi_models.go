@@ -30,7 +30,7 @@ type IndustryAdvisor struct {
 	UpdatedAt               string  `json:"updatedAt,omitempty"`
 }
 
-// LaboratoryByIndustry represents the laboratory_by_industry table
+// LaboratoryByIndustry represents the faculty_laboratory_by_industry table
 type LaboratoryByIndustry struct {
 	ID                           int     `json:"id,omitempty"`
 	Faculty                      string  `json:"faculty"`

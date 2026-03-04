@@ -36,7 +36,7 @@ func checkDatabase() {
 		"faculty_external_vip_visit",
 		"faculty_consultancy",
 		"industry_advisor",
-		"laboratory_by_industry",
+		"faculty_laboratory_by_industry",
 	}
 
 	for _, table := range tables {

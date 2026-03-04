@@ -22,7 +22,7 @@ func HandleTrainedByIndustryForm(c *gin.Context) {
 
 	// Parse all form fields
 	formData := map[string]string{
-		"faculty":             c.PostForm("faculty"),
+		"faculty":             facultyID, // Save the logged-in faculty's roll number, not the form field
 		"taskID":              c.PostForm("taskID"),
 		"specialLabsInvolved": c.PostForm("specialLabsInvolved"),
 		"specialLab":          c.PostForm("specialLab"),

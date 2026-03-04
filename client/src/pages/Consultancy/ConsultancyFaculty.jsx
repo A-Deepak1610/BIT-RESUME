@@ -16,94 +16,45 @@ const inferWorkTypeFromText = (text) => {
 };
 
 const ConsultancyFaculty = () => {
-  useAuth();
+  const { facultyId } = useAuth(); // Assuming useAuth provides the logged-in faculty's ID
+  const API_URL = import.meta.env.VITE_API_URL;
   
-  // Mock data for consultancy works assigned to faculty
-  const [assignedWorks, setAssignedWorks] = useState([
-    {
-      id: 1,
-      projectTitle: "Smart City IoT Infrastructure Audit",
-      workType: "Drone",
-      clientOrganization: "City Municipal Corporation",
-      workDescription: "Comprehensive audit and assessment of existing IoT infrastructure for smart city initiatives. This includes evaluation of current systems, security analysis, and recommendations for improvements.",
-      expectedCompletionDate: "2026-06-15",
-      submittedAt: "2026-02-15",
-      submittedBy: "Principal",
-      assignedDepartment: "Computer Science & Engineering",
-      iqacRemarks: "This project requires expertise in IoT systems and network security. The department has strong faculty in these areas.",
-      assignedAt: "2026-02-16",
-      assignedFaculty: "Prof. R. Gupta (IoT & Networks)",
-      hodRemarks: "Prof. Gupta has extensive experience in IoT infrastructure projects and security audits.",
-      targetCompletionDate: "2026-06-10",
-      facultyAssignedAt: "2026-02-17",
-      status: "Accepted by Faculty",
-      facultyResponse: "accepted",
-      facultyRemarks: "I have the required expertise in drone technology and IoT systems. Ready to start the project.",
-      responseDate: "2026-02-18",
-      declarationSubmitted: false,
-      declarationData: null
-    },
-    {
-      id: 2,
-      projectTitle: "Digital Transformation Strategy",
-      workType: "Software Project",
-      clientOrganization: "Regional Development Authority", 
-      workDescription: "Development of comprehensive digital transformation roadmap for government services modernization including process optimization and technology integration.",
-      expectedCompletionDate: "2026-08-30",
-      submittedAt: "2026-02-10",
-      submittedBy: "Principal",
-      assignedDepartment: "Computer Science & Engineering",
-      iqacRemarks: "Requires expertise in digital systems and process automation. Strategic planning capabilities essential.",
-      assignedAt: "2026-02-16",
-      assignedFaculty: "Prof. R. Gupta (IoT & Networks)",
-      hodRemarks: "Prof. Gupta's background in system analysis makes him suitable for this strategic project.",
-      targetCompletionDate: "2026-08-15",
-      facultyAssignedAt: "2026-02-16",
-      status: "Accepted by Faculty",
-      facultyResponse: "accepted",
-      facultyRemarks: "I am interested in this project and have the required expertise. I can commit to the timeline and deliver quality results.",
-      responseDate: "2026-02-17",
-      declarationSubmitted: false,
-      declarationData: null
-    },
-    {
-      id: 3,
-      projectTitle: "Industrial Skills Development Program",
-      workType: "Industrial Training Project",
-      clientOrganization: "State Industrial Training Institute",
-      workDescription: "Comprehensive industrial training program for engineering students covering manufacturing processes, quality control, and industry best practices.",
-      expectedCompletionDate: "2026-09-30",
-      submittedAt: "2026-02-18",
-      submittedBy: "Principal",
-      assignedDepartment: "Mechanical Engineering",
-      iqacRemarks: "Industrial training program requires faculty with strong industry connections and practical experience in manufacturing.",
-      assignedAt: "2026-02-19",
-      assignedFaculty: "Prof. R. Gupta (IoT & Networks)",
-      hodRemarks: "Prof. Gupta has conducted similar training programs before and has excellent industry contacts.",
-      targetCompletionDate: "2026-09-15",
-      facultyAssignedAt: "2026-02-20",
-      status: "Accepted by Faculty",
-      facultyResponse: "accepted",
-      facultyRemarks: "I have experience conducting industrial training programs and can leverage my industry contacts for this project.",
-      responseDate: "2026-02-21",
-      declarationSubmitted: false,
-      declarationData: null
-    }
-  ]);
+  const [assignedWorks, setAssignedWorks] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const [showResponseForm, setShowResponseForm] = useState(false);
   const [showFullPageDeclaration, setShowFullPageDeclaration] = useState(false);
   const [selectedWork, setSelectedWork] = useState(null);
   const [response, setResponse] = useState({
-    workId: "",
     action: "",
     remarks: ""
   });
 
+  const fetchAssignedWorks = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      // NOTE: Replace with your actual API endpoint
+      const res = await fetch(`${API_URL}api/consultancy/faculty-works`, { credentials: 'include' });
+      if (!res.ok) throw new Error("Failed to fetch consultancy works.");
+      const data = await res.json();
+      setAssignedWorks(data.works || []);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fetch data on component mount
+  React.useEffect(() => {
+    fetchAssignedWorks();
+  }, []);
+
   const handleResponseAction = (work, action) => {
     setSelectedWork(work);
     setResponse({
-      workId: work.id.toString(),
       action: action,
       remarks: ""
     });
@@ -124,54 +75,49 @@ const ConsultancyFaculty = () => {
   };
 
 
-  const handleSubmitResponse = (e) => {
+  const handleSubmitResponse = async (e) => {
     e.preventDefault();
-    
-    const newStatus = response.action === "accept" ? "Accepted by Faculty" : "Rejected by Faculty";
-    
-    // Update the work with faculty response
-    setAssignedWorks(prev => 
-      prev.map(work => 
-        work.id.toString() === response.workId 
-          ? {
-              ...work,
-              facultyResponse: response.action,
-              facultyRemarks: response.remarks,
-              status: newStatus,
-              responseDate: new Date().toISOString().split('T')[0]
-            }
-          : work
-      )
-    );
+    try {
+      // NOTE: Replace with your actual API endpoint
+      const res = await fetch(`${API_URL}api/consultancy/works/${selectedWork.id}/respond`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          action: response.action,
+          remarks: response.remarks,
+        }),
+      });
 
-    // Reset form and close
-    setShowResponseForm(false);
-    setSelectedWork(null);
-    setResponse({
-      workId: "",
-      action: "",
-      remarks: ""
-    });
+      if (!res.ok) throw new Error("Failed to submit response.");
+      
+      // On success, refetch the data to show the update
+      fetchAssignedWorks();
+      closeForm();
+
+    } catch (err) {
+      alert(`Error: ${err.message}`); // Or use a toast notification
+    }
   };
 
-  const handleSubmitDeclaration = (submittedDeclarationData) => {
-    // Update the work with declaration submission
-    setAssignedWorks(prev => 
-      prev.map(work => 
-        work.id === selectedWork.id 
-          ? {
-              ...work,
-              declarationSubmitted: true,
-              declarationData: submittedDeclarationData,
-              status: "Declaration Submitted"
-            }
-          : work
-      )
-    );
+  const handleSubmitDeclaration = async (submittedDeclarationData) => {
+    try {
+      // NOTE: This assumes your form components pass up a FormData object.
+      // Adjust if it's a plain object.
+      const res = await fetch(`${API_URL}api/consultancy/works/${selectedWork.id}/declare`, {
+        method: 'POST',
+        credentials: 'include',
+        body: submittedDeclarationData, // Sending FormData directly
+      });
 
-    // Reset form and close
-    setShowFullPageDeclaration(false);
-    setSelectedWork(null);
+      if (!res.ok) throw new Error("Failed to submit declaration.");
+      
+      fetchAssignedWorks();
+      closeForm();
+
+    } catch (err) {
+      alert(`Error: ${err.message}`);
+    }
   };
 
   const closeForm = () => {
@@ -179,7 +125,6 @@ const ConsultancyFaculty = () => {
     setShowFullPageDeclaration(false);
     setSelectedWork(null);
     setResponse({
-      workId: "",
       action: "",
       remarks: ""
     });
@@ -236,6 +181,13 @@ const ConsultancyFaculty = () => {
             <h1 className="text-2xl font-bold text-gray-800 mb-2">Faculty - Consultancy Works</h1>
             <p className="text-gray-600">Review assigned consultancy works and provide your response</p>
           </div>
+
+          {isLoading && <div className="text-center p-8">Loading assigned works...</div>}
+          {error && <div className="text-center p-8 text-red-500">Error: {error}</div>}
+
+          {!isLoading && !error && assignedWorks.length === 0 && (
+            <div className="text-center p-8 text-gray-500">No consultancy works assigned at the moment.</div>
+          )}
 
           {/* Main Content Layout */}
           <div className="flex gap-6">

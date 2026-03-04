@@ -106,7 +106,7 @@ func HandleIndustryAdvisorPost(c *gin.Context) {
 
 	approvalDoc, _ := UploadMultipleFiles(c, "approvalDocument")
 
-	query := `INSERT INTO faculty_industry_advisor (faculty, sig_number, special_labs_involved, special_lab, industry_name, domain_area, industry_type, industry_type_other, expert_name, designation, email_id, phone_number, experience_years, area_of_expertise, industry_address, industry_website, frequency_of_interaction, date_of_meeting, expense_incurred, suggestions, collaborative_activities, approval_document, owi_verification) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+	query := `INSERT INTO faculty_industry_advisors (faculty, sig_number, special_labs_involved, special_lab, industry_name, domain_area, industry_type, industry_type_other, expert_name, designation, email_id, phone_number, experience_years, area_of_expertise, industry_address, industry_website, frequency_of_interaction, date_of_meeting, expense_incurred, suggestions, collaborative_activities, approval_document, verification_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
 	_, err := config.DB.Exec(query,
 		facultyID,
@@ -131,7 +131,7 @@ func HandleIndustryAdvisorPost(c *gin.Context) {
 		nullString(c.PostForm("suggestions")),
 		nullString(c.PostForm("collaborativeActivities")),
 		approvalDoc,
-		nullString(c.PostForm("owiVerification")),
+		nullString(c.PostForm("verification_status")),
 	)
 
 	if err != nil {
@@ -151,7 +151,7 @@ func HandleIndustryAdvisorGet(c *gin.Context) {
 		return
 	}
 
-	query := `SELECT * FROM faculty_industry_advisor WHERE faculty = ? ORDER BY created_at DESC`
+	query := `SELECT id, COALESCE(faculty, ''), COALESCE(sig_number, ''), COALESCE(special_labs_involved, ''), COALESCE(special_lab, ''), COALESCE(industry_name, ''), COALESCE(domain_area, ''), COALESCE(industry_type, ''), COALESCE(industry_type_other, ''), COALESCE(expert_name, ''), COALESCE(designation, ''), COALESCE(email_id, ''), COALESCE(phone_number, ''), COALESCE(experience_years, ''), COALESCE(area_of_expertise, ''), COALESCE(industry_address, ''), COALESCE(industry_website, ''), COALESCE(frequency_of_interaction, ''), COALESCE(date_of_meeting, ''), COALESCE(expense_incurred, 0), COALESCE(suggestions, ''), COALESCE(collaborative_activities, ''), COALESCE(approval_document, ''), COALESCE(verification_status, ''), COALESCE(created_at, NOW()), COALESCE(updated_at, NOW()) FROM faculty_industry_advisors WHERE faculty = ? ORDER BY created_at DESC`
 
 	rows, err := config.DB.Query(query, facultyID)
 	if err != nil {
@@ -200,7 +200,7 @@ func HandleIndustryAdvisorUpdate(c *gin.Context) {
 	}
 
 	if approvalDoc != "" {
-		query := `UPDATE faculty_industry_advisor SET faculty=?, sig_number=?, special_labs_involved=?, special_lab=?, industry_name=?, domain_area=?, industry_type=?, industry_type_other=?, expert_name=?, designation=?, email_id=?, phone_number=?, experience_years=?, area_of_expertise=?, industry_address=?, industry_website=?, frequency_of_interaction=?, date_of_meeting=?, expense_incurred=?, suggestions=?, collaborative_activities=?, approval_document=?, owi_verification=? WHERE id=? AND faculty=?`
+		query := `UPDATE faculty_industry_advisors SET faculty=?, sig_number=?, special_labs_involved=?, special_lab=?, industry_name=?, domain_area=?, industry_type=?, industry_type_other=?, expert_name=?, designation=?, email_id=?, phone_number=?, experience_years=?, area_of_expertise=?, industry_address=?, industry_website=?, frequency_of_interaction=?, date_of_meeting=?, expense_incurred=?, suggestions=?, collaborative_activities=?, approval_document=?, owi_verification=? WHERE id=? AND faculty=?`
 		_, err := config.DB.Exec(query,
 			facultyID,
 			nullString(c.PostForm("sigNumber")),
@@ -234,7 +234,7 @@ func HandleIndustryAdvisorUpdate(c *gin.Context) {
 			return
 		}
 	} else {
-		query := `UPDATE faculty_industry_advisor SET faculty=?, sig_number=?, special_labs_involved=?, special_lab=?, industry_name=?, domain_area=?, industry_type=?, industry_type_other=?, expert_name=?, designation=?, email_id=?, phone_number=?, experience_years=?, area_of_expertise=?, industry_address=?, industry_website=?, frequency_of_interaction=?, date_of_meeting=?, expense_incurred=?, suggestions=?, collaborative_activities=?, owi_verification=? WHERE id=? AND faculty=?`
+		query := `UPDATE faculty_industry_advisors SET faculty=?, sig_number=?, special_labs_involved=?, special_lab=?, industry_name=?, domain_area=?, industry_type=?, industry_type_other=?, expert_name=?, designation=?, email_id=?, phone_number=?, experience_years=?, area_of_expertise=?, industry_address=?, industry_website=?, frequency_of_interaction=?, date_of_meeting=?, expense_incurred=?, suggestions=?, collaborative_activities=?, owi_verification=? WHERE id=? AND faculty=?`
 		_, err := config.DB.Exec(query,
 			facultyID,
 			nullString(c.PostForm("sigNumber")),
@@ -281,7 +281,7 @@ func HandleIndustryAdvisorDelete(c *gin.Context) {
 		return
 	}
 
-	query := `DELETE FROM faculty_industry_advisor WHERE id=? AND faculty=?`
+	query := `DELETE FROM faculty_industry_advisors WHERE id=? AND faculty=?`
 	_, err := config.DB.Exec(query, id, facultyID)
 	if err != nil {
 		log.Println("Error deleting industry advisor:", err)
@@ -305,7 +305,7 @@ func HandleLaboratoryByIndustryPost(c *gin.Context) {
 
 	proofDoc, _ := UploadMultipleFiles(c, "proofDocument")
 
-	query := `INSERT INTO laboratory_by_industry (faculty, sig_number, task_id, name_of_laboratory, collaborative_industry, domain_area_of_industry, laboratory_area, total_amount_incurred, bit_contribution, financial_support_from_industry, equipment_sponsored, equipment_enhancement, layout_design_enhancement, curriculum_mapping, expected_outcomes, proof_document, owi_verification) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+	query := `INSERT INTO faculty_laboratory_by_industry (faculty, sig_number, task_id, name_of_laboratory, collaborative_industry, domain_area_of_industry, laboratory_area, total_amount_incurred, bit_contribution, financial_support_from_industry, equipment_sponsored, equipment_enhancement, layout_design_enhancement, curriculum_mapping, expected_outcomes, proof_document, verification_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
 	_, err := config.DB.Exec(query,
 		facultyID,
@@ -344,7 +344,7 @@ func HandleLaboratoryByIndustryGet(c *gin.Context) {
 		return
 	}
 
-	query := `SELECT id, COALESCE(faculty, ''), COALESCE(sig_number, ''), COALESCE(task_id, ''), COALESCE(name_of_laboratory, ''), COALESCE(collaborative_industry, ''), COALESCE(domain_area_of_industry, ''), COALESCE(laboratory_area, 0), COALESCE(total_amount_incurred, 0), COALESCE(bit_contribution, 0), COALESCE(financial_support_from_industry, 0), COALESCE(equipment_sponsored, ''), COALESCE(equipment_enhancement, ''), COALESCE(layout_design_enhancement, ''), COALESCE(curriculum_mapping, ''), COALESCE(expected_outcomes, ''), COALESCE(proof_document, ''), COALESCE(owi_verification, ''), COALESCE(created_at, NOW()), COALESCE(updated_at, NOW()) FROM laboratory_by_industry WHERE faculty = ? ORDER BY created_at DESC`
+	query := `SELECT id, COALESCE(faculty, ''), COALESCE(sig_number, ''), COALESCE(task_id, ''), COALESCE(name_of_laboratory, ''), COALESCE(collaborative_industry, ''), COALESCE(domain_area_of_industry, ''), COALESCE(laboratory_area, 0), COALESCE(total_amount_incurred, 0), COALESCE(bit_contribution, 0), COALESCE(financial_support_from_industry, 0), COALESCE(equipment_sponsored, ''), COALESCE(equipment_enhancement, ''), COALESCE(layout_design_enhancement, ''), COALESCE(curriculum_mapping, ''), COALESCE(expected_outcomes, ''), COALESCE(proof_document, ''), COALESCE(verification_status, ''), COALESCE(created_at, NOW()), COALESCE(updated_at, NOW()) FROM faculty_laboratory_by_industry WHERE faculty = ? ORDER BY created_at DESC`
 
 	rows, err := config.DB.Query(query, facultyID)
 	if err != nil {
@@ -394,7 +394,7 @@ func HandleProfessionalMembershipPost(c *gin.Context) {
 	apexDoc, _ := UploadFile(c, "apexDocumentProof")
 	docProof, _ := UploadFile(c, "documentProof")
 
-	query := `INSERT INTO professional_membership (membership_category, faculty, task_id, special_labs_involved, special_lab, name_of_professional_body, membership_type, membership_id, name_of_grade_level_position, category, validity_type, apex_document_proof, amount, if_others, amount_if_others, document_proof, owi_verification) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+	query := `INSERT INTO faculty_professional_membership (membership_category, faculty, task_id, special_labs_involved, special_lab, name_of_professional_body, membership_type, membership_id, name_of_grade_level_position, category, validity_type, apex_document_proof, amount, if_others, amount_if_others, document_proof, verification_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
 	_, err := config.DB.Exec(query,
 		nullString(c.PostForm("membershipCategory")),
@@ -433,7 +433,7 @@ func HandleProfessionalMembershipGet(c *gin.Context) {
 		return
 	}
 
-	query := `SELECT * FROM professional_membership WHERE faculty = ? ORDER BY created_at DESC`
+	query := `SELECT id, COALESCE(membership_category, ''), COALESCE(faculty, ''), COALESCE(task_id, ''), COALESCE(special_labs_involved, ''), COALESCE(special_lab, ''), COALESCE(name_of_professional_body, ''), COALESCE(membership_type, ''), COALESCE(membership_id, ''), COALESCE(name_of_grade_level_position, ''), COALESCE(category, ''), COALESCE(validity_type, ''), COALESCE(apex_document_proof, ''), COALESCE(amount, 0), COALESCE(if_others, ''), COALESCE(amount_if_others, 0), COALESCE(document_proof, ''), COALESCE(verification_status, ''), COALESCE(created_at, NOW()), COALESCE(updated_at, NOW()) FROM faculty_professional_membership WHERE faculty = ? ORDER BY created_at DESC`
 
 	rows, err := config.DB.Query(query, facultyID)
 	if err != nil {
@@ -487,7 +487,7 @@ func HandleStudentsIndustrialVisitPost(c *gin.Context) {
 		return
 	}
 
-	query := `INSERT INTO students_industrial_visit (faculty, sig_number, task_id, programme, industry_name, domain_area, industry_type, industry_type_other, industry_location, industry_website, contact_person_name, contact_person_designation, contact_person_email, contact_person_phone, visit_start_date, visit_end_date, year_of_study, number_of_students, male_students, female_students, purpose_of_visit, faculty1, faculty2, faculty3, source_of_arrangement, curriculum_mapping, outcome_of_visit, proof_document, owi_verification) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+	query := `INSERT INTO faculty_students_industrial_visit (faculty, sig_number, task_id, programme, industry_name, domain_area, industry_type, industry_type_other, industry_location, industry_website, contact_person_name, contact_person_designation, contact_person_email, contact_person_phone, visit_start_date, visit_end_date, year_of_study, number_of_students, male_students, female_students, purpose_of_visit, faculty1, faculty2, faculty3, source_of_arrangement, curriculum_mapping, outcome_of_visit, proof_document, verification_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
 	_, err := config.DB.Exec(query,
 		facultyID,
@@ -538,7 +538,7 @@ func HandleStudentsIndustrialVisitGet(c *gin.Context) {
 		return
 	}
 
-	query := `SELECT * FROM students_industrial_visit WHERE faculty = ? ORDER BY created_at DESC`
+	query := `SELECT id, COALESCE(faculty, ''), COALESCE(sig_number, ''), COALESCE(task_id, ''), COALESCE(programme, ''), COALESCE(industry_name, ''), COALESCE(domain_area, ''), COALESCE(industry_type, ''), COALESCE(industry_type_other, ''), COALESCE(industry_location, ''), COALESCE(industry_website, ''), COALESCE(contact_person_name, ''), COALESCE(contact_person_designation, ''), COALESCE(contact_person_email, ''), COALESCE(contact_person_phone, ''), COALESCE(visit_start_date, ''), COALESCE(visit_end_date, ''), COALESCE(year_of_study, ''), COALESCE(number_of_students, 0), COALESCE(male_students, 0), COALESCE(female_students, 0), COALESCE(purpose_of_visit, ''), COALESCE(faculty1, ''), COALESCE(faculty2, ''), COALESCE(faculty3, ''), COALESCE(source_of_arrangement, ''), COALESCE(curriculum_mapping, ''), COALESCE(outcome_of_visit, ''), COALESCE(proof_document, ''), COALESCE(verification_status, ''), COALESCE(created_at, NOW()), COALESCE(updated_at, NOW()) FROM faculty_students_industrial_visit WHERE faculty = ? ORDER BY created_at DESC`
 
 	rows, err := config.DB.Query(query, facultyID)
 	if err != nil {
@@ -559,7 +559,7 @@ func HandleStudentsIndustrialVisitGet(c *gin.Context) {
 			&item.VisitStartDate, &item.VisitEndDate, &item.YearOfStudy, &item.NumberOfStudents,
 			&item.MaleStudents, &item.FemaleStudents, &item.PurposeOfVisit, &item.Faculty1,
 			&item.Faculty2, &item.Faculty3, &item.SourceOfArrangement, &item.CurriculumMapping,
-			&item.OutcomeOfVisit, &item.ProofDocument, &item.OWIVerification,
+			&item.OutcomeOfVisit, &item.ProofDocument, &item.OWIVerification, &item.CreatedAt, &item.UpdatedAt,
 		)
 		if err != nil {
 			log.Println("Error scanning students industrial visit:", err)
@@ -587,15 +587,13 @@ func HandleTechnicalSocietiesPost(c *gin.Context) {
 		return
 	}
 
-	query := `INSERT INTO technical_societies (name, society, status, faculty, sig_number, task_id, owi_verification) VALUES (?, ?, ?, ?, ?, ?, ?)`
+	query := `INSERT INTO faculty_technical_societies (name, society, status, faculty_id, verification_status) VALUES (?, ?, ?, ?, ?)`
 
 	_, err := config.DB.Exec(query,
 		c.PostForm("name"),
 		c.PostForm("society"),
 		nullString(c.PostForm("status")),
 		facultyID,
-		nullString(c.PostForm("sigNumber")),
-		nullString(c.PostForm("taskId")),
 		nullString(c.PostForm("owiVerification")),
 	)
 
@@ -616,7 +614,7 @@ func HandleTechnicalSocietiesGet(c *gin.Context) {
 		return
 	}
 
-	query := `SELECT * FROM technical_societies WHERE faculty = ? ORDER BY created_at DESC`
+	query := `SELECT id, COALESCE(name, ''), COALESCE(society, ''), COALESCE(status, ''), COALESCE(faculty_id, ''), COALESCE(verification_status, ''), COALESCE(created_at, NOW()), COALESCE(updated_at, NOW()) FROM faculty_technical_societies WHERE faculty_id = ? ORDER BY created_at DESC`
 
 	rows, err := config.DB.Query(query, facultyID)
 	if err != nil {
@@ -631,8 +629,7 @@ func HandleTechnicalSocietiesGet(c *gin.Context) {
 		var item models.TechnicalSocieties
 		err := rows.Scan(
 			&item.ID, &item.Name, &item.Society, &item.Status, &item.Faculty,
-			&item.SigNumber, &item.TaskID, &item.OWIVerification,
-			&item.CreatedAt, &item.UpdatedAt,
+			&item.OWIVerification, &item.CreatedAt, &item.UpdatedAt,
 		)
 		if err != nil {
 			log.Println("Error scanning technical societies:", err)
@@ -667,7 +664,7 @@ func HandleTrainingToIndustryPost(c *gin.Context) {
 	paymentProofs, _ := UploadFile(c, "paymentProofs")
 	consolidatedDoc, _ := UploadFile(c, "consolidatedDocument")
 
-	query := `INSERT INTO training_to_industry (faculty, sig_number, special_labs_involved, special_lab, event_name, event_name_other, industry_name, industry_address, domain_area, industry_type, industry_type_other, mode_of_training, industry_website, number_of_persons_trained, duration_days, start_date, end_date, outcome_of_training, honorarium_received, communication_proof, approval_letter, geotag_photos, participants_attendance, payment_proofs, consolidated_document, owi_verification) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+	query := `INSERT INTO faculty_training_to_industry (faculty, sig_number, special_labs_involved, special_lab, event_name, event_name_other, industry_name, industry_address, domain_area, industry_type, industry_type_other, mode_of_training, industry_website, number_of_persons_trained, duration_days, start_date, end_date, outcome_of_training, honorarium_received, communication_proof, approval_letter, geotag_photos, participants_attendance, payment_proofs, consolidated_document, verification_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
 	_, err := config.DB.Exec(query,
 		facultyID,
@@ -715,7 +712,7 @@ func HandleTrainingToIndustryGet(c *gin.Context) {
 		return
 	}
 
-	query := `SELECT * FROM training_to_industry WHERE faculty = ? ORDER BY created_at DESC`
+	query := `SELECT id, COALESCE(faculty, ''), COALESCE(sig_number, ''), COALESCE(special_labs_involved, ''), COALESCE(special_lab, ''), COALESCE(event_name, ''), COALESCE(event_name_other, ''), COALESCE(industry_name, ''), COALESCE(industry_address, ''), COALESCE(domain_area, ''), COALESCE(industry_type, ''), COALESCE(industry_type_other, ''), COALESCE(mode_of_training, ''), COALESCE(industry_website, ''), COALESCE(number_of_persons_trained, 0), COALESCE(duration_days, 0), COALESCE(start_date, ''), COALESCE(end_date, ''), COALESCE(outcome_of_training, ''), COALESCE(honorarium_received, 0), COALESCE(communication_proof, ''), COALESCE(approval_letter, ''), COALESCE(geotag_photos, ''), COALESCE(participants_attendance, ''), COALESCE(payment_proofs, ''), COALESCE(consolidated_document, ''), COALESCE(verification_status, ''), COALESCE(created_at, NOW()), COALESCE(updated_at, NOW()) FROM faculty_training_to_industry WHERE faculty = ? ORDER BY created_at DESC`
 
 	rows, err := config.DB.Query(query, facultyID)
 	if err != nil {
@@ -768,7 +765,7 @@ func HandleLaboratoryByIndustryUpdate(c *gin.Context) {
 	}
 
 	if proofDoc != "" {
-		query := `UPDATE laboratory_by_industry SET faculty=?, sig_number=?, task_id=?, name_of_laboratory=?, collaborative_industry=?, domain_area_of_industry=?, laboratory_area=?, total_amount_incurred=?, bit_contribution=?, financial_support_from_industry=?, equipment_sponsored=?, equipment_enhancement=?, layout_design_enhancement=?, curriculum_mapping=?, expected_outcomes=?, proof_document=?, owi_verification=? WHERE id=?`
+		query := `UPDATE faculty_laboratory_by_industry SET faculty=?, sig_number=?, task_id=?, name_of_laboratory=?, collaborative_industry=?, domain_area_of_industry=?, laboratory_area=?, total_amount_incurred=?, bit_contribution=?, financial_support_from_industry=?, equipment_sponsored=?, equipment_enhancement=?, layout_design_enhancement=?, curriculum_mapping=?, expected_outcomes=?, proof_document=?, verification_status=? WHERE id=?`
 		_, err := config.DB.Exec(query,
 			facultyID,
 			nullString(c.PostForm("sigNumber")),
@@ -795,7 +792,7 @@ func HandleLaboratoryByIndustryUpdate(c *gin.Context) {
 			return
 		}
 	} else {
-		query := `UPDATE laboratory_by_industry SET faculty=?, sig_number=?, task_id=?, name_of_laboratory=?, collaborative_industry=?, domain_area_of_industry=?, laboratory_area=?, total_amount_incurred=?, bit_contribution=?, financial_support_from_industry=?, equipment_sponsored=?, equipment_enhancement=?, layout_design_enhancement=?, curriculum_mapping=?, expected_outcomes=?, owi_verification=? WHERE id=?`
+		query := `UPDATE faculty_laboratory_by_industry SET faculty=?, sig_number=?, task_id=?, name_of_laboratory=?, collaborative_industry=?, domain_area_of_industry=?, laboratory_area=?, total_amount_incurred=?, bit_contribution=?, financial_support_from_industry=?, equipment_sponsored=?, equipment_enhancement=?, layout_design_enhancement=?, curriculum_mapping=?, expected_outcomes=?, verification_status=? WHERE id=?`
 		_, err := config.DB.Exec(query,
 			facultyID,
 			nullString(c.PostForm("sigNumber")),
@@ -835,7 +832,7 @@ func HandleLaboratoryByIndustryDelete(c *gin.Context) {
 		return
 	}
 
-	query := `DELETE FROM laboratory_by_industry WHERE id=? AND faculty=?`
+	query := `DELETE FROM faculty_laboratory_by_industry WHERE id=? AND faculty=?`
 	_, err := config.DB.Exec(query, id, facultyID)
 	if err != nil {
 		log.Println("Error deleting laboratory by industry:", err)
@@ -862,7 +859,7 @@ func HandleProfessionalMembershipUpdate(c *gin.Context) {
 	}
 
 	if apexDoc != "" && docProof != "" {
-		query := `UPDATE professional_membership SET membership_category=?, faculty=?, task_id=?, special_labs_involved=?, special_lab=?, name_of_professional_body=?, membership_type=?, membership_id=?, name_of_grade_level_position=?, category=?, validity_type=?, apex_document_proof=?, amount=?, if_others=?, amount_if_others=?, document_proof=?, owi_verification=? WHERE id=?`
+		query := `UPDATE faculty_professional_membership SET membership_category=?, faculty=?, task_id=?, special_labs_involved=?, special_lab=?, name_of_professional_body=?, membership_type=?, membership_id=?, name_of_grade_level_position=?, category=?, validity_type=?, apex_document_proof=?, amount=?, if_others=?, amount_if_others=?, document_proof=?, verification_status=? WHERE id=?`
 		_, err := config.DB.Exec(query,
 			nullString(c.PostForm("membershipCategory")),
 			facultyID,
@@ -889,7 +886,7 @@ func HandleProfessionalMembershipUpdate(c *gin.Context) {
 			return
 		}
 	} else if apexDoc != "" {
-		query := `UPDATE professional_membership SET membership_category=?, faculty=?, task_id=?, special_labs_involved=?, special_lab=?, name_of_professional_body=?, membership_type=?, membership_id=?, name_of_grade_level_position=?, category=?, validity_type=?, apex_document_proof=?, amount=?, if_others=?, amount_if_others=?, owi_verification=? WHERE id=?`
+		query := `UPDATE faculty_professional_membership SET membership_category=?, faculty=?, task_id=?, special_labs_involved=?, special_lab=?, name_of_professional_body=?, membership_type=?, membership_id=?, name_of_grade_level_position=?, category=?, validity_type=?, apex_document_proof=?, amount=?, if_others=?, amount_if_others=?, verification_status=? WHERE id=?`
 		_, err := config.DB.Exec(query,
 			nullString(c.PostForm("membershipCategory")),
 			facultyID,
@@ -915,7 +912,7 @@ func HandleProfessionalMembershipUpdate(c *gin.Context) {
 			return
 		}
 	} else if docProof != "" {
-		query := `UPDATE professional_membership SET membership_category=?, faculty=?, task_id=?, special_labs_involved=?, special_lab=?, name_of_professional_body=?, membership_type=?, membership_id=?, name_of_grade_level_position=?, category=?, validity_type=?, amount=?, if_others=?, amount_if_others=?, document_proof=?, owi_verification=? WHERE id=?`
+		query := `UPDATE faculty_professional_membership SET membership_category=?, faculty=?, task_id=?, special_labs_involved=?, special_lab=?, name_of_professional_body=?, membership_type=?, membership_id=?, name_of_grade_level_position=?, category=?, validity_type=?, amount=?, if_others=?, amount_if_others=?, document_proof=?, verification_status=? WHERE id=?`
 		_, err := config.DB.Exec(query,
 			nullString(c.PostForm("membershipCategory")),
 			facultyID,
@@ -941,7 +938,7 @@ func HandleProfessionalMembershipUpdate(c *gin.Context) {
 			return
 		}
 	} else {
-		query := `UPDATE professional_membership SET membership_category=?, faculty=?, task_id=?, special_labs_involved=?, special_lab=?, name_of_professional_body=?, membership_type=?, membership_id=?, name_of_grade_level_position=?, category=?, validity_type=?, amount=?, if_others=?, amount_if_others=?, owi_verification=? WHERE id=?`
+		query := `UPDATE faculty_professional_membership SET membership_category=?, faculty=?, task_id=?, special_labs_involved=?, special_lab=?, name_of_professional_body=?, membership_type=?, membership_id=?, name_of_grade_level_position=?, category=?, validity_type=?, amount=?, if_others=?, amount_if_others=?, verification_status=? WHERE id=?`
 		_, err := config.DB.Exec(query,
 			nullString(c.PostForm("membershipCategory")),
 			facultyID,
@@ -980,7 +977,7 @@ func HandleProfessionalMembershipDelete(c *gin.Context) {
 		return
 	}
 
-	query := `DELETE FROM professional_membership WHERE id=? AND faculty=?`
+	query := `DELETE FROM faculty_professional_membership WHERE id=? AND faculty=?`
 	_, err := config.DB.Exec(query, id, facultyID)
 	if err != nil {
 		log.Println("Error deleting professional membership:", err)
@@ -1006,7 +1003,7 @@ func HandleStudentsIndustrialVisitUpdate(c *gin.Context) {
 	}
 
 	if proofDoc != "" {
-		query := `UPDATE students_industrial_visit SET faculty=?, sig_number=?, task_id=?, programme=?, industry_name=?, domain_area=?, industry_type=?, industry_type_other=?, industry_location=?, industry_website=?, contact_person_name=?, contact_person_designation=?, contact_person_email=?, contact_person_phone=?, visit_start_date=?, visit_end_date=?, year_of_study=?, number_of_students=?, male_students=?, female_students=?, purpose_of_visit=?, faculty1=?, faculty2=?, faculty3=?, source_of_arrangement=?, curriculum_mapping=?, outcome_of_visit=?, proof_document=?, owi_verification=? WHERE id=?`
+		query := `UPDATE faculty_students_industrial_visit SET faculty=?, sig_number=?, task_id=?, programme=?, industry_name=?, domain_area=?, industry_type=?, industry_type_other=?, industry_location=?, industry_website=?, contact_person_name=?, contact_person_designation=?, contact_person_email=?, contact_person_phone=?, visit_start_date=?, visit_end_date=?, year_of_study=?, number_of_students=?, male_students=?, female_students=?, purpose_of_visit=?, faculty1=?, faculty2=?, faculty3=?, source_of_arrangement=?, curriculum_mapping=?, outcome_of_visit=?, proof_document=?, verification_status=? WHERE id=?`
 		_, err := config.DB.Exec(query,
 			facultyID,
 			nullString(c.PostForm("sigNumber")),
@@ -1045,7 +1042,7 @@ func HandleStudentsIndustrialVisitUpdate(c *gin.Context) {
 			return
 		}
 	} else {
-		query := `UPDATE students_industrial_visit SET faculty=?, sig_number=?, task_id=?, programme=?, industry_name=?, domain_area=?, industry_type=?, industry_type_other=?, industry_location=?, industry_website=?, contact_person_name=?, contact_person_designation=?, contact_person_email=?, contact_person_phone=?, visit_start_date=?, visit_end_date=?, year_of_study=?, number_of_students=?, male_students=?, female_students=?, purpose_of_visit=?, faculty1=?, faculty2=?, faculty3=?, source_of_arrangement=?, curriculum_mapping=?, outcome_of_visit=?, owi_verification=? WHERE id=?`
+		query := `UPDATE faculty_students_industrial_visit SET faculty=?, sig_number=?, task_id=?, programme=?, industry_name=?, domain_area=?, industry_type=?, industry_type_other=?, industry_location=?, industry_website=?, contact_person_name=?, contact_person_designation=?, contact_person_email=?, contact_person_phone=?, visit_start_date=?, visit_end_date=?, year_of_study=?, number_of_students=?, male_students=?, female_students=?, purpose_of_visit=?, faculty1=?, faculty2=?, faculty3=?, source_of_arrangement=?, curriculum_mapping=?, outcome_of_visit=?, verification_status=? WHERE id=?`
 		_, err := config.DB.Exec(query,
 			facultyID,
 			nullString(c.PostForm("sigNumber")),
@@ -1097,7 +1094,7 @@ func HandleStudentsIndustrialVisitDelete(c *gin.Context) {
 		return
 	}
 
-	query := `DELETE FROM students_industrial_visit WHERE id=? AND faculty=?`
+	query := `DELETE FROM faculty_students_industrial_visit WHERE id=? AND faculty=?`
 	_, err := config.DB.Exec(query, id, facultyID)
 	if err != nil {
 		log.Println("Error deleting students industrial visit:", err)
@@ -1121,14 +1118,12 @@ func HandleTechnicalSocietiesUpdate(c *gin.Context) {
 		return
 	}
 
-	query := `UPDATE technical_societies SET name=?, society=?, status=?, faculty=?, sig_number=?, task_id=?, owi_verification=? WHERE id=?`
+	query := `UPDATE faculty_technical_societies SET name=?, society=?, status=?, faculty_id=?, verification_status=? WHERE id=?`
 	_, err := config.DB.Exec(query,
 		c.PostForm("name"),
 		c.PostForm("society"),
 		nullString(c.PostForm("status")),
 		facultyID,
-		nullString(c.PostForm("sigNumber")),
-		nullString(c.PostForm("taskId")),
 		nullString(c.PostForm("owiVerification")),
 		id,
 	)
@@ -1151,7 +1146,7 @@ func HandleTechnicalSocietiesDelete(c *gin.Context) {
 		return
 	}
 
-	query := `DELETE FROM technical_societies WHERE id=? AND faculty=?`
+	query := `DELETE FROM faculty_technical_societies WHERE id=? AND faculty_id=?`
 	_, err := config.DB.Exec(query, id, facultyID)
 	if err != nil {
 		log.Println("Error deleting technical societies:", err)
@@ -1183,7 +1178,7 @@ func HandleTrainingToIndustryUpdate(c *gin.Context) {
 
 	// Build dynamic query based on which files are uploaded
 	if commProof != "" && approvalLetter != "" && geotagPhotos != "" && participantsAtt != "" && paymentProofs != "" && consolidatedDoc != "" {
-		query := `UPDATE training_to_industry SET faculty=?, sig_number=?, special_labs_involved=?, special_lab=?, event_name=?, event_name_other=?, industry_name=?, industry_address=?, domain_area=?, industry_type=?, industry_type_other=?, mode_of_training=?, industry_website=?, number_of_persons_trained=?, duration_days=?, start_date=?, end_date=?, outcome_of_training=?, honorarium_received=?, communication_proof=?, approval_letter=?, geotag_photos=?, participants_attendance=?, payment_proofs=?, consolidated_document=?, owi_verification=? WHERE id=?`
+		query := `UPDATE faculty_training_to_industry SET faculty=?, sig_number=?, special_labs_involved=?, special_lab=?, event_name=?, event_name_other=?, industry_name=?, industry_address=?, domain_area=?, industry_type=?, industry_type_other=?, mode_of_training=?, industry_website=?, number_of_persons_trained=?, duration_days=?, start_date=?, end_date=?, outcome_of_training=?, honorarium_received=?, communication_proof=?, approval_letter=?, geotag_photos=?, participants_attendance=?, payment_proofs=?, consolidated_document=?, verification_status=? WHERE id=?`
 		_, err := config.DB.Exec(query,
 			facultyID,
 			nullString(c.PostForm("sigNumber")),
@@ -1220,7 +1215,7 @@ func HandleTrainingToIndustryUpdate(c *gin.Context) {
 		}
 	} else {
 		// Update without file fields - set them to NULL
-		query := `UPDATE training_to_industry SET faculty=?, sig_number=?, special_labs_involved=?, special_lab=?, event_name=?, event_name_other=?, industry_name=?, industry_address=?, domain_area=?, industry_type=?, industry_type_other=?, mode_of_training=?, industry_website=?, number_of_persons_trained=?, duration_days=?, start_date=?, end_date=?, outcome_of_training=?, honorarium_received=?, communication_proof=NULL, approval_letter=NULL, geotag_photos=NULL, participants_attendance=NULL, payment_proofs=NULL, consolidated_document=NULL, owi_verification=? WHERE id=?`
+		query := `UPDATE faculty_training_to_industry SET faculty=?, sig_number=?, special_labs_involved=?, special_lab=?, event_name=?, event_name_other=?, industry_name=?, industry_address=?, domain_area=?, industry_type=?, industry_type_other=?, mode_of_training=?, industry_website=?, number_of_persons_trained=?, duration_days=?, start_date=?, end_date=?, outcome_of_training=?, honorarium_received=?, communication_proof=NULL, approval_letter=NULL, geotag_photos=NULL, participants_attendance=NULL, payment_proofs=NULL, consolidated_document=NULL, verification_status=? WHERE id=?`
 		_, err := config.DB.Exec(query,
 			facultyID,
 			nullString(c.PostForm("sigNumber")),
@@ -1264,7 +1259,7 @@ func HandleTrainingToIndustryDelete(c *gin.Context) {
 		return
 	}
 
-	query := `DELETE FROM training_to_industry WHERE id=? AND faculty=?`
+	query := `DELETE FROM faculty_training_to_industry WHERE id=? AND faculty=?`
 	_, err := config.DB.Exec(query, id, facultyID)
 	if err != nil {
 		log.Println("Error deleting training to industry:", err)

@@ -52,8 +52,8 @@ export default function LaboratoryByIndustryForm() {
 
   const [errors, setErrors] = useState({});
   const [dragActive, setDragActive] = useState(false);
+  const fileInputRef = useRef(null);
 
-  // Auto-fill faculty name from logged-in user
   useEffect(() => {
     if (name) {
       setFormData((prev) => ({ ...prev, faculty: name }));
@@ -84,70 +84,76 @@ export default function LaboratoryByIndustryForm() {
     }
   };
 
-  const fileInputRefs = useRef({});
-
-  const handleFileChange = (e, fieldName) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setFormData((prev) => ({
-        ...prev,
-        [fieldName]: [...prev[fieldName], ...Array.from(e.target.files)],
-      }));
-      if (errors[fieldName]) {
-        setErrors((prev) => {
-          const newErrors = { ...prev };
-          delete newErrors[fieldName];
-          return newErrors;
-        });
+  const handleFileChange = (e) => {
+    if (e.target && e.target.files && e.target.files.length > 0) {
+      const filesArray = [];
+      for (let i = 0; i < e.target.files.length; i++) {
+        filesArray.push(e.target.files[i]);
       }
+      
+      setFormData((prev) => {
+        return {
+          ...prev,
+          proofDocument: [...prev.proofDocument, ...filesArray],
+        };
+      });
+      
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.proofDocument;
+        return newErrors;
+      });
     }
     // Reset the input value to allow selecting the same file again
     e.target.value = "";
   };
 
-  const openFileDialog = (fieldName) => {
-    if (fileInputRefs.current[fieldName]) {
-      fileInputRefs.current[fieldName].click();
-    }
-  };
 
-  const clearFile = (fieldName, index = null) => {
+
+  const clearFile = (index = null) => {
     setFormData((prev) => {
       if (index !== null) {
         // Remove specific file from array
-        const newFiles = [...prev[fieldName]];
+        const newFiles = [...prev.proofDocument];
         newFiles.splice(index, 1);
-        return { ...prev, [fieldName]: newFiles };
+        return { ...prev, proofDocument: newFiles };
       }
 
-      return { ...prev, [fieldName]: [] };
+      return { ...prev, proofDocument: [] };
     });
   };
-  const handleDrag = (e, setDragActiveState) => {
+
+  const handleDrag = (e) => {
     e.preventDefault();
     e.stopPropagation();
     if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActiveState(true);
+      setDragActive(true);
     } else if (e.type === "dragleave") {
-      setDragActiveState(false);
+      setDragActive(false);
     }
   };
 
-  const handleDrop = (e, fieldName, setDragActiveState) => {
+  const handleDrop = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    setDragActiveState(false);
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+    setDragActive(false);
+    
+    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const filesArray = [];
+      for (let i = 0; i < e.dataTransfer.files.length; i++) {
+        filesArray.push(e.dataTransfer.files[i]);
+      }
+      
       setFormData((prev) => ({
         ...prev,
-        [fieldName]: [...prev[fieldName], ...Array.from(e.dataTransfer.files)],
+        proofDocument: [...prev.proofDocument, ...filesArray],
       }));
-      if (errors[fieldName]) {
-        setErrors((prev) => {
-          const newErrors = { ...prev };
-          delete newErrors[fieldName];
-          return newErrors;
-        });
-      }
+      
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.proofDocument;
+        return newErrors;
+      });
     }
   };
 
@@ -780,6 +786,11 @@ export default function LaboratoryByIndustryForm() {
                   <RequiredAst />
                 </label>
                 <div
+                  onClick={() => fileInputRef.current?.click()}
+                  onDragEnter={handleDrag}
+                  onDragLeave={handleDrag}
+                  onDragOver={handleDrag}
+                  onDrop={handleDrop}
                   className={`mt-1 flex flex-col items-center justify-center w-full h-32 px-6 pt-5 pb-6 border-2 ${
                     errors.proofDocument
                       ? "border-red-500"
@@ -787,11 +798,6 @@ export default function LaboratoryByIndustryForm() {
                         ? "border-indigo-500 bg-indigo-50"
                         : "border-gray-300"
                   } border-dashed rounded-md cursor-pointer hover:border-indigo-500 transition-colors bg-white`}
-                  onDragEnter={(e) => handleDrag(e, setDragActive)}
-                  onDragLeave={(e) => handleDrag(e, setDragActive)}
-                  onDragOver={(e) => handleDrag(e, setDragActive)}
-                  onDrop={(e) => handleDrop(e, "proofDocument", setDragActive)}
-                  onClick={() => openFileDialog("proofDocument")}
                 >
                   <div className="space-y-1 text-center">
                     <UploadCloud
@@ -811,14 +817,14 @@ export default function LaboratoryByIndustryForm() {
                   </div>
                 </div>
                 <input
-                  ref={(el) => (fileInputRefs.current["proofDocument"] = el)}
+                  ref={fileInputRef}
                   id="proof-upload"
                   name="proofDocument"
                   type="file"
-                  style={{ position: "absolute", left: "-9999px", opacity: 0 }}
                   multiple
                   accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                  onChange={(e) => handleFileChange(e, "proofDocument")}
+                  onChange={handleFileChange}
+                  style={{ display: "none" }}
                 />
                 {formData.proofDocument &&
                   formData.proofDocument.length > 0 && (
@@ -842,7 +848,7 @@ export default function LaboratoryByIndustryForm() {
                             type="button"
                             onClick={(e) => {
                               e.stopPropagation();
-                              clearFile("proofDocument", index);
+                              clearFile(index);
                             }}
                             className="ml-auto text-red-500 hover:text-red-700 p-1"
                           >

@@ -110,6 +110,7 @@ CREATE TABLE IF NOT EXISTS faculty_trained_by_industry (
 
 CREATE TABLE IF NOT EXISTS faculty_industry_projects (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    faculty_id VARCHAR(255),
     faculty VARCHAR(255),
     task_id VARCHAR(255),
     special_labs_involved VARCHAR(10),
