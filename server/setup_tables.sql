@@ -1,3 +1,28 @@
+-- Departments lookup table
+CREATE TABLE IF NOT EXISTS departments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    department_name VARCHAR(255) NOT NULL UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Insert default departments if table is empty
+INSERT IGNORE INTO departments (department_name) VALUES
+    ('Computer Science & Engineering'),
+    ('Electronics & Communication Engineering'),
+    ('Mechanical Engineering'),
+    ('Civil Engineering'),
+    ('Electrical & Electronics Engineering'),
+    ('Information Technology'),
+    ('Artificial Intelligence & Data Science'),
+    ('Artificial Intelligence & Machine Learning'),
+    ('Mathematics'),
+    ('Physics'),
+    ('Chemistry'),
+    ('English'),
+    ('Management Studies'),
+    ('Master of Business Administration'),
+    ('Master of Computer Applications');
+
 CREATE TABLE IF NOT EXISTS faculty_mou (
     id INT AUTO_INCREMENT PRIMARY KEY,
     faculty VARCHAR(255),

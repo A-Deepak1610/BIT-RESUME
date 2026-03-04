@@ -1,6 +1,5 @@
 package config
 
-
 import (
 	"crypto/tls"
 	"crypto/x509"
@@ -9,9 +8,11 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"time"
+
+	"github.com/go-sql-driver/mysql"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
-	"github.com/go-sql-driver/mysql"
 )
 
 var DB *sql.DB
@@ -47,7 +48,7 @@ func InitDB() {
 		log.Fatalf("Failed to register TLS config: %v", err)
 	}
 
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?tls=custom",
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?tls=custom&parseTime=true&timeout=30s&readTimeout=30s&writeTimeout=30s",
 		dbUser,
 		dbPassword,
 		dbHost,
@@ -63,7 +64,33 @@ func InitDB() {
 
 	DB.SetMaxOpenConns(10)
 	DB.SetMaxIdleConns(5)
+	DB.SetConnMaxLifetime(3 * time.Minute) // recycle connections before server closes them
+	DB.SetConnMaxIdleTime(1 * time.Minute) // drop idle connections quickly
+
+	// Auto-create consultancy_works table if it doesn't exist
+	createConsultancyTable := `
+	CREATE TABLE IF NOT EXISTS consultancy_works (
+		id               BIGINT AUTO_INCREMENT PRIMARY KEY,
+		project_title    VARCHAR(255) NOT NULL,
+		client_organization VARCHAR(255) NOT NULL,
+		work_description TEXT,
+		expected_completion_date DATE NULL,
+		attachment_url   VARCHAR(500),
+		status           VARCHAR(50) NOT NULL DEFAULT 'pending_iqac',
+		submitted_by     VARCHAR(255) NOT NULL,
+		submitted_at     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		created_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		iqac_assignment  TEXT NULL,
+		hod_assignment   TEXT NULL,
+		faculty_response TEXT NULL
+	)`
+	if _, err := DB.Exec(createConsultancyTable); err != nil {
+		log.Fatalf("Failed to create consultancy_works table: %v", err)
+	}
+
+	// Ensure status column is VARCHAR(50) to support all status values including form_pending.
+	// This handles the case where the table was originally created with an ENUM column.
+	_, _ = DB.Exec(`ALTER TABLE consultancy_works MODIFY COLUMN status VARCHAR(50) NOT NULL DEFAULT 'pending_iqac'`)
 
 	fmt.Print("Successfully connected to the database!!")
 }
-

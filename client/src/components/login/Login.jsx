@@ -6,13 +6,15 @@ import { useNavigate } from "react-router-dom";
 export default function Login() {
   const API_URL = import.meta.env.VITE_API_URL
   const { fetchUser } = useAuth();
+  const navigate = useNavigate();
+
   const handleGoogleLogin = () => {
     const width = 500;
     const height = 550;
     const left = (window.innerWidth - width) / 2;
     const top = (window.innerHeight - height) / 2;
     const loginWindow = window.open(
-      `${API_URL}api/auth/google/login`,
+      `${API_URL}/api/auth/google/login`,
       "GoogleLogin",
       `width=${width},height=${height},top=${top},left=${left}`
     );
@@ -22,15 +24,24 @@ export default function Login() {
       return;
     }
 
+    const onMessage = async (event) => {
+      if (event.data === "login-success") {
+        window.removeEventListener("message", onMessage);
+        await fetchUser();
+        navigate("/consultancy");
+      }
+    };
+    window.addEventListener("message", onMessage);
+
+    // Fallback: if popup closes without postMessage
     const interval = setInterval(async () => {
       if (loginWindow.closed) {
         clearInterval(interval);
-        console.log("Login popup closed. Refetching user...");
-        await fetchUser(); // Fetch user again
+        window.removeEventListener("message", onMessage);
+        await fetchUser();
+        navigate("/consultancy");
       }
     }, 500);
-
-    return () => clearInterval(interval);
   };
 
   return (

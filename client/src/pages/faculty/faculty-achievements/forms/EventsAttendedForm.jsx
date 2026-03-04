@@ -1,151 +1,300 @@
 import React, { useState } from "react";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { 
-  ArrowLeft, 
-  Save, 
-  UploadCloud, 
-  FileText, 
-  X,
-  MapPin,
-  Calendar
-} from "lucide-react";
+import { ArrowLeft, Save, UploadCloud, FileText, X } from "lucide-react";
+import SpecialLabDropdown from "../../../../components/shared/SpecialLabDropdown";
 
 const RequiredAst = () => <span className="text-red-500 ml-0.5">*</span>;
+
+const API_URL = import.meta.env.VITE_API_URL;
+
+// Event Type Options
+const EVENT_TYPE_OPTIONS = [
+  "Select Event Type",
+  "Certificate course",
+  "Conference attended-without presentation",
+  "Educational fair",
+  "Faculty exchange programme",
+  "FDP",
+  "Guest Lecture",
+  "Non-technical events",
+  "One credit course",
+  "Orientation programme",
+  "Seminar",
+  "Session chair",
+  "STTP",
+  "Summer School",
+  "Training",
+  "Value-Added course",
+  "Webinar",
+  "Winter School",
+  "Workshop",
+  "Hands-On Training",
+  "PS-Certification (BIT)",
+  "NPTEL-FDP",
+  "AICTE-UHV-FDP",
+  "Innovation Ambassador- IIC Certificate",
+  "CEE-ACO & BEI panelist workshop certificate",
+  "Other",
+];
+
+// PS Domain Options
+const PS_DOMAIN_OPTIONS = [
+  "Select PS Domain",
+  "Web Development",
+  "Mobile App Development",
+  "Data Science",
+  "Machine Learning",
+  "Artificial Intelligence",
+  "Cloud Computing",
+  "Cybersecurity",
+  "Internet of Things",
+  "Blockchain",
+  "DevOps",
+  "Database Management",
+  "Embedded Systems",
+  "Networking",
+  "Software Testing",
+  "UI/UX Design",
+  "Game Development",
+  "AR/VR",
+  "Robotics",
+  "Other",
+];
+
+// PS Domain Level Options
+const PS_DOMAIN_LEVEL_OPTIONS = [
+  "Select Level",
+  "Beginner",
+  "Intermediate",
+  "Advanced",
+  "Expert",
+];
+
+// Organizer Type Options
+const ORGANIZER_TYPE_OPTIONS = [
+  "Select Organizer Type",
+  "BIT",
+  "Industry",
+  "Foreign Institute",
+  "Institute in India",
+  "Others",
+];
+
+// Industry Name (Select) Options
+const INDUSTRY_NAME_SELECT_OPTIONS = [
+  "Select Industry",
+  "ADOBE CERTIFIED PROFESSIONAL",
+  "ADOBE ILLUSTRATOR FOR FASHION",
+  "AGRIBUSINESS MANAGEMENT",
+  "ANSYS / CFD / FEA SIMULATION TRAINING",
+  "APPAREL PRODUCTION & MERCHANDISING",
+  "AUTOCAD / SOLIDWORKS PROFESSIONAL CERTIFICATION",
+  "AUTODESK CERTIFIED PROFESSIONAL: AUTOCAD FOR DESIGN AND DRAFTING",
+  "AUTOMATION WITH PLC/SCADA",
+  "AWS CERTIFIED AI PRACTITIONER",
+  "AWS CERTIFIED CLOUD PRACTITIONER",
+  "AWS CERTIFIED MACHINE LEARNING",
+  "BIOINFORMATICS SPECIALIZATION",
+  "BIOTECHNOLOGY FUNDAMENTALS",
+  "CERTIFIED BIOMEDICAL EQUIPMENT TECHNICIAN (CBET)",
+  "CERTIFIED BUSINESS ANALYST",
+  "CERTIFIED CLOUD PRACTITIONER",
+  "CERTIFIED ELECTRICAL POWER ENGINEER",
+  "CERTIFIED ELECTRONICS TECHNICIAN (CETA)",
+  "CERTIFIED ETHICAL HACKER (CEH)",
+  "CERTIFIED FINANCIAL ANALYST (CFA)",
+  "CERTIFIED INFORMATION SYSTEMS SECURITY PROFESSIONAL (CISSP)",
+  "CERTIFIED MANUFACTURING ENGINEER – SME",
+  "CERTIFIED RF ENGINEER",
+  "CHEMICAL ENGINEERING THERMODYNAMICS",
+  "CISCO CERTIFIED NETWORK ASSOCIATE (CCNA)",
+  "COMPTIA A+ / NETWORK+ CERTIFICATION",
+  "COMPUTATIONAL PHYSICS WITH PYTHON",
+  "CREATIVE WRITING",
+  "CYBERSECURITY ANALYST",
+  "CYBERSECURITY FUNDAMENTALS",
+  "DATA SCIENCE FOR PHYSICISTS",
+  "DATA SCIENCE MATH SKILLS",
+  "DATA STRUCTURES AND ALGORITHMS SPECIALIZATION",
+  "DEEP LEARNING SPECIALIZATION",
+  "DIGITAL MARKETING SPECIALIZATION",
+  "E WASTE RECYCLING BUSINESS",
+  "EFFECTIVE COMMUNICATION SKILLS",
+  "EMBEDDED SYSTEMS CERTIFICATION",
+  "FASHION DESIGN CERTIFICATION",
+  "FOOD SAFETY AND STANDARDS (FSSAI CERTIFICATION)",
+  "FUNDAMENTALS OF DIGITAL MARKETING",
+  "GOOGLE DATA ANALYTICS CERTIFICATE",
+  "GOOGLE IT SUPPORT PROFESSIONAL CERTIFICATE",
+  "HACCP CERTIFICATION",
+  "HARVARD CS50X + BUSINESS STRATEGY",
+  "IBM DATA SCIENCE PROFESSIONAL CERTIFICATE",
+  "INDUSTRIAL BIOTECHNOLOGY",
+  "INDUSTRIAL IOT (IIOT) CERTIFICATION",
+  "INTERACTION DESIGN",
+  "INTRODUCTION TO FPGA DESIGN FOR EMBEDDED SYSTEMS",
+  "INTRODUCTION TO MEDICAL IMAGING",
+  "ISO 22000 FOOD SAFETY MANAGEMENT SYSTEM",
+  "ITECH METAL ALLOYS",
+  "JAVA FOUNDATIONS",
+  "JAVA FULL STACK",
+  "JAVA SE 17 DEVELOPER",
+  "LABVIEW CERTIFICATION",
+  "MACHINE LEARNING MATH",
+  "MATHEMATICAL THINKING",
+  "MATHEMATICS FOR MACHINE LEARNING SPECIALIZATION",
+  "MATLAB FOR ELECTRICAL ENGINEERS",
+  "MATLAB FOR ROBOTICS & MECHATRONICS",
+  "MEDICAL DEVICE REGULATORY AFFAIRS",
+  "MEDICAL EQUIPMENT TROUBLESHOOTING",
+  "MICROSOFT CERTIFIED: AZURE AI ENGINEER ASSOCIATE",
+  "MICROSOFT CERTIFIED: AZURE FUNDAMENTALS / SOLUTIONS ARCHITECT",
+  "MYSQL 8.0 DATABASE DEVELOPER",
+  "MYSQL IMPLEMENTATION ASSOCIATE",
+  "NVIDIA-CERTIFIED GENERATIVE AI LLMS SPECIALIZATION",
+  "ORACLE AI VECTOR SEARCH PROFESSIONAL",
+  "ORACLE ANALYTICS CLOUD 2025 PROFESSIONAL",
+  "ORACLE APEX CLOUD DEVELOPER PROFESSIONAL",
+  "ORACLE AUTONOMOUS DATABASE CLOUD 2025 PROFESSIONAL",
+  "ORACLE CERTIFIED JAVA PROGRAMMER / PYTHON",
+  "ORACLE CLOUD DATABASE SERVICES 2025 PROFESSIONAL",
+  "ORACLE CLOUD INFRASTRUCTURE 2025 AI FOUNDATIONS ASSOCIATE",
+  "ORACLE CLOUD INFRASTRUCTURE 2025 APPLICATION INTEGRATION PROFESSIONAL",
+  "ORACLE CLOUD INFRASTRUCTURE 2025 ARCHITECT ASSOCIATE",
+  "ORACLE CLOUD INFRASTRUCTURE 2025 DATA SCIENCE PROFESSIONAL",
+  "ORACLE CLOUD INFRASTRUCTURE 2025 DEVELOPER PROFESSIONAL",
+  "ORACLE CLOUD INFRASTRUCTURE 2025 DEVOPS PROFESSIONAL",
+  "ORACLE CLOUD INFRASTRUCTURE 2025 FOUNDATIONS ASSOCIATE",
+  "ORACLE CLOUD INFRASTRUCTURE 2025 MIGRATION ARCHITECT PROFESSIONAL",
+  "ORACLE CLOUD INFRASTRUCTURE 2025 MULTICLOUD ARCHITECT PROFESSIONAL",
+  "ORACLE CLOUD INFRASTRUCTURE 2025 NETWORKING PROFESSIONAL",
+  "ORACLE CLOUD INFRASTRUCTURE 2025 OBSERVABILITY PROFESSIONAL",
+  "ORACLE DATA PLATFORM 2025 FOUNDATIONS ASSOCIATE",
+  "ORACLE DATABASE PROGRAM WITH PL/SQL",
+  "ORACLE DATABASE SQL",
+  "ORACLE REDWOOD APPLICATION 2025 DEVELOPER ASSOCIATE",
+  "PLC & SCADA AUTOMATION CERTIFICATION",
+  "PMP (PROJECT MANAGEMENT PROFESSIONAL) – PMI",
+  "POST-HARVEST TECHNOLOGY",
+  "POWER SECTOR SKILLS (GREEN ENERGY, SAFETY, POWER, ETC.)",
+  "PRECISION AGRICULTURE TECHNOLOGY CERTIFICATE",
+  "PROCESS AUTOMATION USING DCS/PLC/SCADA",
+  "PROCESS DESIGN AND SIMULATION",
+  "PROFESSIONAL CERTIFICATE IN AI & ML",
+  "PROJECT MANAGEMENT PROFESSIONAL (PMP)",
+  "PYTHON FOR EVERYBODY",
+  "PYTHON PROGRAMMING",
+  "QUANTUM MECHANICS CERTIFICATION",
+  "REMOTE SENSING AND GIS FOR AGRICULTURE",
+  "ROBOTICS SPECIALIZATION",
+  "SOLAR WATER HEATER COURSE",
+  "STAAD PRO / ETABS STRUCTURAL DESIGN CERTIFICATION",
+  "SUSTAINABLE FASHION",
+  "SUSTAINABLE TEXTILE MANUFACTURING",
+  "SUSTAINABLE TEXTILES",
+  "TENSORFLOW DEVELOPER CERTIFICATE",
+  "TESOL / TEFL CERTIFICATION FOR ENGLISH LANGUAGE TEACHING",
+  "TESOL/TOEFL CERTIFICATION",
+  "TEXTILE TESTING & QUALITY CONTROL",
+  "UI/UX DESIGN SPECIALIZATION",
+  "VLSI DESIGN USING CADENCE TOOLS",
+  "WINTEX PROCESSING MILLS",
+];
+
+// Event Level Options
+const EVENT_LEVEL_OPTIONS = [
+  "Select Event Level",
+  "State",
+  "National (within Tamilnadu)",
+  "National (Outside Tamilnadu)",
+  "International",
+];
+
+// Organization Sector Options
+const ORGANIZATION_SECTOR_OPTIONS = ["Select Sector", "Private", "Government"];
+
+// Event Mode Options
+const EVENT_MODE_OPTIONS = ["Select Mode", "Online", "Offline"];
+
+// Event Duration Options
+const EVENT_DURATION_OPTIONS = [
+  "Select Duration Type",
+  "Months",
+  "Weeks",
+  "Hours",
+  "Days",
+];
+
+// Type of Sponsorship Options
+const SPONSORSHIP_TYPE_OPTIONS = [
+  "Select Sponsorship Type",
+  "Self",
+  "BIT",
+  "Funding Agency",
+  "Others",
+];
+
+// Outcome Options
+const OUTCOME_OPTIONS = [
+  "Select Outcome",
+  "Programs organized",
+  "Development of working Models and prototypes",
+  "Funded projects received",
+  "Others",
+];
 
 export default function EventsAttendedForm() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     taskID: "",
-    specialLabsInvolved: "",
+    specialLabsInvolved: "no",
+    specialLab: "",
     eventType: "",
+    otherEventType: "",
+    psDomain: "",
+    psDomainLevel: "",
+    topicName: "",
     organizerType: "",
+    industryNameText: "",
+    industryAddress: "",
+    industryNameSelect: "",
+    instituteName: "",
     eventLevel: "",
     eventTitle: "",
     organizationSector: "",
     eventOrganizer: "",
     eventMode: "",
+    eventLocation: "",
     eventDuration: "",
     startDate: "",
     endDate: "",
     durationInDays: "",
     otherOrganizerName: "",
     sponsorshipType: "",
+    apexProof: null,
+    fundingAgencyName: "",
+    amount: "",
     outcome: "",
+    otherOutcome: "",
     certificateProof: null,
     geotagPhotos: null,
-    claimedFor: ""
   });
 
   const [errors, setErrors] = useState({});
-  const [certificateDragActive, setCertificateDragActive] = useState(false);
-  const [geotagDragActive, setGeotagDragActive] = useState(false);
-
-  // Options
-  const eventTypeOptions = [
-    "Select Option",
-    "Certificate course",
-    "Conference attended-without presentation",
-    "Educational fair",
-    "Faculty exchange programme",
-    "FDP",
-    "Guest Lecture",
-    "Non-technical events",
-    "One credit course",
-    "Orientation programme",
-    "Seminar",
-    "Session chair",
-    "STTP",
-    "Summer School",
-    "Training",
-    "Value-Added course",
-    "Webinar",
-    "Winter School",
-    "Workshop",
-    "Hands-On Training",
-    "PS-Certification (BIT)",
-    "NPTEL-FDP",
-    "AICTE-UHV-FDP",
-    "Innovation Ambassador- IIC Certificate",
-    "CEE-ACO & BEI panelist workshop certificate",
-    "Other"
-  ];
-
-  const organizerTypeOptions = [
-    "Choose an option",
-    "Bit",
-    "Industry",
-    "Foreign institute",
-    "Others",
-    "Institute"
-  ];
-  
-  const eventLevelOptions = [
-    "Choose an option",
-    "International",
-    "National",
-    "State", 
-    "Regional",
-    "Local"
-  ];
-
-  const organizationSectorOptions = [
-    "Choose an option",
-    "Government",
-    "Private"
-  ];
-
-  const eventModeOptions = [
-    "Choose an option",
-    "Online",
-    "Offline"
-  ];
-
-  const eventDurationOptions = [
-    "Choose an option",
-    "Less than 1 day",
-    "1 day",
-    "2-5 days",
-    "One week", 
-    "More than a week"
-  ];
-
-  const sponsorshipTypeOptions = [
-    "Click to choose",
-    "SELF",
-    "BIT",
-    "Funding agency",
-    "Others"
-  ];
-
-  const outcomeOptions = [
-    "Click to choose",
-    "Knowledge Gain",
-    "Skill Development",
-    "Networking",
-    "Certification",
-    "Research Insight",
-    "Other"
-  ];
-
-  const specialLabsOptions = [
-    "Choose an option",
-    "Yes",
-    "No"
-  ];
-
-    const claimedForOptions = [
-    "Select Option",
-    "FAP",
-    "Competency",
-    "Other"
-  ];
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [dragActive, setDragActive] = useState({
+    apexProof: false,
+    certificateProof: false,
+    geotagPhotos: false,
+  });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    
+
     if (errors[name]) {
-      setErrors(prev => {
+      setErrors((prev) => {
         const newErrors = { ...prev };
         delete newErrors[name];
         return newErrors;
@@ -157,7 +306,7 @@ export default function EventsAttendedForm() {
     if (e.target.files && e.target.files[0]) {
       setFormData((prev) => ({ ...prev, [fieldName]: e.target.files[0] }));
       if (errors[fieldName]) {
-        setErrors(prev => {
+        setErrors((prev) => {
           const newErrors = { ...prev };
           delete newErrors[fieldName];
           return newErrors;
@@ -170,25 +319,27 @@ export default function EventsAttendedForm() {
     setFormData((prev) => ({ ...prev, [fieldName]: null }));
   };
 
-  // Drag and drop handlers
-  const handleDrag = (e, setDragActiveState) => {
+  const handleDrag = (e, fieldName) => {
     e.preventDefault();
     e.stopPropagation();
     if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActiveState(true);
+      setDragActive((prev) => ({ ...prev, [fieldName]: true }));
     } else if (e.type === "dragleave") {
-      setDragActiveState(false);
+      setDragActive((prev) => ({ ...prev, [fieldName]: false }));
     }
   };
 
-  const handleDrop = (e, fieldName, setDragActiveState) => {
+  const handleDrop = (e, fieldName) => {
     e.preventDefault();
     e.stopPropagation();
-    setDragActiveState(false);
+    setDragActive((prev) => ({ ...prev, [fieldName]: false }));
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      setFormData((prev) => ({ ...prev, [fieldName]: e.dataTransfer.files[0] }));
+      setFormData((prev) => ({
+        ...prev,
+        [fieldName]: e.dataTransfer.files[0],
+      }));
       if (errors[fieldName]) {
-        setErrors(prev => {
+        setErrors((prev) => {
           const newErrors = { ...prev };
           delete newErrors[fieldName];
           return newErrors;
@@ -200,518 +351,1137 @@ export default function EventsAttendedForm() {
   const validate = () => {
     const newErrors = {};
     if (!formData.taskID) newErrors.taskID = "Task ID is required";
-    if (!formData.specialLabsInvolved || formData.specialLabsInvolved === "Choose an option") newErrors.specialLabsInvolved = "Selection is required";
-    if (!formData.eventType || formData.eventType === "Select Option") newErrors.eventType = "Event Type is required";
-    if (!formData.organizerType || formData.organizerType === "Choose an option") newErrors.organizerType = "Organizer Type is required";
-    if (!formData.eventLevel || formData.eventLevel === "Choose an option") newErrors.eventLevel = "Event Level is required";
+    if (formData.specialLabsInvolved === "yes" && !formData.specialLab) {
+      newErrors.specialLab = "Special Lab is required";
+    }
+    if (!formData.eventType || formData.eventType === "Select Event Type") {
+      newErrors.eventType = "Event Type is required";
+    }
+    if (formData.eventType === "Other" && !formData.otherEventType) {
+      newErrors.otherEventType = "Please specify event type";
+    }
+    if (!formData.topicName) newErrors.topicName = "Topic Name is required";
+    if (
+      !formData.organizerType ||
+      formData.organizerType === "Select Organizer Type"
+    ) {
+      newErrors.organizerType = "Organizer Type is required";
+    }
+    if (formData.organizerType === "Industry") {
+      if (!formData.industryNameText)
+        newErrors.industryNameText = "Industry Name is required";
+      if (!formData.industryAddress)
+        newErrors.industryAddress = "Industry Address is required";
+    }
+    if (
+      (formData.organizerType === "Foreign Institute" ||
+        formData.organizerType === "Institute in India") &&
+      !formData.instituteName
+    ) {
+      newErrors.instituteName = "Institute Name is required";
+    }
+    if (!formData.eventLevel || formData.eventLevel === "Select Event Level") {
+      newErrors.eventLevel = "Event Level is required";
+    }
     if (!formData.eventTitle) newErrors.eventTitle = "Event Title is required";
-    if (!formData.organizationSector || formData.organizationSector === "Choose an option") newErrors.organizationSector = "Organization Sector is required";
-    if (!formData.eventOrganizer) newErrors.eventOrganizer = "Event Organizer is required";
-    if (!formData.eventMode || formData.eventMode === "Choose an option") newErrors.eventMode = "Event Mode is required";
-    if (!formData.eventDuration || formData.eventDuration === "Choose an option") newErrors.eventDuration = "Event Duration is required";
+    if (
+      !formData.organizationSector ||
+      formData.organizationSector === "Select Sector"
+    ) {
+      newErrors.organizationSector = "Organization Sector is required";
+    }
+    if (!formData.eventOrganizer)
+      newErrors.eventOrganizer = "Event Organizer is required";
+    if (!formData.eventMode || formData.eventMode === "Select Mode") {
+      newErrors.eventMode = "Event Mode is required";
+    }
+    if (!formData.eventLocation)
+      newErrors.eventLocation = "Event Location is required";
+    if (
+      !formData.eventDuration ||
+      formData.eventDuration === "Select Duration Type"
+    ) {
+      newErrors.eventDuration = "Event Duration is required";
+    }
     if (!formData.startDate) newErrors.startDate = "Start Date is required";
     if (!formData.endDate) newErrors.endDate = "End Date is required";
-    if (!formData.durationInDays) newErrors.durationInDays = "Duration in days is required";
-    if (!formData.sponsorshipType || formData.sponsorshipType === "Click to choose") newErrors.sponsorshipType = "Sponsorship Type is required";
-    if (!formData.outcome || formData.outcome === "Click to choose") newErrors.outcome = "Outcome is required";
-    if (!formData.certificateProof) newErrors.certificateProof = "Certificate Proof is required";
-    if (!formData.geotagPhotos) newErrors.geotagPhotos = "Geotag Photos are required";
-    if (!formData.claimedFor) newErrors.claimedFor = "Claimed For is required";
-
-    // Conditional generic checks (if needed in future)
-    if (formData.organizerType === "Others" && !formData.otherOrganizerName) {
-         // If user wants this mandatory when 'Others' is selected
-         // newErrors.otherOrganizerName = "Other Organizer Name is required";
+    if (!formData.durationInDays)
+      newErrors.durationInDays = "Duration in days is required";
+    if (
+      !formData.sponsorshipType ||
+      formData.sponsorshipType === "Select Sponsorship Type"
+    ) {
+      newErrors.sponsorshipType = "Sponsorship Type is required";
     }
+    if (
+      (formData.sponsorshipType === "Funding Agency" ||
+        formData.sponsorshipType === "Others") &&
+      !formData.fundingAgencyName
+    ) {
+      newErrors.fundingAgencyName = "Funding Agency / Other name is required";
+    }
+    if (!formData.outcome || formData.outcome === "Select Outcome") {
+      newErrors.outcome = "Outcome is required";
+    }
+    if (formData.outcome === "Others" && !formData.otherOutcome) {
+      newErrors.otherOutcome = "Please specify outcome";
+    }
+    if (!formData.certificateProof)
+      newErrors.certificateProof = "Certificate Proof is required";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (validate()) {
-      console.log("Submitting form for: Events Attended", formData);
-      navigate("/faculty/uploadview");
+      setIsSubmitting(true);
+      try {
+        const data = new FormData();
+        data.append("taskID", formData.taskID);
+        data.append("specialLabsInvolved", formData.specialLabsInvolved);
+        if (formData.specialLabsInvolved === "yes") {
+          data.append("specialLab", formData.specialLab);
+        }
+        data.append("eventType", formData.eventType);
+        if (formData.eventType === "Other") {
+          data.append("otherEventType", formData.otherEventType);
+        }
+        data.append("psDomain", formData.psDomain);
+        data.append("psDomainLevel", formData.psDomainLevel);
+        data.append("topicName", formData.topicName);
+        data.append("organizerType", formData.organizerType);
+        data.append("industryNameText", formData.industryNameText);
+        data.append("industryAddress", formData.industryAddress);
+        data.append("industryNameSelect", formData.industryNameSelect);
+        data.append("instituteName", formData.instituteName);
+        data.append("eventLevel", formData.eventLevel);
+        data.append("eventTitle", formData.eventTitle);
+        data.append("organizationSector", formData.organizationSector);
+        data.append("eventOrganizer", formData.eventOrganizer);
+        data.append("eventMode", formData.eventMode);
+        data.append("eventLocation", formData.eventLocation);
+        data.append("eventDuration", formData.eventDuration);
+        data.append("startDate", formData.startDate);
+        data.append("endDate", formData.endDate);
+        data.append("durationInDays", formData.durationInDays);
+        data.append("otherOrganizerName", formData.otherOrganizerName);
+        data.append("sponsorshipType", formData.sponsorshipType);
+        data.append("fundingAgencyName", formData.fundingAgencyName);
+        data.append("amount", formData.amount);
+        data.append("outcome", formData.outcome);
+        if (formData.outcome === "Others") {
+          data.append("otherOutcome", formData.otherOutcome);
+        }
+        if (formData.apexProof) {
+          data.append("apexProof", formData.apexProof);
+        }
+        data.append("certificateProof", formData.certificateProof);
+        if (formData.geotagPhotos) {
+          data.append("geotagPhotos", formData.geotagPhotos);
+        }
+
+        const response = await axios.post(
+          `${API_URL}/api/faculty/eventsAttendedPost`,
+          data,
+          {
+            withCredentials: true,
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          },
+        );
+
+        if (response.status === 200) {
+          alert("Events Attended submitted successfully");
+          navigate("/faculty/uploadview");
+        }
+      } catch (error) {
+        console.error("Error submitting form:", error);
+        const errorMessage =
+          error.response?.data?.error ||
+          error.response?.data?.details ||
+          error.message ||
+          "Unknown error";
+        alert(`Failed to submit form: ${errorMessage}`);
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
+
+  // File Upload Component
+  const FileUpload = ({ fieldName, label, required = false }) => (
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-1">
+        {label} {required && <RequiredAst />}
+      </label>
+      <div
+        className={`mt-1 flex flex-col items-center justify-center w-full h-32 px-6 pt-5 pb-6 border-2 ${
+          errors[fieldName]
+            ? "border-red-500"
+            : dragActive[fieldName]
+              ? "border-indigo-500 bg-indigo-50"
+              : "border-gray-300"
+        } border-dashed rounded-md cursor-pointer hover:border-indigo-500 transition-colors bg-white`}
+        onDragEnter={(e) => handleDrag(e, fieldName)}
+        onDragLeave={(e) => handleDrag(e, fieldName)}
+        onDragOver={(e) => handleDrag(e, fieldName)}
+        onDrop={(e) => handleDrop(e, fieldName)}
+        onClick={() => document.getElementById(`file-${fieldName}`).click()}
+      >
+        <div className="space-y-1 text-center">
+          <UploadCloud
+            className={`mx-auto h-10 w-10 ${
+              dragActive[fieldName] ? "text-indigo-600" : "text-gray-400"
+            }`}
+          />
+          <div className="flex text-sm text-gray-600">
+            <label className="relative cursor-pointer rounded-md font-medium text-indigo-600 hover:text-indigo-500">
+              <span>Upload a file</span>
+              <input
+                id={`file-${fieldName}`}
+                name={fieldName}
+                type="file"
+                className="sr-only"
+                onChange={(e) => handleFileChange(e, fieldName)}
+              />
+            </label>
+            <p className="pl-1">or drag and drop</p>
+          </div>
+          <p className="text-xs text-gray-500">PDF, JPG, PNG up to 10MB</p>
+        </div>
+      </div>
+      {formData[fieldName] && (
+        <div className="mt-2 flex items-center text-sm text-gray-600 bg-gray-50 p-2 rounded-md border border-gray-200">
+          <FileText size={16} className="mr-2 flex-shrink-0 text-indigo-600" />
+          <span className="font-medium mr-2 truncate">
+            {formData[fieldName].name}
+          </span>
+          <span className="text-gray-500 text-xs">
+            ({(formData[fieldName].size / 1024 / 1024).toFixed(2)} MB)
+          </span>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              clearFile(fieldName);
+            }}
+            className="ml-auto text-red-500 hover:text-red-700 p-1"
+          >
+            <X size={16} />
+          </button>
+        </div>
+      )}
+      {errors[fieldName] && (
+        <p className="mt-1 text-sm text-red-600">{errors[fieldName]}</p>
+      )}
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-6">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-6 flex items-center">
-            <button
+          <button
             onClick={() => navigate(-1)}
             className="mr-4 p-2 rounded-full hover:bg-gray-200 transition-colors"
-            >
+          >
             <ArrowLeft className="h-5 w-5 text-gray-600" />
-            </button>
-            <div>
+          </button>
+          <div>
             <h1 className="text-2xl font-bold text-gray-900">
-                Add Events Attended Details
+              Add Events Attended Details
             </h1>
             <p className="text-sm text-gray-500">
-                Create record for events attended
+              Record events, workshops, seminars and trainings attended
             </p>
-            </div>
+          </div>
         </div>
 
-        {/* Form Details */}
+        {/* Form */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <form onSubmit={handleSubmit} className="p-6 md:p-8 space-y-8">
-            
-            {/* Task ID & Labs */}
+            {/* Section 1: Basic Info */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label htmlFor="taskID" className="block text-sm font-medium text-gray-700 mb-1">
-                        Task ID <RequiredAst />
-                    </label>
-                    <input
-                        type="text"
-                        name="taskID"
-                        id="taskID"
-                        value={formData.taskID}
-                        onChange={handleChange}
-                        className={`mt-1 block w-full px-3 py-2 border ${errors.taskID ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-                        placeholder="Enter Task ID"
-                    />
-                    {errors.taskID && <p className="mt-1 text-sm text-red-600">{errors.taskID}</p>}
-                </div>
-
-                <div>
-                    <label htmlFor="specialLabsInvolved" className="block text-sm font-medium text-gray-700 mb-1">
-                        Special Labs Involved <RequiredAst />
-                    </label>
-                    <select
-                        name="specialLabsInvolved"
-                        id="specialLabsInvolved"
-                        value={formData.specialLabsInvolved}
-                        onChange={handleChange}
-                        className={`mt-1 block w-full px-3 py-2 border ${errors.specialLabsInvolved ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-                    >
-                        {specialLabsOptions.map(option => (
-                            <option key={option} value={option} disabled={option === "Choose an option"}>{option}</option>
-                        ))}
-                    </select>
-                    {errors.specialLabsInvolved && <p className="mt-1 text-sm text-red-600">{errors.specialLabsInvolved}</p>}
-                </div>
-            </div>
-
-            {/* Event Type & Organizer Type */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label htmlFor="eventType" className="block text-sm font-medium text-gray-700 mb-1">
-                        Event Type <RequiredAst />
-                    </label>
-                    <select
-                        name="eventType"
-                        id="eventType"
-                        value={formData.eventType}
-                        onChange={handleChange}
-                        className={`mt-1 block w-full px-3 py-2 border ${errors.eventType ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-                    >
-                        {eventTypeOptions.map(option => (
-                            <option key={option} value={option} disabled={option === "Select Option"}>{option}</option>
-                        ))}
-                    </select>
-                    {errors.eventType && <p className="mt-1 text-sm text-red-600">{errors.eventType}</p>}
-                </div>
-                
-                <div>
-                    <label htmlFor="organizerType" className="block text-sm font-medium text-gray-700 mb-1">
-                        Organizer Type <RequiredAst />
-                    </label>
-                    <select
-                        name="organizerType"
-                        id="organizerType"
-                        value={formData.organizerType}
-                        onChange={handleChange}
-                        className={`mt-1 block w-full px-3 py-2 border ${errors.organizerType ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-                    >
-                        {organizerTypeOptions.map(option => (
-                            <option key={option} value={option} disabled={option === "Choose an option"}>{option}</option>
-                        ))}
-                    </select>
-                    {errors.organizerType && <p className="mt-1 text-sm text-red-600">{errors.organizerType}</p>}
-                </div>
-            </div>
-
-            {/* Event Level & Helper for Organizer */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label htmlFor="eventLevel" className="block text-sm font-medium text-gray-700 mb-1">
-                        Event Level <RequiredAst />
-                    </label>
-                    <select
-                        name="eventLevel"
-                        id="eventLevel"
-                        value={formData.eventLevel}
-                        onChange={handleChange}
-                        className={`mt-1 block w-full px-3 py-2 border ${errors.eventLevel ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-                    >
-                        {eventLevelOptions.map(option => (
-                            <option key={option} value={option} disabled={option === "Choose an option"}>{option}</option>
-                        ))}
-                    </select>
-                    {errors.eventLevel && <p className="mt-1 text-sm text-red-600">{errors.eventLevel}</p>}
-                </div>
-
-                {formData.organizerType === "Others" && (
-                    <div>
-                        <label htmlFor="otherOrganizerName" className="block text-sm font-medium text-gray-700 mb-1">
-                            Other Organizer Name 
-                        </label>
-                        <input
-                            type="text"
-                            name="otherOrganizerName"
-                            id="otherOrganizerName"
-                            value={formData.otherOrganizerName}
-                            onChange={handleChange}
-                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                            placeholder="Specify Organizer"
-                        />
-                    </div>
+              <div>
+                <label
+                  htmlFor="taskID"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Task ID <RequiredAst />
+                </label>
+                <input
+                  type="text"
+                  name="taskID"
+                  id="taskID"
+                  value={formData.taskID}
+                  onChange={handleChange}
+                  className={`mt-1 block w-full px-3 py-2 border ${
+                    errors.taskID ? "border-red-500" : "border-gray-300"
+                  } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+                  placeholder="Enter Task ID"
+                />
+                {errors.taskID && (
+                  <p className="mt-1 text-sm text-red-600">{errors.taskID}</p>
                 )}
-            </div>
+              </div>
 
-            {/* Title & Sector */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label htmlFor="eventTitle" className="block text-sm font-medium text-gray-700 mb-1">
-                        Event Title <RequiredAst />
-                    </label>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Special Labs Involved <RequiredAst />
+                </label>
+                <div className="mt-2 flex space-x-6">
+                  <label className="inline-flex items-center">
                     <input
-                        type="text"
-                        name="eventTitle"
-                        id="eventTitle"
-                        value={formData.eventTitle}
-                        onChange={handleChange}
-                        className={`mt-1 block w-full px-3 py-2 border ${errors.eventTitle ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-                        placeholder="Enter Title"
+                      type="radio"
+                      name="specialLabsInvolved"
+                      value="yes"
+                      checked={formData.specialLabsInvolved === "yes"}
+                      onChange={handleChange}
+                      className="form-radio h-4 w-4 text-indigo-600 focus:ring-indigo-500"
                     />
-                    {errors.eventTitle && <p className="mt-1 text-sm text-red-600">{errors.eventTitle}</p>}
-                </div>
-
-                <div>
-                    <label htmlFor="organizationSector" className="block text-sm font-medium text-gray-700 mb-1">
-                        Organization Sector <RequiredAst />
-                    </label>
-                    <select
-                        name="organizationSector"
-                        id="organizationSector"
-                        value={formData.organizationSector}
-                        onChange={handleChange}
-                        className={`mt-1 block w-full px-3 py-2 border ${errors.organizationSector ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-                    >
-                        {organizationSectorOptions.map(option => (
-                            <option key={option} value={option} disabled={option === "Choose an option"}>{option}</option>
-                        ))}
-                    </select>
-                    {errors.organizationSector && <p className="mt-1 text-sm text-red-600">{errors.organizationSector}</p>}
-                </div>
-            </div>
-
-            {/* Organizer & Mode */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                 <div>
-                    <label htmlFor="eventOrganizer" className="block text-sm font-medium text-gray-700 mb-1">
-                        Event Organizer <RequiredAst />
-                    </label>
+                    <span className="ml-2 text-sm text-gray-700">Yes</span>
+                  </label>
+                  <label className="inline-flex items-center">
                     <input
-                        type="text"
-                        name="eventOrganizer"
-                        id="eventOrganizer"
-                        value={formData.eventOrganizer}
-                        onChange={handleChange}
-                        className={`mt-1 block w-full px-3 py-2 border ${errors.eventOrganizer ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-                        placeholder="Name of Organizer"
+                      type="radio"
+                      name="specialLabsInvolved"
+                      value="no"
+                      checked={formData.specialLabsInvolved === "no"}
+                      onChange={handleChange}
+                      className="form-radio h-4 w-4 text-indigo-600 focus:ring-indigo-500"
                     />
-                    {errors.eventOrganizer && <p className="mt-1 text-sm text-red-600">{errors.eventOrganizer}</p>}
+                    <span className="ml-2 text-sm text-gray-700">No</span>
+                  </label>
                 </div>
-
-                <div>
-                    <label htmlFor="eventMode" className="block text-sm font-medium text-gray-700 mb-1">
-                        Event Mode <RequiredAst />
-                    </label>
-                    <select
-                        name="eventMode"
-                        id="eventMode"
-                        value={formData.eventMode}
-                        onChange={handleChange}
-                        className={`mt-1 block w-full px-3 py-2 border ${errors.eventMode ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-                    >
-                        {eventModeOptions.map(option => (
-                            <option key={option} value={option} disabled={option === "Choose an option"}>{option}</option>
-                        ))}
-                    </select>
-                    {errors.eventMode && <p className="mt-1 text-sm text-red-600">{errors.eventMode}</p>}
-                </div>
+              </div>
             </div>
 
-            {/* Duration Category & Actual Duration */}
+            {/* Special Lab Dropdown */}
+            {formData.specialLabsInvolved === "yes" && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label
+                    htmlFor="specialLab"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Special Lab <RequiredAst />
+                  </label>
+                  <SpecialLabDropdown
+                    name="specialLab"
+                    id="specialLab"
+                    value={formData.specialLab}
+                    onChange={handleChange}
+                    error={errors.specialLab}
+                    placeholder="Select Special Lab"
+                    className={`mt-1 block w-full px-3 py-2 border ${
+                      errors.specialLab ? "border-red-500" : "border-gray-300"
+                    } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+                  />
+                  {errors.specialLab && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.specialLab}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Event Type & Topic */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                     <label htmlFor="eventDuration" className="block text-sm font-medium text-gray-700 mb-1">
-                        Event Duration <RequiredAst />
-                    </label>
-                    <select
-                        name="eventDuration"
-                        id="eventDuration"
-                        value={formData.eventDuration}
-                        onChange={handleChange}
-                        className={`mt-1 block w-full px-3 py-2 border ${errors.eventDuration ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-                    >
-                        {eventDurationOptions.map(option => (
-                            <option key={option} value={option} disabled={option === "Choose an option"}>{option}</option>
-                        ))}
-                    </select>
-                    {errors.eventDuration && <p className="mt-1 text-sm text-red-600">{errors.eventDuration}</p>}
-                </div>
-                 <div>
-                    <label htmlFor="durationInDays" className="block text-sm font-medium text-gray-700 mb-1">
-                        Duration (in days) <RequiredAst />
-                    </label>
-                    <input
-                        type="number"
-                        name="durationInDays"
-                        id="durationInDays"
-                        value={formData.durationInDays}
-                        onChange={handleChange}
-                         className={`mt-1 block w-full px-3 py-2 border ${errors.durationInDays ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-                        placeholder="e.g. 2"
-                    />
-                    {errors.durationInDays && <p className="mt-1 text-sm text-red-600">{errors.durationInDays}</p>}
-                </div>
-            </div>
-
-             {/* Dates */}
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-1">
-                        Event Date (Start) <RequiredAst />
-                    </label>
-                    <div className="relative">
-                        <input
-                            type="date"
-                            name="startDate"
-                            id="startDate"
-                            value={formData.startDate}
-                            onChange={handleChange}
-                            className={`mt-1 block w-full px-3 py-2 border ${errors.startDate ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-                        />
-                    </div>
-                    {errors.startDate && <p className="mt-1 text-sm text-red-600">{errors.startDate}</p>}
-                </div>
-                 <div>
-                    <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-1">
-                        End Date <RequiredAst />
-                    </label>
-                     <div className="relative">
-                        <input
-                            type="date"
-                            name="endDate"
-                            id="endDate"
-                            value={formData.endDate}
-                            onChange={handleChange}
-                            className={`mt-1 block w-full px-3 py-2 border ${errors.endDate ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-                        />
-                     </div>
-                    {errors.endDate && <p className="mt-1 text-sm text-red-600">{errors.endDate}</p>}
-                </div>
-            </div>
-
-             {/* Sponsorship & Outcome */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label htmlFor="sponsorshipType" className="block text-sm font-medium text-gray-700 mb-1">
-                        Type of Sponsorship <RequiredAst />
-                    </label>
-                    <select
-                        name="sponsorshipType"
-                        id="sponsorshipType"
-                        value={formData.sponsorshipType}
-                        onChange={handleChange}
-                        className={`mt-1 block w-full px-3 py-2 border ${errors.sponsorshipType ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-                    >
-                        {sponsorshipTypeOptions.map(option => (
-                            <option key={option} value={option} disabled={option === "Click to choose"}>{option}</option>
-                        ))}
-                    </select>
-                    {errors.sponsorshipType && <p className="mt-1 text-sm text-red-600">{errors.sponsorshipType}</p>}
-                </div>
-                 <div>
-                    <label htmlFor="outcome" className="block text-sm font-medium text-gray-700 mb-1">
-                        Outcome of the attended event <RequiredAst />
-                    </label>
-                    <select
-                        name="outcome"
-                        id="outcome"
-                        value={formData.outcome}
-                        onChange={handleChange}
-                        className={`mt-1 block w-full px-3 py-2 border ${errors.outcome ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-                    >
-                        {outcomeOptions.map(option => (
-                            <option key={option} value={option} disabled={option === "Click to choose"}>{option}</option>
-                        ))}
-                    </select>
-                    {errors.outcome && <p className="mt-1 text-sm text-red-600">{errors.outcome}</p>}
-                </div>
-            </div>
-
-             {/* Claimed For */}
-            <div>
-                 <label htmlFor="claimedFor" className="block text-sm font-medium text-gray-700 mb-1">
-                        Claimed For <RequiredAst />
+              <div>
+                <label
+                  htmlFor="eventType"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Event Type <RequiredAst />
                 </label>
                 <select
-                    name="claimedFor"
-                    id="claimedFor"
-                    value={formData.claimedFor}
-                    onChange={handleChange}
-                    className={`mt-1 block w-full px-3 py-2 border ${errors.claimedFor ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+                  name="eventType"
+                  id="eventType"
+                  value={formData.eventType}
+                  onChange={handleChange}
+                  className={`mt-1 block w-full px-3 py-2 border ${
+                    errors.eventType ? "border-red-500" : "border-gray-300"
+                  } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                 >
-                        {claimedForOptions.map(option => (
-                        <option key={option} value={option} disabled={option === "Select Option"}>{option}</option>
-                    ))}
+                  {EVENT_TYPE_OPTIONS.map((option) => (
+                    <option
+                      key={option}
+                      value={option}
+                      disabled={option === "Select Event Type"}
+                    >
+                      {option}
+                    </option>
+                  ))}
                 </select>
-                {errors.claimedFor && <p className="mt-1 text-sm text-red-600">{errors.claimedFor}</p>}
+                {errors.eventType && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.eventType}
+                  </p>
+                )}
+
+                {formData.eventType === "Other" && (
+                  <div className="mt-3">
+                    <label
+                      htmlFor="otherEventType"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      If Others, Please Specify <RequiredAst />
+                    </label>
+                    <input
+                      type="text"
+                      name="otherEventType"
+                      id="otherEventType"
+                      value={formData.otherEventType}
+                      onChange={handleChange}
+                      className={`block w-full px-3 py-2 border ${
+                        errors.otherEventType
+                          ? "border-red-500"
+                          : "border-gray-300"
+                      } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+                      placeholder="Specify event type"
+                    />
+                    {errors.otherEventType && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.otherEventType}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label
+                  htmlFor="topicName"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Topic Name <RequiredAst />
+                </label>
+                <input
+                  type="text"
+                  name="topicName"
+                  id="topicName"
+                  value={formData.topicName}
+                  onChange={handleChange}
+                  className={`mt-1 block w-full px-3 py-2 border ${
+                    errors.topicName ? "border-red-500" : "border-gray-300"
+                  } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+                  placeholder="Enter Topic Name"
+                />
+                {errors.topicName && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.topicName}
+                  </p>
+                )}
+              </div>
             </div>
 
+            {/* PS Domain & Level */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label
+                  htmlFor="psDomain"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  PS Domain
+                </label>
+                <select
+                  name="psDomain"
+                  id="psDomain"
+                  value={formData.psDomain}
+                  onChange={handleChange}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                >
+                  {PS_DOMAIN_OPTIONS.map((option) => (
+                    <option
+                      key={option}
+                      value={option}
+                      disabled={option === "Select PS Domain"}
+                    >
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="psDomainLevel"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  PS Domain - Level
+                </label>
+                <select
+                  name="psDomainLevel"
+                  id="psDomainLevel"
+                  value={formData.psDomainLevel}
+                  onChange={handleChange}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                >
+                  {PS_DOMAIN_LEVEL_OPTIONS.map((option) => (
+                    <option
+                      key={option}
+                      value={option}
+                      disabled={option === "Select Level"}
+                    >
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Organizer Type */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label
+                  htmlFor="organizerType"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Organizer Type <RequiredAst />
+                </label>
+                <select
+                  name="organizerType"
+                  id="organizerType"
+                  value={formData.organizerType}
+                  onChange={handleChange}
+                  className={`mt-1 block w-full px-3 py-2 border ${
+                    errors.organizerType ? "border-red-500" : "border-gray-300"
+                  } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+                >
+                  {ORGANIZER_TYPE_OPTIONS.map((option) => (
+                    <option
+                      key={option}
+                      value={option}
+                      disabled={option === "Select Organizer Type"}
+                    >
+                      {option}
+                    </option>
+                  ))}
+                </select>
+                {errors.organizerType && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.organizerType}
+                  </p>
+                )}
+              </div>
+
+              {formData.organizerType === "Others" && (
+                <div>
+                  <label
+                    htmlFor="otherOrganizerName"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Other Organizer Name <RequiredAst />
+                  </label>
+                  <input
+                    type="text"
+                    name="otherOrganizerName"
+                    id="otherOrganizerName"
+                    value={formData.otherOrganizerName}
+                    onChange={handleChange}
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    placeholder="Enter organizer name"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Industry Details - shown when Organizer Type is Industry */}
+            {formData.organizerType === "Industry" && (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label
+                      htmlFor="industryNameText"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      Industry Name (Text) <RequiredAst />
+                    </label>
+                    <input
+                      type="text"
+                      name="industryNameText"
+                      id="industryNameText"
+                      value={formData.industryNameText}
+                      onChange={handleChange}
+                      className={`mt-1 block w-full px-3 py-2 border ${
+                        errors.industryNameText
+                          ? "border-red-500"
+                          : "border-gray-300"
+                      } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+                      placeholder="Enter Industry Name"
+                    />
+                    {errors.industryNameText && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.industryNameText}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="industryAddress"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      Address of the Industry <RequiredAst />
+                    </label>
+                    <input
+                      type="text"
+                      name="industryAddress"
+                      id="industryAddress"
+                      value={formData.industryAddress}
+                      onChange={handleChange}
+                      className={`mt-1 block w-full px-3 py-2 border ${
+                        errors.industryAddress
+                          ? "border-red-500"
+                          : "border-gray-300"
+                      } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+                      placeholder="Enter Industry Address"
+                    />
+                    {errors.industryAddress && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.industryAddress}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-6">
+                  <div>
+                    <label
+                      htmlFor="industryNameSelect"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      Industry Name (Select)
+                    </label>
+                    <select
+                      name="industryNameSelect"
+                      id="industryNameSelect"
+                      value={formData.industryNameSelect}
+                      onChange={handleChange}
+                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    >
+                      {INDUSTRY_NAME_SELECT_OPTIONS.map((option) => (
+                        <option
+                          key={option}
+                          value={option}
+                          disabled={option === "Select Industry"}
+                        >
+                          {option}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Institute Name - shown when Organizer Type is Foreign Institute or Institute in India */}
+            {(formData.organizerType === "Foreign Institute" ||
+              formData.organizerType === "Institute in India") && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label
+                    htmlFor="instituteName"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Mention the name of Institute <RequiredAst />
+                  </label>
+                  <input
+                    type="text"
+                    name="instituteName"
+                    id="instituteName"
+                    value={formData.instituteName}
+                    onChange={handleChange}
+                    className={`mt-1 block w-full px-3 py-2 border ${
+                      errors.instituteName
+                        ? "border-red-500"
+                        : "border-gray-300"
+                    } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+                    placeholder="Enter Institute Name"
+                  />
+                  {errors.instituteName && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.instituteName}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Event Details */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label
+                  htmlFor="eventLevel"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Event Level <RequiredAst />
+                </label>
+                <select
+                  name="eventLevel"
+                  id="eventLevel"
+                  value={formData.eventLevel}
+                  onChange={handleChange}
+                  className={`mt-1 block w-full px-3 py-2 border ${
+                    errors.eventLevel ? "border-red-500" : "border-gray-300"
+                  } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+                >
+                  {EVENT_LEVEL_OPTIONS.map((option) => (
+                    <option
+                      key={option}
+                      value={option}
+                      disabled={option === "Select Event Level"}
+                    >
+                      {option}
+                    </option>
+                  ))}
+                </select>
+                {errors.eventLevel && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.eventLevel}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label
+                  htmlFor="eventTitle"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Event Title <RequiredAst />
+                </label>
+                <input
+                  type="text"
+                  name="eventTitle"
+                  id="eventTitle"
+                  value={formData.eventTitle}
+                  onChange={handleChange}
+                  className={`mt-1 block w-full px-3 py-2 border ${
+                    errors.eventTitle ? "border-red-500" : "border-gray-300"
+                  } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+                  placeholder="Enter Event Title"
+                />
+                {errors.eventTitle && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.eventTitle}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Organization Sector & Event Organizer */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label
+                  htmlFor="organizationSector"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Organization Sector <RequiredAst />
+                </label>
+                <select
+                  name="organizationSector"
+                  id="organizationSector"
+                  value={formData.organizationSector}
+                  onChange={handleChange}
+                  className={`mt-1 block w-full px-3 py-2 border ${
+                    errors.organizationSector
+                      ? "border-red-500"
+                      : "border-gray-300"
+                  } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+                >
+                  {ORGANIZATION_SECTOR_OPTIONS.map((option) => (
+                    <option
+                      key={option}
+                      value={option}
+                      disabled={option === "Select Sector"}
+                    >
+                      {option}
+                    </option>
+                  ))}
+                </select>
+                {errors.organizationSector && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.organizationSector}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label
+                  htmlFor="eventOrganizer"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Event Organizer <RequiredAst />
+                </label>
+                <input
+                  type="text"
+                  name="eventOrganizer"
+                  id="eventOrganizer"
+                  value={formData.eventOrganizer}
+                  onChange={handleChange}
+                  className={`mt-1 block w-full px-3 py-2 border ${
+                    errors.eventOrganizer ? "border-red-500" : "border-gray-300"
+                  } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+                  placeholder="Enter Event Organizer"
+                />
+                {errors.eventOrganizer && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.eventOrganizer}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Event Mode & Location */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label
+                  htmlFor="eventMode"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Event Mode <RequiredAst />
+                </label>
+                <select
+                  name="eventMode"
+                  id="eventMode"
+                  value={formData.eventMode}
+                  onChange={handleChange}
+                  className={`mt-1 block w-full px-3 py-2 border ${
+                    errors.eventMode ? "border-red-500" : "border-gray-300"
+                  } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+                >
+                  {EVENT_MODE_OPTIONS.map((option) => (
+                    <option
+                      key={option}
+                      value={option}
+                      disabled={option === "Select Mode"}
+                    >
+                      {option}
+                    </option>
+                  ))}
+                </select>
+                {errors.eventMode && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.eventMode}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label
+                  htmlFor="eventLocation"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Event Location <RequiredAst />
+                </label>
+                <input
+                  type="text"
+                  name="eventLocation"
+                  id="eventLocation"
+                  value={formData.eventLocation}
+                  onChange={handleChange}
+                  className={`mt-1 block w-full px-3 py-2 border ${
+                    errors.eventLocation ? "border-red-500" : "border-gray-300"
+                  } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+                  placeholder="Enter Event Location"
+                />
+                {errors.eventLocation && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.eventLocation}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Event Duration & Dates */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div>
+                <label
+                  htmlFor="eventDuration"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Event Duration <RequiredAst />
+                </label>
+                <select
+                  name="eventDuration"
+                  id="eventDuration"
+                  value={formData.eventDuration}
+                  onChange={handleChange}
+                  className={`mt-1 block w-full px-3 py-2 border ${
+                    errors.eventDuration ? "border-red-500" : "border-gray-300"
+                  } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+                >
+                  {EVENT_DURATION_OPTIONS.map((option) => (
+                    <option
+                      key={option}
+                      value={option}
+                      disabled={option === "Select Duration Type"}
+                    >
+                      {option}
+                    </option>
+                  ))}
+                </select>
+                {errors.eventDuration && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.eventDuration}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label
+                  htmlFor="startDate"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Start Date <RequiredAst />
+                </label>
+                <input
+                  type="date"
+                  name="startDate"
+                  id="startDate"
+                  value={formData.startDate}
+                  onChange={handleChange}
+                  className={`mt-1 block w-full px-3 py-2 border ${
+                    errors.startDate ? "border-red-500" : "border-gray-300"
+                  } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+                />
+                {errors.startDate && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.startDate}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label
+                  htmlFor="endDate"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  End Date <RequiredAst />
+                </label>
+                <input
+                  type="date"
+                  name="endDate"
+                  id="endDate"
+                  value={formData.endDate}
+                  onChange={handleChange}
+                  className={`mt-1 block w-full px-3 py-2 border ${
+                    errors.endDate ? "border-red-500" : "border-gray-300"
+                  } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+                />
+                {errors.endDate && (
+                  <p className="mt-1 text-sm text-red-600">{errors.endDate}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Duration in days */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label
+                  htmlFor="durationInDays"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Duration (in days) <RequiredAst />
+                </label>
+                <input
+                  type="number"
+                  name="durationInDays"
+                  id="durationInDays"
+                  value={formData.durationInDays}
+                  onChange={handleChange}
+                  className={`mt-1 block w-full px-3 py-2 border ${
+                    errors.durationInDays ? "border-red-500" : "border-gray-300"
+                  } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+                  placeholder="Enter duration in days"
+                  min="1"
+                />
+                {errors.durationInDays && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.durationInDays}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Sponsorship */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label
+                  htmlFor="sponsorshipType"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Type of Sponsorship <RequiredAst />
+                </label>
+                <select
+                  name="sponsorshipType"
+                  id="sponsorshipType"
+                  value={formData.sponsorshipType}
+                  onChange={handleChange}
+                  className={`mt-1 block w-full px-3 py-2 border ${
+                    errors.sponsorshipType
+                      ? "border-red-500"
+                      : "border-gray-300"
+                  } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+                >
+                  {SPONSORSHIP_TYPE_OPTIONS.map((option) => (
+                    <option
+                      key={option}
+                      value={option}
+                      disabled={option === "Select Sponsorship Type"}
+                    >
+                      {option}
+                    </option>
+                  ))}
+                </select>
+                {errors.sponsorshipType && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.sponsorshipType}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label
+                  htmlFor="amount"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Amount, in Rs
+                </label>
+                <input
+                  type="number"
+                  name="amount"
+                  id="amount"
+                  value={formData.amount}
+                  onChange={handleChange}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  placeholder="Enter amount"
+                  min="0"
+                />
+              </div>
+            </div>
+
+            {/* Funding Agency Name - shown when sponsorship is Funding Agency or Others */}
+            {(formData.sponsorshipType === "Funding Agency" ||
+              formData.sponsorshipType === "Others") && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label
+                    htmlFor="fundingAgencyName"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Name of the funding agency or If Others, Please Specify{" "}
+                    <RequiredAst />
+                  </label>
+                  <input
+                    type="text"
+                    name="fundingAgencyName"
+                    id="fundingAgencyName"
+                    value={formData.fundingAgencyName}
+                    onChange={handleChange}
+                    className={`mt-1 block w-full px-3 py-2 border ${
+                      errors.fundingAgencyName
+                        ? "border-red-500"
+                        : "border-gray-300"
+                    } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+                    placeholder="Enter name"
+                  />
+                  {errors.fundingAgencyName && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.fundingAgencyName}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Apex Proof */}
+            <FileUpload
+              fieldName="apexProof"
+              label="Apex Proof"
+              required={false}
+            />
+
+            {/* Outcome */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label
+                  htmlFor="outcome"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Outcome of the attended event <RequiredAst />
+                </label>
+                <select
+                  name="outcome"
+                  id="outcome"
+                  value={formData.outcome}
+                  onChange={handleChange}
+                  className={`mt-1 block w-full px-3 py-2 border ${
+                    errors.outcome ? "border-red-500" : "border-gray-300"
+                  } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+                >
+                  {OUTCOME_OPTIONS.map((option) => (
+                    <option
+                      key={option}
+                      value={option}
+                      disabled={option === "Select Outcome"}
+                    >
+                      {option}
+                    </option>
+                  ))}
+                </select>
+                {errors.outcome && (
+                  <p className="mt-1 text-sm text-red-600">{errors.outcome}</p>
+                )}
+
+                {formData.outcome === "Others" && (
+                  <div className="mt-3">
+                    <label
+                      htmlFor="otherOutcome"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      If Others, Please Specify <RequiredAst />
+                    </label>
+                    <input
+                      type="text"
+                      name="otherOutcome"
+                      id="otherOutcome"
+                      value={formData.otherOutcome}
+                      onChange={handleChange}
+                      className={`block w-full px-3 py-2 border ${
+                        errors.otherOutcome
+                          ? "border-red-500"
+                          : "border-gray-300"
+                      } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+                      placeholder="Specify outcome"
+                    />
+                    {errors.otherOutcome && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.otherOutcome}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
 
             {/* File Uploads */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Certificate Proof */}
-                <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Certificate Proof <RequiredAst />
-                        </label>
-                        <div
-                            className={`mt-1 flex flex-col items-center justify-center w-full h-40 px-6 pt-5 pb-6 border-2 ${
-                                errors.certificateProof 
-                                    ? 'border-red-500' 
-                                    : certificateDragActive 
-                                        ? 'border-indigo-500 bg-indigo-50' 
-                                        : 'border-gray-300'
-                            } border-dashed rounded-md cursor-pointer hover:border-indigo-500 transition-colors bg-white`}
-                            onDragEnter={(e) => handleDrag(e, setCertificateDragActive)}
-                            onDragLeave={(e) => handleDrag(e, setCertificateDragActive)}
-                            onDragOver={(e) => handleDrag(e, setCertificateDragActive)}
-                            onDrop={(e) => handleDrop(e, 'certificateProof', setCertificateDragActive)}
-                            onClick={() => document.getElementById('cert-upload').click()}
-                        >
-                            <div className="space-y-1 text-center">
-                                <UploadCloud className={`mx-auto h-12 w-12 ${certificateDragActive ? 'text-indigo-600' : 'text-gray-400'}`} />
-                                <div className="flex text-sm text-gray-600">
-                                    <label
-                                        htmlFor="cert-upload"
-                                        className="relative cursor-pointer rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none"
-                                    >
-                                        <span>Upload a file</span>
-                                        <input
-                                            id="cert-upload"
-                                            name="certificateProof"
-                                            type="file"
-                                            className="sr-only"
-                                            onChange={(e) => handleFileChange(e, 'certificateProof')}
-                                        />
-                                    </label>
-                                    <p className="pl-1">or drag and drop</p>
-                                </div>
-                                <p className="text-xs text-gray-500">
-                                    PDF, JPG, PNG up to 10MB
-                                </p>
-                            </div>
-                        </div>
-                        {formData.certificateProof && (
-                            <div className="mt-2 flex items-center text-sm text-gray-600 bg-gray-50 p-2 rounded-md border border-gray-200">
-                                <FileText size={16} className="mr-2 flex-shrink-0 text-indigo-600" />
-                                <span className="font-medium mr-2 truncate">
-                                    {formData.certificateProof.name}
-                                </span>
-                                <span className="text-gray-500 text-xs">
-                                    ({(formData.certificateProof.size / 1024 / 1024).toFixed(2)} MB)
-                                </span>
-                                <button
-                                    type="button"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        clearFile('certificateProof');
-                                    }}
-                                    className="ml-auto text-red-500 hover:text-red-700 p-1"
-                                >
-                                    <X size={16} />
-                                </button>
-                            </div>
-                        )}
-                        {errors.certificateProof && <p className="mt-1 text-sm text-red-600">{errors.certificateProof}</p>}
-                </div>
-
-                {/* Geotag Photos */}
-                <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Upload Geotag Photos <RequiredAst />
-                        </label>
-                        <div
-                            className={`mt-1 flex flex-col items-center justify-center w-full h-40 px-6 pt-5 pb-6 border-2 ${
-                                errors.geotagPhotos 
-                                    ? 'border-red-500' 
-                                    : geotagDragActive 
-                                        ? 'border-indigo-500 bg-indigo-50' 
-                                        : 'border-gray-300'
-                            } border-dashed rounded-md cursor-pointer hover:border-indigo-500 transition-colors bg-white`}
-                            onDragEnter={(e) => handleDrag(e, setGeotagDragActive)}
-                            onDragLeave={(e) => handleDrag(e, setGeotagDragActive)}
-                            onDragOver={(e) => handleDrag(e, setGeotagDragActive)}
-                            onDrop={(e) => handleDrop(e, 'geotagPhotos', setGeotagDragActive)}
-                            onClick={() => document.getElementById('geotag-upload').click()}
-                        >
-                            <div className="space-y-1 text-center">
-                                <MapPin className={`mx-auto h-12 w-12 ${geotagDragActive ? 'text-indigo-600' : 'text-gray-400'}`} />
-                                <div className="flex text-sm text-gray-600">
-                                    <label
-                                        htmlFor="geotag-upload"
-                                        className="relative cursor-pointer rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none"
-                                    >
-                                        <span>Upload a file</span>
-                                        <input
-                                            id="geotag-upload"
-                                            name="geotagPhotos"
-                                            type="file"
-                                            className="sr-only"
-                                            onChange={(e) => handleFileChange(e, 'geotagPhotos')}
-                                        />
-                                    </label>
-                                    <p className="pl-1">or drag and drop</p>
-                                </div>
-                                <p className="text-xs text-gray-500">
-                                    IMG, PNG, JPG up to 10MB
-                                </p>
-                            </div>
-                        </div>
-                         {formData.geotagPhotos && (
-                            <div className="mt-2 flex items-center text-sm text-gray-600 bg-gray-50 p-2 rounded-md border border-gray-200">
-                                <FileText size={16} className="mr-2 flex-shrink-0 text-indigo-600" />
-                                <span className="font-medium mr-2 truncate">
-                                    {formData.geotagPhotos.name}
-                                </span>
-                                <span className="text-gray-500 text-xs">
-                                    ({(formData.geotagPhotos.size / 1024 / 1024).toFixed(2)} MB)
-                                </span>
-                                <button
-                                    type="button"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        clearFile('geotagPhotos');
-                                    }}
-                                    className="ml-auto text-red-500 hover:text-red-700 p-1"
-                                >
-                                    <X size={16} />
-                                </button>
-                            </div>
-                        )}
-                        {errors.geotagPhotos && <p className="mt-1 text-sm text-red-600">{errors.geotagPhotos}</p>}
-                </div>
+              <FileUpload
+                fieldName="certificateProof"
+                label="Certificate Proof"
+                required={true}
+              />
+              <FileUpload
+                fieldName="geotagPhotos"
+                label="Upload Geotag Photos"
+                required={false}
+              />
             </div>
 
             {/* Actions */}
@@ -725,10 +1495,11 @@ export default function EventsAttendedForm() {
               </button>
               <button
                 type="submit"
-                className="px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 flex items-center"
+                disabled={isSubmitting}
+                className="px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 flex items-center disabled:opacity-50"
               >
                 <Save className="h-4 w-4 mr-2" />
-                Save Achievement
+                {isSubmitting ? "Submitting..." : "Save Event"}
               </button>
             </div>
           </form>

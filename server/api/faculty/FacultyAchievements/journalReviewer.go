@@ -23,6 +23,7 @@ func HandleJournalReviewerForm(c *gin.Context) {
 	// Parse form fields
 	taskID := c.PostForm("taskID")
 	specialLabsInvolved := c.PostForm("specialLabsInvolved")
+	specialLab := c.PostForm("specialLab")
 	journalName := c.PostForm("journalName")
 	journalIndexing := c.PostForm("journalIndexing")
 	otherJournalIndexing := c.PostForm("otherJournalIndexing")
@@ -62,18 +63,19 @@ func HandleJournalReviewerForm(c *gin.Context) {
 
 	// Insert into database
 	query := `INSERT INTO faculty_journal_reviewer (
-		faculty_id, task_id, special_labs_involved, journal_name, 
+		faculty_id, task_id, special_labs_involved, special_lab, journal_name, 
 		journal_indexing, other_journal_indexing, issn_no, publisher_name,
 		impact_factor, journal_homepage_url, recognition_type, other_recognition_type,
 		number_of_papers_reviewed, review_date, document_proof
-	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
 	_, err := config.DB.Exec(query,
-		facultyID, nullString(taskID), nullString(specialLabsInvolved), 
-		nullString(journalName), nullString(journalIndexing), nullString(otherJournalIndexing),
-		nullString(issnNo), nullString(publisherName), nullString(impactFactor),
-		nullString(journalHomepageURL), nullString(recognitionType), nullString(otherRecognitionType),
-		nullString(numberOfPapersReviewed), nullString(reviewDate), nullString(documentPath),
+		facultyID, nullString(taskID), nullString(specialLabsInvolved),
+		nullString(specialLab), nullString(journalName), nullString(journalIndexing),
+		nullString(otherJournalIndexing), nullString(issnNo), nullString(publisherName),
+		nullString(impactFactor), nullString(journalHomepageURL), nullString(recognitionType),
+		nullString(otherRecognitionType), nullString(numberOfPapersReviewed),
+		nullString(reviewDate), nullString(documentPath),
 	)
 
 	if err != nil {
@@ -92,7 +94,7 @@ func FetchJournalReviewer(c *gin.Context) {
 		return
 	}
 
-	query := `SELECT id, task_id, special_labs_involved, journal_name, 
+	query := `SELECT id, task_id, special_labs_involved, special_lab, journal_name, 
 	          journal_indexing, other_journal_indexing, issn_no, publisher_name,
 	          impact_factor, journal_homepage_url, recognition_type, other_recognition_type,
 	          number_of_papers_reviewed, review_date, document_proof, status, remarks, created_at
@@ -109,17 +111,17 @@ func FetchJournalReviewer(c *gin.Context) {
 	var records []map[string]interface{}
 	for rows.Next() {
 		var (
-			id                                                                                 int
-			taskID, specialLabs, journalName, journalIndexing, otherIndexing                  sql.NullString
-			issnNo, publisherName, impactFactor, journalURL                                    sql.NullString
-			recognitionType, otherRecognition, documentProof, status, remarks                 sql.NullString
-			reviewDate                                                                         sql.NullString
-			numberOfPapers                                                                     sql.NullInt64
-			createdAt                                                                          []uint8
+			id                                                                                   int
+			taskID, specialLabsInvolved, specialLab, journalName, journalIndexing, otherIndexing sql.NullString
+			issnNo, publisherName, impactFactor, journalURL                                      sql.NullString
+			recognitionType, otherRecognition, documentProof, status, remarks                    sql.NullString
+			reviewDate                                                                           sql.NullString
+			numberOfPapers                                                                       sql.NullInt64
+			createdAt                                                                            []uint8
 		)
 
 		if err := rows.Scan(
-			&id, &taskID, &specialLabs, &journalName,
+			&id, &taskID, &specialLabsInvolved, &specialLab, &journalName,
 			&journalIndexing, &otherIndexing, &issnNo, &publisherName,
 			&impactFactor, &journalURL, &recognitionType, &otherRecognition,
 			&numberOfPapers, &reviewDate, &documentProof, &status, &remarks, &createdAt,
@@ -129,24 +131,25 @@ func FetchJournalReviewer(c *gin.Context) {
 		}
 
 		records = append(records, map[string]interface{}{
-			"id":                         id,
-			"task_id":                    taskID.String,
-			"special_labs_involved":      specialLabs.String,
-			"journal_name":               journalName.String,
-			"journal_indexing":           journalIndexing.String,
-			"other_journal_indexing":     otherIndexing.String,
-			"issn_no":                    issnNo.String,
-			"publisher_name":             publisherName.String,
-			"impact_factor":              impactFactor.String,
-			"journal_homepage_url":       journalURL.String,
-			"recognition_type":           recognitionType.String,
-			"other_recognition_type":     otherRecognition.String,
-			"number_of_papers_reviewed":  numberOfPapers.Int64,
-			"review_date":                reviewDate.String,
-			"document_proof":             documentProof.String,
-			"status":                     status.String,
-			"remarks":                    remarks.String,
-			"created_at":                 string(createdAt),
+			"id":                        id,
+			"task_id":                   taskID.String,
+			"special_labs_involved":     specialLabsInvolved.String,
+			"special_lab":               specialLab.String,
+			"journal_name":              journalName.String,
+			"journal_indexing":          journalIndexing.String,
+			"other_journal_indexing":    otherIndexing.String,
+			"issn_no":                   issnNo.String,
+			"publisher_name":            publisherName.String,
+			"impact_factor":             impactFactor.String,
+			"journal_homepage_url":      journalURL.String,
+			"recognition_type":          recognitionType.String,
+			"other_recognition_type":    otherRecognition.String,
+			"number_of_papers_reviewed": numberOfPapers.Int64,
+			"review_date":               reviewDate.String,
+			"document_proof":            documentProof.String,
+			"status":                    status.String,
+			"remarks":                   remarks.String,
+			"created_at":                string(createdAt),
 		})
 	}
 

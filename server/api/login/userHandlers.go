@@ -8,6 +8,7 @@ import (
 )
 
 type User struct {
+	ID	int
 	Email  string
 	RollNo string
 	Role   string
@@ -18,8 +19,8 @@ type User struct {
 func GetUserByEmail(email string) (*User, error) {
 	var user User
 	fmt.Println("Email: ", email)
-	query := `SELECT user_email, rollno, role,user_name FROM login WHERE user_email = ?`
-	err := config.DB.QueryRow(query, email).Scan(&user.Email, &user.RollNo, &user.Role ,&user.UserName)
+	query := `SELECT id, user_email, rollno, role,user_name FROM login WHERE user_email = ?`
+	err := config.DB.QueryRow(query, email).Scan(&user.ID, &user.Email, &user.RollNo, &user.Role ,&user.UserName)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, errors.New("user not found")

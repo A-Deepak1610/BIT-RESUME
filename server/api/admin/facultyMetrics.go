@@ -610,7 +610,7 @@ func fetchFacultyOnlineCourses(facultyID string) []map[string]interface{} {
 	          course_category, other_course_category, grade_obtained,
 	          type_of_sponsorship, other_type_of_sponsorship, claimed_for,
 	          other_claimed_for, document_proof, status, remarks, created_at
-	          FROM faculty_online_course WHERE faculty_id = ? ORDER BY created_at DESC`
+	          FROM faculty_online_courses WHERE faculty_id = ? ORDER BY created_at DESC`
 
 	rows, err := config.DB.Query(query, facultyID)
 	if err != nil {
