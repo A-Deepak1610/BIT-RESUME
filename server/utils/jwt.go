@@ -9,8 +9,9 @@ import (
 func getJWTSecret() []byte {
 	return []byte(os.Getenv("JWT_SECRET"))
 }
-func GenerateJWT(email, rollNo, role,user_name string) (string, error) {
+func GenerateJWT(id int, email, rollNo, role,user_name string) (string, error) {
 	claims := jwt.MapClaims{
+		"id":     id,
 		"email":  email,
 		"rollNo": rollNo,
 		"role":   role,

@@ -26,6 +26,7 @@ func AuthorizeRoles(allowedRoles ...string) gin.HandlerFunc {
 		// Check if the role is allowed
 		for _, allowed := range allowedRoles {
 			if role == allowed {
+				c.Set("userID", claims["id"])
 				c.Set("email", claims["email"])
 				c.Set("rollNo", claims["rollNo"])
 				c.Set("role", role)
