@@ -27,6 +27,7 @@ func HandleInternationalVisitForm(c *gin.Context) {
 	fromDate := c.PostForm("fromDate")
 	toDate := c.PostForm("toDate")
 	fundType := c.PostForm("fundType")
+	fundingAgencyName := c.PostForm("fundingAgencyName")
 
 	// Handle file upload
 	uploadDir := "./uploads/faculty/international_visit"
@@ -34,6 +35,19 @@ func HandleInternationalVisitForm(c *gin.Context) {
 		os.MkdirAll(uploadDir, os.ModePerm)
 	}
 
+	// Apex Proof (for Management fund type)
+	apexFile, _ := c.FormFile("apexProof")
+	var apexPath string
+	if apexFile != nil {
+		apexFilename := fmt.Sprintf("%v_%d_apex_%s", facultyID, time.Now().Unix(), apexFile.Filename)
+		apexPath = filepath.Join(uploadDir, apexFilename)
+		if err := c.SaveUploadedFile(apexFile, apexPath); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save apex proof"})
+			return
+		}
+	}
+
+	// Document Proof
 	documentFile, _ := c.FormFile("documentProof")
 	var documentPath string
 	if documentFile != nil {
@@ -56,13 +70,13 @@ func HandleInternationalVisitForm(c *gin.Context) {
 	// Insert into database
 	query := `INSERT INTO faculty_international_visit (
 		faculty_id, task_id, country_visited, purpose_of_visit,
-		from_date, to_date, fund_type, document_proof
-	) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+		from_date, to_date, fund_type, funding_agency_name, apex_proof, document_proof
+	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
 	_, err := config.DB.Exec(query,
 		facultyID, nullString(taskID), nullString(countryVisited),
 		nullString(purposeOfVisit), nullString(fromDate), nullString(toDate),
-		nullString(fundType), nullString(documentPath),
+		nullString(fundType), nullString(fundingAgencyName), nullString(apexPath), nullString(documentPath),
 	)
 
 	if err != nil {
@@ -82,7 +96,7 @@ func FetchInternationalVisit(c *gin.Context) {
 	}
 
 	query := `SELECT id, task_id, country_visited, purpose_of_visit,
-	          from_date, to_date, fund_type, document_proof, status, remarks, created_at
+	          from_date, to_date, fund_type, funding_agency_name, apex_proof, document_proof, status, remarks, created_at
 	          FROM faculty_international_visit WHERE faculty_id = ? ORDER BY created_at DESC`
 
 	rows, err := config.DB.Query(query, facultyID)
@@ -96,32 +110,34 @@ func FetchInternationalVisit(c *gin.Context) {
 	var records []map[string]interface{}
 	for rows.Next() {
 		var (
-			id                                                             int
-			taskID, country, purpose, fundType, documentProof             sql.NullString
-			status, remarks, fromDate, toDate                             sql.NullString
-			createdAt                                                      []uint8
+			id                                                               int
+			taskID, country, purpose, fundType, fundingAgencyName, apexProof sql.NullString
+			documentProof, status, remarks, fromDate, toDate                 sql.NullString
+			createdAt                                                        []uint8
 		)
 
 		if err := rows.Scan(
 			&id, &taskID, &country, &purpose,
-			&fromDate, &toDate, &fundType, &documentProof, &status, &remarks, &createdAt,
+			&fromDate, &toDate, &fundType, &fundingAgencyName, &apexProof, &documentProof, &status, &remarks, &createdAt,
 		); err != nil {
 			log.Println("Error scanning international visit:", err)
 			continue
 		}
 
 		records = append(records, map[string]interface{}{
-			"id":                id,
-			"task_id":           taskID.String,
-			"country_visited":   country.String,
-			"purpose_of_visit":  purpose.String,
-			"from_date":         fromDate.String,
-			"to_date":           toDate.String,
-			"fund_type":         fundType.String,
-			"document_proof":    documentProof.String,
-			"status":            status.String,
-			"remarks":           remarks.String,
-			"created_at":        string(createdAt),
+			"id":                  id,
+			"task_id":             taskID.String,
+			"country_visited":     country.String,
+			"purpose_of_visit":    purpose.String,
+			"from_date":           fromDate.String,
+			"to_date":             toDate.String,
+			"fund_type":           fundType.String,
+			"funding_agency_name": fundingAgencyName.String,
+			"apex_proof":          apexProof.String,
+			"document_proof":      documentProof.String,
+			"status":              status.String,
+			"remarks":             remarks.String,
+			"created_at":          string(createdAt),
 		})
 	}
 

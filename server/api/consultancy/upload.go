@@ -26,9 +26,9 @@ func HandleFileUpload(c *gin.Context) {
 		return
 	}
 
-	// Validate file size (5MB max)
-	if file.Size > 5*1024*1024 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "File size must be under 5MB"})
+	// Validate file size (100MB max)
+	if file.Size > 100*1024*1024 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "File size must be under 100MB"})
 		return
 	}
 

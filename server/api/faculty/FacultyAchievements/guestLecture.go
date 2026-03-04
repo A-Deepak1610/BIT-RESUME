@@ -23,6 +23,7 @@ func HandleGuestLectureForm(c *gin.Context) {
 	// Parse form fields
 	taskID := c.PostForm("taskID")
 	specialLabsInvolved := c.PostForm("specialLabsInvolved")
+	specialLab := c.PostForm("specialLab")
 	eventType := c.PostForm("eventType")
 	topic := c.PostForm("topic")
 	modeOfConduct := c.PostForm("modeOfConduct")
@@ -30,7 +31,10 @@ func HandleGuestLectureForm(c *gin.Context) {
 	eventName := c.PostForm("eventName")
 	fromDate := c.PostForm("fromDate")
 	toDate := c.PostForm("toDate")
+	numberOfDays := c.PostForm("numberOfDays")
 	typeOfOrganization := c.PostForm("typeOfOrganization")
+	companyName := c.PostForm("companyName")
+	companyAddress := c.PostForm("companyAddress")
 	numberOfParticipants := c.PostForm("numberOfParticipants")
 	typeOfAudience := c.PostForm("typeOfAudience")
 
@@ -86,17 +90,18 @@ func HandleGuestLectureForm(c *gin.Context) {
 
 	// Insert into database
 	query := `INSERT INTO faculty_guest_lecture (
-		faculty_id, task_id, special_labs_involved, event_type, topic,
-		mode_of_conduct, event_level, event_name, from_date, to_date,
-		type_of_organization, number_of_participants, type_of_audience,
+		faculty_id, task_id, special_labs_involved, special_lab, event_type, topic,
+		mode_of_conduct, event_level, event_name, from_date, to_date, number_of_days,
+		type_of_organization, company_name, company_address, number_of_participants, type_of_audience,
 		document_proof, apex_proof, sample_photographs
-	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
 	_, err := config.DB.Exec(query,
-		facultyID, nullString(taskID), nullString(specialLabsInvolved),
+		facultyID, nullString(taskID), nullString(specialLabsInvolved), nullString(specialLab),
 		nullString(eventType), nullString(topic), nullString(modeOfConduct),
 		nullString(eventLevel), nullString(eventName), nullString(fromDate),
-		nullString(toDate), nullString(typeOfOrganization), nullString(numberOfParticipants),
+		nullString(toDate), nullString(numberOfDays), nullString(typeOfOrganization),
+		nullString(companyName), nullString(companyAddress), nullString(numberOfParticipants),
 		nullString(typeOfAudience), nullString(documentPath), nullString(apexPath),
 		nullString(photosPath),
 	)
@@ -117,9 +122,9 @@ func FetchGuestLecture(c *gin.Context) {
 		return
 	}
 
-	query := `SELECT id, task_id, special_labs_involved, event_type, topic,
-	          mode_of_conduct, event_level, event_name, from_date, to_date,
-	          type_of_organization, number_of_participants, type_of_audience,
+	query := `SELECT id, task_id, special_labs_involved, special_lab, event_type, topic,
+	          mode_of_conduct, event_level, event_name, from_date, to_date, number_of_days,
+	          type_of_organization, company_name, company_address, number_of_participants, type_of_audience,
 	          document_proof, apex_proof, sample_photographs, status, remarks, created_at
 	          FROM faculty_guest_lecture WHERE faculty_id = ? ORDER BY created_at DESC`
 
@@ -134,20 +139,20 @@ func FetchGuestLecture(c *gin.Context) {
 	var records []map[string]interface{}
 	for rows.Next() {
 		var (
-			id                                                                     int
-			taskID, specialLabs, eventType, topic                                 sql.NullString
-			modeOfConduct, eventLevel, eventName                                  sql.NullString
-			fromDate, toDate                                                       sql.NullString
-			typeOfOrg, typeOfAudience                                             sql.NullString
-			documentProof, apexProof, samplePhotos, status, remarks               sql.NullString
-			numberOfParticipants                                                   sql.NullInt64
-			createdAt                                                              []uint8
+			id                                                      int
+			taskID, specialLabs, specialLab, eventType, topic       sql.NullString
+			modeOfConduct, eventLevel, eventName                    sql.NullString
+			fromDate, toDate, numberOfDays                          sql.NullString
+			typeOfOrg, companyName, companyAddress, typeOfAudience  sql.NullString
+			documentProof, apexProof, samplePhotos, status, remarks sql.NullString
+			numberOfParticipants                                    sql.NullInt64
+			createdAt                                               []uint8
 		)
 
 		if err := rows.Scan(
-			&id, &taskID, &specialLabs, &eventType, &topic,
-			&modeOfConduct, &eventLevel, &eventName, &fromDate, &toDate,
-			&typeOfOrg, &numberOfParticipants, &typeOfAudience,
+			&id, &taskID, &specialLabs, &specialLab, &eventType, &topic,
+			&modeOfConduct, &eventLevel, &eventName, &fromDate, &toDate, &numberOfDays,
+			&typeOfOrg, &companyName, &companyAddress, &numberOfParticipants, &typeOfAudience,
 			&documentProof, &apexProof, &samplePhotos, &status, &remarks, &createdAt,
 		); err != nil {
 			log.Println("Error scanning guest lecture:", err)
@@ -158,6 +163,7 @@ func FetchGuestLecture(c *gin.Context) {
 			"id":                     id,
 			"task_id":                taskID.String,
 			"special_labs_involved":  specialLabs.String,
+			"special_lab":            specialLab.String,
 			"event_type":             eventType.String,
 			"topic":                  topic.String,
 			"mode_of_conduct":        modeOfConduct.String,
@@ -165,7 +171,10 @@ func FetchGuestLecture(c *gin.Context) {
 			"event_name":             eventName.String,
 			"from_date":              fromDate.String,
 			"to_date":                toDate.String,
+			"number_of_days":         numberOfDays.String,
 			"type_of_organization":   typeOfOrg.String,
+			"company_name":           companyName.String,
+			"company_address":        companyAddress.String,
 			"number_of_participants": numberOfParticipants.Int64,
 			"type_of_audience":       typeOfAudience.String,
 			"document_proof":         documentProof.String,

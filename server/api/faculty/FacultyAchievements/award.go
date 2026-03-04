@@ -23,17 +23,20 @@ func HandleAwardForm(c *gin.Context) {
 	// Parse form fields
 	taskID := c.PostForm("taskID")
 	specialLabsInvolved := c.PostForm("specialLabsInvolved")
-	technicalSociety := c.PostForm("technicalSociety")
+	specialLab := c.PostForm("specialLab")
+	technicalSocietyInvolved := c.PostForm("technicalSocietyInvolved")
+	technicalSocietyChapter := c.PostForm("technicalSocietyChapter")
 	typeOfRecognition := c.PostForm("typeOfRecognition")
-	otherTypeOfRecognition := c.PostForm("otherTypeOfRecognition")
+	awardType := c.PostForm("awardType")
+	achievementType := c.PostForm("achievementType")
 	awardName := c.PostForm("awardName")
 	organizationType := c.PostForm("organizationType")
-	otherOrganizationType := c.PostForm("otherOrganizationType")
+	otherOrganizationName := c.PostForm("otherOrganizationName")
 	awardingAgency := c.PostForm("awardingAgency")
 	level := c.PostForm("level")
 	receivedDate := c.PostForm("receivedDate")
 	natureOfRecognition := c.PostForm("natureOfRecognition")
-	otherNatureOfRecognition := c.PostForm("otherNatureOfRecognition")
+	prizeAmount := c.PostForm("prizeAmount")
 
 	// Handle file uploads
 	uploadDir := "./uploads/faculty/awards"
@@ -75,19 +78,21 @@ func HandleAwardForm(c *gin.Context) {
 
 	// Insert into database
 	query := `INSERT INTO faculty_award (
-		faculty_id, task_id, special_labs_involved, technical_society,
-		type_of_recognition, other_type_of_recognition, award_name,
-		organization_type, other_organization_type, awarding_agency,
-		level, received_date, nature_of_recognition, other_nature_of_recognition,
+		faculty_id, task_id, special_labs_involved, special_lab,
+		technical_society_involved, technical_society_chapter,
+		type_of_recognition, award_type, achievement_type, award_name,
+		organization_type, other_organization_name, awarding_agency,
+		level, received_date, nature_of_recognition, prize_amount,
 		photo_proofs, document_proof
-	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
 	_, err := config.DB.Exec(query,
-		facultyID, nullString(taskID), nullString(specialLabsInvolved),
-		nullString(technicalSociety), nullString(typeOfRecognition), nullString(otherTypeOfRecognition),
-		nullString(awardName), nullString(organizationType), nullString(otherOrganizationType),
+		facultyID, nullString(taskID), nullString(specialLabsInvolved), nullString(specialLab),
+		nullString(technicalSocietyInvolved), nullString(technicalSocietyChapter),
+		nullString(typeOfRecognition), nullString(awardType), nullString(achievementType),
+		nullString(awardName), nullString(organizationType), nullString(otherOrganizationName),
 		nullString(awardingAgency), nullString(level), nullString(receivedDate),
-		nullString(natureOfRecognition), nullString(otherNatureOfRecognition),
+		nullString(natureOfRecognition), nullString(prizeAmount),
 		nullString(photoPath), nullString(documentPath),
 	)
 
@@ -107,10 +112,11 @@ func FetchAward(c *gin.Context) {
 		return
 	}
 
-	query := `SELECT id, task_id, special_labs_involved, technical_society,
-	          type_of_recognition, other_type_of_recognition, award_name,
-	          organization_type, other_organization_type, awarding_agency,
-	          level, received_date, nature_of_recognition, other_nature_of_recognition,
+	query := `SELECT id, task_id, special_labs_involved, special_lab,
+	          technical_society_involved, technical_society_chapter,
+	          type_of_recognition, award_type, achievement_type, award_name,
+	          organization_type, other_organization_name, awarding_agency,
+	          level, received_date, nature_of_recognition, prize_amount,
 	          photo_proofs, document_proof, status, remarks, created_at
 	          FROM faculty_award WHERE faculty_id = ? ORDER BY created_at DESC`
 
@@ -125,19 +131,22 @@ func FetchAward(c *gin.Context) {
 	var records []map[string]interface{}
 	for rows.Next() {
 		var (
-			id                                                                     int
-			taskID, specialLabs, techSociety, typeRecog, otherTypeRecog          sql.NullString
-			awardName, orgType, otherOrgType, awardingAgency                     sql.NullString
-			level, receivedDate, natureRecog, otherNatureRecog                   sql.NullString
-			photoProofs, documentProof, status, remarks                          sql.NullString
-			createdAt                                                             []uint8
+			id                                               int
+			taskID, specialLabsInvolved, specialLab          sql.NullString
+			techSocietyInvolved, techSocietyChapter          sql.NullString
+			typeRecog, awardType, achievementType, awardName sql.NullString
+			orgType, otherOrgName, awardingAgency            sql.NullString
+			level, receivedDate, natureRecog, prizeAmount    sql.NullString
+			photoProofs, documentProof, status, remarks      sql.NullString
+			createdAt                                        []uint8
 		)
 
 		if err := rows.Scan(
-			&id, &taskID, &specialLabs, &techSociety,
-			&typeRecog, &otherTypeRecog, &awardName,
-			&orgType, &otherOrgType, &awardingAgency,
-			&level, &receivedDate, &natureRecog, &otherNatureRecog,
+			&id, &taskID, &specialLabsInvolved, &specialLab,
+			&techSocietyInvolved, &techSocietyChapter,
+			&typeRecog, &awardType, &achievementType, &awardName,
+			&orgType, &otherOrgName, &awardingAgency,
+			&level, &receivedDate, &natureRecog, &prizeAmount,
 			&photoProofs, &documentProof, &status, &remarks, &createdAt,
 		); err != nil {
 			log.Println("Error scanning award:", err)
@@ -145,25 +154,28 @@ func FetchAward(c *gin.Context) {
 		}
 
 		records = append(records, map[string]interface{}{
-			"id":                            id,
-			"task_id":                       taskID.String,
-			"special_labs_involved":         specialLabs.String,
-			"technical_society":             techSociety.String,
-			"type_of_recognition":           typeRecog.String,
-			"other_type_of_recognition":     otherTypeRecog.String,
-			"award_name":                    awardName.String,
-			"organization_type":             orgType.String,
-			"other_organization_type":       otherOrgType.String,
-			"awarding_agency":               awardingAgency.String,
-			"level":                         level.String,
-			"received_date":                 receivedDate.String,
-			"nature_of_recognition":         natureRecog.String,
-			"other_nature_of_recognition":   otherNatureRecog.String,
-			"photo_proofs":                  photoProofs.String,
-			"document_proof":                documentProof.String,
-			"status":                        status.String,
-			"remarks":                       remarks.String,
-			"created_at":                    string(createdAt),
+			"id":                         id,
+			"task_id":                    taskID.String,
+			"special_labs_involved":      specialLabsInvolved.String,
+			"special_lab":                specialLab.String,
+			"technical_society_involved": techSocietyInvolved.String,
+			"technical_society_chapter":  techSocietyChapter.String,
+			"type_of_recognition":        typeRecog.String,
+			"award_type":                 awardType.String,
+			"achievement_type":           achievementType.String,
+			"award_name":                 awardName.String,
+			"organization_type":          orgType.String,
+			"other_organization_name":    otherOrgName.String,
+			"awarding_agency":            awardingAgency.String,
+			"level":                      level.String,
+			"received_date":              receivedDate.String,
+			"nature_of_recognition":      natureRecog.String,
+			"prize_amount":               prizeAmount.String,
+			"photo_proofs":               photoProofs.String,
+			"document_proof":             documentProof.String,
+			"status":                     status.String,
+			"remarks":                    remarks.String,
+			"created_at":                 string(createdAt),
 		})
 	}
 

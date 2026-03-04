@@ -712,7 +712,7 @@ func fetchOnlineCoursesAdmin() []map[string]interface{} {
 			o.type_of_sponsorship, o.other_type_of_sponsorship, o.claimed_for,
 			o.other_claimed_for, o.document_proof, o.status, o.remarks, o.created_at,
 			COALESCE(u.user_name, 'Unknown') as faculty_name
-		FROM faculty_online_course o
+		FROM faculty_online_courses o
 		LEFT JOIN login u ON o.faculty_id = u.rollno
 		ORDER BY o.created_at DESC
 	`

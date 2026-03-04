@@ -22,9 +22,13 @@ func HandleResourcePersonForm(c *gin.Context) {
 
 	taskID := c.PostForm("taskID")
 	specialLabsInvolved := c.PostForm("specialLabsInvolved")
+	specialLab := c.PostForm("specialLab")
 	resourcePersonCategory := c.PostForm("resourcePersonCategory")
+	purposeOfInteraction := c.PostForm("purposeOfInteraction")
+	nameOfPanel := c.PostForm("nameOfPanel")
 	typeOfOrganisation := c.PostForm("typeOfOrganisation")
-	otherTypeOfOrganisation := c.PostForm("otherTypeOfOrganisation")
+	visitingDepartmentIndustry := c.PostForm("visitingDepartmentIndustry")
+	visitingDepartmentInstitute := c.PostForm("visitingDepartmentInstitute")
 	organisationNameAndAddress := c.PostForm("organisationNameAndAddress")
 	numberOfDays := c.PostForm("numberOfDays")
 	fromDate := c.PostForm("fromDate")
@@ -48,15 +52,17 @@ func HandleResourcePersonForm(c *gin.Context) {
 	}
 
 	query := `INSERT INTO faculty_resource_person (
-		faculty_id, task_id, special_labs_involved, resource_person_category, 
-		type_of_organisation, other_type_of_organisation, organisation_name_and_address,
-		number_of_days, from_date, to_date, document_proof
-	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+		faculty_id, task_id, special_labs_involved, special_lab, resource_person_category,
+		purpose_of_interaction, name_of_panel, type_of_organisation,
+		visiting_department_industry, visiting_department_institute,
+		organisation_name_and_address, number_of_days, from_date, to_date, document_proof
+	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
 	_, err := config.DB.Exec(query,
-		facultyID, taskID, specialLabsInvolved, resourcePersonCategory,
-		typeOfOrganisation, otherTypeOfOrganisation, organisationNameAndAddress,
-		numberOfDays, fromDate, toDate, docPath,
+		facultyID, taskID, specialLabsInvolved, specialLab, resourcePersonCategory,
+		purposeOfInteraction, nameOfPanel, typeOfOrganisation,
+		visitingDepartmentIndustry, visitingDepartmentInstitute,
+		organisationNameAndAddress, numberOfDays, fromDate, toDate, docPath,
 	)
 
 	if err != nil {
@@ -75,9 +81,11 @@ func FetchResourcePerson(c *gin.Context) {
 		return
 	}
 
-	query := `SELECT id, task_id, special_labs_involved, resource_person_category, 
-              type_of_organisation, other_type_of_organisation, organisation_name_and_address,
-              number_of_days, from_date, to_date, document_proof, status, remarks, created_at 
+	query := `SELECT id, task_id, special_labs_involved, special_lab, resource_person_category,
+              purpose_of_interaction, name_of_panel, type_of_organisation,
+              visiting_department_industry, visiting_department_institute,
+              organisation_name_and_address, number_of_days, from_date, to_date,
+              document_proof, status, remarks, created_at 
               FROM faculty_resource_person WHERE faculty_id = ? ORDER BY created_at DESC`
 
 	rows, err := config.DB.Query(query, facultyID)
@@ -90,14 +98,16 @@ func FetchResourcePerson(c *gin.Context) {
 	var resources []map[string]interface{}
 	for rows.Next() {
 		var (
-			id                                                                                                                    int
-			taskID, specialLabs, rpCategory, typeOrg, otherTypeOrg, orgNameAddr, numDays, fDate, tDate, docProof, status, remarks sql.NullString
-			createdAt                                                                                                             []uint8
+			id                                                                                                                                                                                            int
+			taskID, specialLabs, specialLab, rpCategory, purposeOfInteraction, nameOfPanel, typeOrg, visitDeptIndustry, visitDeptInstitute, orgNameAddr, numDays, fDate, tDate, docProof, status, remarks sql.NullString
+			createdAt                                                                                                                                                                                     []uint8
 		)
 
 		if err := rows.Scan(
-			&id, &taskID, &specialLabs, &rpCategory, &typeOrg, &otherTypeOrg, &orgNameAddr,
-			&numDays, &fDate, &tDate, &docProof, &status, &remarks, &createdAt,
+			&id, &taskID, &specialLabs, &specialLab, &rpCategory,
+			&purposeOfInteraction, &nameOfPanel, &typeOrg,
+			&visitDeptIndustry, &visitDeptInstitute,
+			&orgNameAddr, &numDays, &fDate, &tDate, &docProof, &status, &remarks, &createdAt,
 		); err != nil {
 			log.Println("Error scanning resource person:", err)
 			continue
@@ -107,9 +117,13 @@ func FetchResourcePerson(c *gin.Context) {
 			"id":                            id,
 			"task_id":                       taskID.String,
 			"special_labs_involved":         specialLabs.String,
+			"special_lab":                   specialLab.String,
 			"resource_person_category":      rpCategory.String,
+			"purpose_of_interaction":        purposeOfInteraction.String,
+			"name_of_panel":                 nameOfPanel.String,
 			"type_of_organisation":          typeOrg.String,
-			"other_type_of_organisation":    otherTypeOrg.String,
+			"visiting_department_industry":  visitDeptIndustry.String,
+			"visiting_department_institute": visitDeptInstitute.String,
 			"organisation_name_and_address": orgNameAddr.String,
 			"number_of_days":                numDays.String,
 			"from_date":                     fDate.String,

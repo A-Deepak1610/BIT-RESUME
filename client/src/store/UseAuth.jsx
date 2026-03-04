@@ -3,9 +3,9 @@ const useAuth = create((set) => ({
   user: null,
   email: null,
   loading: true,
-  rollno:null,
+  rollno: null,
   name: null,
-  role:null,
+  role: null,
   fetchUser: async () => {
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/me`, {
