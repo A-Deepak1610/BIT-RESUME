@@ -18,7 +18,7 @@ func HandleAwardForm(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
-
+	
 	// Parse form fields
 	taskID := c.PostForm("taskID")
 	specialLabsInvolved := c.PostForm("specialLabsInvolved")
