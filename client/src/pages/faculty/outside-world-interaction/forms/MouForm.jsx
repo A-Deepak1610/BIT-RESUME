@@ -980,8 +980,7 @@ export default function MoUForm() {
         Object.keys(formData).forEach((key) => {
           if (
             formData[key] !== null &&
-            typeof formData[key] !== "object" &&
-            key !== "owiVerification"
+            typeof formData[key] !== "object"
           ) {
             data.append(key, formData[key]);
           }

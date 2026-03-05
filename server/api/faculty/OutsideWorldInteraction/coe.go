@@ -44,6 +44,7 @@ func HandleCoeForm(c *gin.Context) {
 		"industryContributionWithoutGST": c.PostForm("industryContributionWithoutGST"),
 		"studentsPerBatch":               c.PostForm("studentsPerBatch"),
 		"academicCourse":                 c.PostForm("academicCourse"),
+		"owiVerification":                c.PostForm("owiVerification"),
 	}
 
 	// Handle file uploads
@@ -79,6 +80,12 @@ func HandleCoeForm(c *gin.Context) {
 		return s
 	}
 
+	// Get verification status or default to Initiated
+	verificationStatus := nullString(formData["owiVerification"])
+	if verificationStatus == nil {
+		verificationStatus = "Initiated"
+	}
+
 	// Insert into database
 	query := `INSERT INTO faculty_coe (
 		faculty_id, faculty, sig_number, task_id, coe_name, centre_claimed_department,
@@ -89,7 +96,7 @@ func HandleCoeForm(c *gin.Context) {
 		industry_contribution_without_gst, students_per_batch, academic_course,
 		syllabus_document, lab_photo, communication_proof, apex_document,
 		facilities_report, utilization_report, verification_status
-	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Initiated')`
+	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
 	_, err := config.DB.Exec(query,
 		facultyID, nullString(formData["faculty"]), nullString(formData["sigNumber"]), nullString(formData["taskID"]),
@@ -104,6 +111,7 @@ func HandleCoeForm(c *gin.Context) {
 		nullString(formData["academicCourse"]), nullString(syllabusDocumentPath), nullString(labPhotoPath),
 		nullString(communicationProofPath), nullString(apexDocumentPath),
 		nullString(facilitiesReportPath), nullString(utilizationReportPath),
+		verificationStatus,
 	)
 
 	if err != nil {

@@ -1,11 +1,13 @@
 package resume
 
 import (
-	"bitresume/config"
 	"bitresume/models"
 	"database/sql" // Import the sql package to handle NullString
 	"fmt"
 	"net/http"
+	"strings"
+
+	"bitresume/config"
 
 	"github.com/gin-gonic/gin"
 )
@@ -26,10 +28,8 @@ func GetProjectsData(c *gin.Context) {
 		c.JSON(http.StatusForbidden, gin.H{"error": "unauthorized role"})
 		return
 	}
-	var allProjects []models.Project
 
-	// Step 1: Fetch all base projects for the given rollno from the main 'projects' table.
-	// We get the project's unique ID here to use in subsequent queries.
+	// Step 1: Fetch base projects
 	rows, err := config.DB.Query("SELECT id, title_idea, summary FROM projects WHERE rollno = ?", rollno)
 	if err != nil {
 		fmt.Println("Error fetching from projects table:", err)
@@ -38,48 +38,74 @@ func GetProjectsData(c *gin.Context) {
 	}
 	defer rows.Close()
 
-	// Step 2: Loop through each base project found.
-	for rows.Next() {
-		var projectID int
-		var title, summary string
+	projectsMap := make(map[int]*models.Project)
+	var projectIDs []int
 
-		if err := rows.Scan(&projectID, &title, &summary); err != nil {
+	for rows.Next() {
+		var p models.Project
+		var id int
+		if err := rows.Scan(&id, &p.Title, &p.Description); err != nil {
 			fmt.Println("Error scanning base project row:", err)
-			continue // Skip this project if there's an error
+			continue
 		}
-		// Step 3: For each project, fetch its related data (GitHub link and Tech Stack).
-		// Fetch the GitHub link from the 'project_files' table.
-		var githubLink sql.NullString // Use sql.NullString to handle potential NULL values
-		err := config.DB.QueryRow("SELECT github_link FROM project_files WHERE project_id = ?", projectID).Scan(&githubLink)
-		if err != nil && err != sql.ErrNoRows {
-			fmt.Println("Error fetching github link for project_id", projectID, ":", err)
-			// Decide if you want to skip or continue with an empty link
-		}
-		// Fetch the list of tech stack names from the 'project_tech_stack' table.
-		var techStack []string
-		stackRows, err := config.DB.Query("SELECT tech_name FROM project_tech_stack WHERE project_id = ?", projectID)
-		if err != nil {
-			fmt.Println("Error fetching tech stack for project_id", projectID, ":", err)
-			// Continue with an empty stack if there's an error
-		} else {
-			for stackRows.Next() {
-				var techName string
-				if err := stackRows.Scan(&techName); err == nil {
-					techStack = append(techStack, techName)
+		projectsMap[id] = &p
+		projectIDs = append(projectIDs, id)
+	}
+
+	if len(projectIDs) == 0 {
+		c.JSON(http.StatusOK, []models.Project{})
+		return
+	}
+
+	// Prepare args for IN clause
+	args := make([]interface{}, len(projectIDs))
+	for i, id := range projectIDs {
+		args[i] = id
+	}
+
+	// Generate placeholders (?,?,?)
+	placeholders := "?" + strings.Repeat(",?", len(projectIDs)-1)
+
+	// Step 2: Fetch all GitHub links in one query
+	linkQuery := fmt.Sprintf("SELECT project_id, github_link FROM project_files WHERE project_id IN (%s)", placeholders)
+	linkRows, err := config.DB.Query(linkQuery, args...)
+	if err != nil {
+		fmt.Println("Error fetching github links:", err)
+	} else {
+		defer linkRows.Close()
+		for linkRows.Next() {
+			var projectID int
+			var githubLink sql.NullString
+			if err := linkRows.Scan(&projectID, &githubLink); err == nil {
+				if proj, ok := projectsMap[projectID]; ok {
+					proj.Github = githubLink.String
 				}
 			}
-			stackRows.Close() // Important to close the inner rows loop
 		}
+	}
 
-		// Step 4: Combine all fetched data into the final struct.
-		project := models.Project{
-			Title:       title,
-			Description: summary,
-			Github:      githubLink.String, // .String provides the value or "" if NULL
-			Stack:       techStack,
+	// Step 3: Fetch all tech stacks in one query
+	stackQuery := fmt.Sprintf("SELECT project_id, tech_name FROM project_tech_stack WHERE project_id IN (%s)", placeholders)
+	stackRows, err := config.DB.Query(stackQuery, args...)
+	if err != nil {
+		fmt.Println("Error fetching tech stack:", err)
+	} else {
+		defer stackRows.Close()
+		for stackRows.Next() {
+			var projectID int
+			var techName string
+			if err := stackRows.Scan(&projectID, &techName); err == nil {
+				if proj, ok := projectsMap[projectID]; ok {
+					proj.Stack = append(proj.Stack, techName)
+				}
+			}
 		}
+	}
 
-		allProjects = append(allProjects, project)
+	// Step 4: Convert map to slice
+	var allProjects []models.Project
+	for _, id := range projectIDs {
+		allProjects = append(allProjects, *projectsMap[id])
 	}
 
 	// Final Step: Send the complete, aggregated list to the frontend.
@@ -108,9 +134,19 @@ func GetAreasOfExpertise(c *gin.Context) {
 		return
 	}
 
-	// Query to get all distinct tech skills for the student
-	techQuery := "SELECT DISTINCT pt.tech_name FROM projects p JOIN project_tech_stack pt ON p.id = pt.project_id WHERE p.rollno = ?"
-	rows, err := config.DB.Query(techQuery, rollno)
+	// Optimized Query: Fetch skills and their categories in a single query
+	query := `
+		SELECT DISTINCT 
+			pt.tech_name, 
+			COALESCE(c.category_name, 'Others') AS category
+		FROM projects p
+		JOIN project_tech_stack pt ON p.id = pt.project_id
+		LEFT JOIN skills s ON LOWER(s.skill_name) = LOWER(pt.tech_name)
+		LEFT JOIN skill_category_map scm ON s.skill_id = scm.skill_id
+		LEFT JOIN categories c ON scm.category_id = c.category_id
+		WHERE p.rollno = ?
+	`
+	rows, err := config.DB.Query(query, rollno)
 	if err != nil {
 		fmt.Println("Error fetching areas of expertise:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Could not fetch areas of expertise"})
@@ -118,41 +154,16 @@ func GetAreasOfExpertise(c *gin.Context) {
 	}
 	defer rows.Close()
 
-	// Collect all skills
-	var allSkills []string
-	for rows.Next() {
-		var skill string
-		if err := rows.Scan(&skill); err != nil {
-			continue
-		}
-		allSkills = append(allSkills, skill)
-	}
-
 	// Map to hold categorized skills
 	categoryMap := make(map[string][]string)
 
-	// For each skill, find its category
-	for _, skill := range allSkills {
-		categoryQuery := `
-			SELECT COALESCE(
-				(
-					SELECT c.category_name
-					FROM skills s
-					JOIN skill_category_map scm ON s.skill_id = scm.skill_id
-					JOIN categories c ON scm.category_id = c.category_id
-					WHERE LOWER(s.skill_name) = LOWER(?)
-					LIMIT 1
-				),
-				'Others'
-			) AS category
-		`
+	for rows.Next() {
+		var skill string
 		var category string
-		err := config.DB.QueryRow(categoryQuery, skill).Scan(&category)
-		if err != nil {
-			category = "Others"
+		if err := rows.Scan(&skill, &category); err != nil {
+			fmt.Println("Error scanning expertise row:", err)
+			continue
 		}
-
-		// Add skill to its category
 		categoryMap[category] = append(categoryMap[category], skill)
 	}
 

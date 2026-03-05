@@ -29,7 +29,7 @@ const AccomplishmentsForResume = (props) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!rollno) {
+    if (!student_rollno || student_rollno === '-') {
       setIsLoading(false);
       return;
     }
@@ -97,7 +97,7 @@ const AccomplishmentsForResume = (props) => {
     };
 
     fetchAllAccomplishments();
-  }, [rollno]);
+  }, [student_rollno, API_URL]);
 
   // Render loading state
   if (isLoading) {

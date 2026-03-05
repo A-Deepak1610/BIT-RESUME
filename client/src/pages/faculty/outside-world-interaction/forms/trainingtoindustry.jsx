@@ -19,6 +19,111 @@ import {
 
 const RequiredAst = () => <span className="text-red-500 ml-0.5">*</span>;
 
+// FileUpload Component
+const FileUpload = React.forwardRef(({ label, name, files, onFilesSelect, error, required, disabled }, ref) => {
+  const [dragActive, setDragActive] = React.useState(false);
+  const inputRef = React.useRef(null);
+
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files.length > 0) {
+      onFilesSelect(name, Array.from(e.target.files));
+    }
+    e.target.value = '';
+  };
+
+  const handleDrag = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      onFilesSelect(name, Array.from(e.dataTransfer.files));
+    }
+  };
+
+  const clearFile = (index = null) => {
+    if (index !== null && files && files.length > 0) {
+      const newFiles = [...files];
+      newFiles.splice(index, 1);
+      onFilesSelect(name, newFiles);
+    } else {
+      onFilesSelect(name, []);
+    }
+  };
+
+  return (
+    <div className="mb-4">
+      <label className="block text-sm font-medium text-gray-700 mb-1">
+        {label} {required && <RequiredAst />}
+      </label>
+      <label
+        htmlFor={`file-input-${name}`}
+        onDragEnter={handleDrag}
+        onDragLeave={handleDrag}
+        onDragOver={handleDrag}
+        onDrop={handleDrop}
+        className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed rounded-lg transition-colors bg-white cursor-pointer ${
+          dragActive ? "border-indigo-500 bg-indigo-50" : "border-gray-300 hover:border-indigo-500"
+        } ${disabled ? "bg-gray-50 cursor-not-allowed opacity-60" : ""}`}
+      >
+        <div className="space-y-1 text-center">
+          <UploadCloud className="mx-auto h-12 w-12 text-gray-400" />
+          <div className="flex text-sm text-gray-600 justify-center">
+            <span className={`font-medium text-indigo-600 hover:text-indigo-500 ${disabled ? "cursor-not-allowed" : ""}`}>
+              Upload files
+            </span>
+            <p className="pl-1">or drag and drop</p>
+          </div>
+          <p className="text-xs text-gray-500">PDF, DOC, DOCX, JPG, PNG up to 10MB</p>
+        </div>
+        <input
+          ref={inputRef}
+          id={`file-input-${name}`}
+          type="file"
+          name={name}
+          className="hidden"
+          onChange={handleFileChange}
+          multiple
+          disabled={disabled}
+        />
+      </label>
+      {files && files.length > 0 && (
+        <div className="mt-2 space-y-2">
+          {files.map((file, index) => (
+            <div key={index} className="flex items-center justify-between p-2 bg-indigo-50 rounded-md border border-indigo-100">
+              <div className="flex items-center">
+                <FileText size={16} className="text-indigo-600 mr-2" />
+                <span className="text-sm text-gray-700 truncate max-w-xs">{file.name}</span>
+                <span className="text-xs text-gray-400 ml-2">({(file.size / 1024).toFixed(1)} KB)</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => clearFile(index)}
+                disabled={disabled}
+                className="text-red-500 hover:text-red-700 p-1 disabled:opacity-50"
+              >
+                <X size={16} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+      {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
+    </div>
+  );
+});
+
+FileUpload.displayName = "FileUpload";
+
 export default function TrainingToIndustryForm() {
   const navigate = useNavigate();
   const { name } = useAuth();
@@ -52,7 +157,6 @@ export default function TrainingToIndustryForm() {
   });
 
   const [errors, setErrors] = useState({});
-  const [dragActive, setDragActive] = useState({});
 
   // Auto-fill faculty name from logged-in user
   useEffect(() => {
@@ -60,6 +164,36 @@ export default function TrainingToIndustryForm() {
       setFormData((prev) => ({ ...prev, faculty: name }));
     }
   }, [name]);
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+
+    if (errors[name]) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
+  };
+
+  const handleFileSelect = (name, files) => {
+    setFormData((prev) => ({
+      ...prev,
+      [name]: files,
+    }));
+    if (errors[name]) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
+  };
 
   // Options
   const specialLabsOptions = [
@@ -97,167 +231,6 @@ export default function TrainingToIndustryForm() {
     "Approved",
     "Rejected",
   ];
-
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
-
-    if (errors[name]) {
-      setErrors((prev) => {
-        const newErrors = { ...prev };
-        delete newErrors[name];
-        return newErrors;
-      });
-    }
-  };
-
-  const fileInputRefs = useRef({});
-
-  const handleFileChange = (e, fieldName) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setFormData((prev) => ({
-        ...prev,
-        [fieldName]: [...prev[fieldName], ...Array.from(e.target.files)]
-      }));
-      if (errors[fieldName]) {
-        setErrors((prev) => {
-          const newErrors = { ...prev };
-          delete newErrors[fieldName];
-          return newErrors;
-        });
-      }
-    }
-    // Reset the input value to allow selecting the same file again
-    e.target.value = '';
-  };
-
-  const openFileDialog = (fieldName) => {
-    if (fileInputRefs.current[fieldName]) {
-      fileInputRefs.current[fieldName].click();
-    }
-  };
-
-  const clearFile = (fieldName, index = null) => {
-    setFormData((prev) => {
-      if (index !== null) {
-        // Remove specific file from array
-        const newFiles = [...prev[fieldName]];
-        newFiles.splice(index, 1);
-        return { ...prev, [fieldName]: newFiles };
-      }
-      // Clear all files
-      return { ...prev, [fieldName]: [] };
-    });
-  };
-
-  const handleDrag = (e, fieldName) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive((prev) => ({ ...prev, [fieldName]: true }));
-    } else if (e.type === "dragleave") {
-      setDragActive((prev) => ({ ...prev, [fieldName]: false }));
-    }
-  };
-
-  const handleDrop = (e, fieldName) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive((prev) => ({ ...prev, [fieldName]: false }));
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      setFormData((prev) => ({
-        ...prev,
-        [fieldName]: [...prev[fieldName], ...Array.from(e.dataTransfer.files)]
-      }));
-      if (errors[fieldName]) {
-        setErrors((prev) => {
-          const newErrors = { ...prev };
-          delete newErrors[fieldName];
-          return newErrors;
-        });
-      }
-    }
-  };
-
-  const renderFileUpload = (fieldName, label, isRequired = false) => (
-    <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">
-        {label} {isRequired && <RequiredAst />}
-      </label>
-      <div
-        className={`mt-1 flex flex-col items-center justify-center w-full h-32 px-6 pt-5 pb-6 border-2 ${
-          errors[fieldName]
-            ? "border-red-500"
-            : dragActive[fieldName]
-            ? "border-indigo-500 bg-indigo-50"
-            : "border-gray-300"
-        } border-dashed rounded-md cursor-pointer hover:border-indigo-500 transition-colors bg-white`}
-        onDragEnter={(e) => handleDrag(e, fieldName)}
-        onDragLeave={(e) => handleDrag(e, fieldName)}
-        onDragOver={(e) => handleDrag(e, fieldName)}
-        onDrop={(e) => handleDrop(e, fieldName)}
-        onClick={() => openFileDialog(fieldName)}
-      >
-        <div className="space-y-1 text-center">
-          <UploadCloud
-            className={`mx-auto h-12 w-12 ${
-              dragActive[fieldName] ? "text-indigo-600" : "text-gray-400"
-            }`}
-          />
-          <div className="flex text-sm text-gray-600">
-            <label
-              htmlFor={fieldName}
-              className="cursor-pointer rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none"
-            >
-              <span>Upload files</span>
-            </label>
-            <p className="pl-1">or drag and drop</p>
-          </div>
-          <p className="text-xs text-gray-500">PDF, DOC, DOCX, JPG, PNG up to 10MB</p>
-        </div>
-      </div>
-      <input
-        ref={(el) => (fileInputRefs.current[fieldName] = el)}
-        id={fieldName}
-        name={fieldName}
-        type="file"
-        className="hidden"
-        multiple
-        onChange={(e) => handleFileChange(e, fieldName)}
-      />
-      {formData[fieldName] && formData[fieldName].length > 0 && (
-        <div className="mt-2 space-y-2">
-          {formData[fieldName].map((file, index) => (
-            <div key={index} className="flex items-center text-sm text-gray-600 bg-gray-50 p-2 rounded-md border border-gray-200">
-              <FileText size={16} className="mr-2 flex-shrink-0 text-indigo-600" />
-              <span className="font-medium mr-2 truncate flex-1">
-                {file.name}
-              </span>
-              <span className="text-xs text-gray-400 mr-2">
-                {(file.size / 1024).toFixed(1)} KB
-              </span>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  clearFile(fieldName, index);
-                }}
-                className="ml-auto text-red-500 hover:text-red-700 p-1"
-              >
-                <X size={16} />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-      {errors[fieldName] && (
-        <p className="mt-1 text-sm text-red-600">{errors[fieldName]}</p>
-      )}
-    </div>
-  );
 
   const validate = () => {
     const newErrors = {};
@@ -941,16 +914,16 @@ export default function TrainingToIndustryForm() {
                 Documents
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {renderFileUpload("communicationProof", "Upload Communication Proof", true)}
-                {renderFileUpload("approvalLetter", "Approval letter from BIT", true)}
+                <FileUpload label="Upload Communication Proof" name="communicationProof" files={formData.communicationProof} onFilesSelect={handleFileSelect} required error={errors.communicationProof} />
+                <FileUpload label="Approval letter from BIT" name="approvalLetter" files={formData.approvalLetter} onFilesSelect={handleFileSelect} required error={errors.approvalLetter} />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {renderFileUpload("geotagPhotos", "Upload Geotag Photos")}
-                {renderFileUpload("participantsAttendance", "Upload participant's attendance")}
+                <FileUpload label="Upload Geotag Photos" name="geotagPhotos" files={formData.geotagPhotos} onFilesSelect={handleFileSelect} error={errors.geotagPhotos} />
+                <FileUpload label="Upload participant's attendance" name="participantsAttendance" files={formData.participantsAttendance} onFilesSelect={handleFileSelect} error={errors.participantsAttendance} />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {renderFileUpload("paymentProofs", "Upload Payment Proofs")}
-                {renderFileUpload("consolidatedDocument", "Upload Consolidated Document")}
+                <FileUpload label="Upload Payment Proofs" name="paymentProofs" files={formData.paymentProofs} onFilesSelect={handleFileSelect} error={errors.paymentProofs} />
+                <FileUpload label="Upload Consolidated Document" name="consolidatedDocument" files={formData.consolidatedDocument} onFilesSelect={handleFileSelect} error={errors.consolidatedDocument} />
               </div>
             </div>
 

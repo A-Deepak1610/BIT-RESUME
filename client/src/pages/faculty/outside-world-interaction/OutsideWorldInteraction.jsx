@@ -79,6 +79,34 @@ const StatusBadge = ({ status }) => {
   );
 };
 
+const fetchData = async (endpoint, key, basePath = "api/faculty") => {
+  try {
+    const res = await axios.get(`${API_URL}${basePath}/${endpoint}`, {
+      withCredentials: true,
+    });
+
+    // if the endpoint returned an array directly, use it
+    if (Array.isArray(res.data)) {
+      return res.data;
+    }
+
+    // otherwise try the named property, then a generic `data` property
+    if (res.data && typeof res.data === "object") {
+      if (key && res.data[key] !== undefined) {
+        return res.data[key];
+      }
+      if (res.data.data !== undefined) {
+        return res.data.data;
+      }
+    }
+
+    return [];
+  } catch (err) {
+    console.error(`Error fetching ${endpoint}:`, err);
+    return [];
+  }
+};
+
 // Helper component for remarks
 const RemarksBox = ({ remarks }) => {
   if (!remarks) return null;
@@ -120,16 +148,6 @@ export default function OutsideWorldInteraction() {
   // State for modal
   const [selectedItem, setSelectedItem] = useState(null);
   const [modalType, setModalType] = useState(null);
-
-  const fetchData = async (endpoint, key, basePath = 'api/faculty') => {
-    try {
-      const response = await axios.get(`${API_URL}api/faculty/${endpoint}`, { withCredentials: true });
-      return response.data[key] || response.data.data || [];
-    } catch (error) {
-      console.error(`Error fetching ${key}:`, error);
-      return [];
-    }
-  };
 
   // Fetch industry advisors separately since it uses a different endpoint
   const fetchIndustryAdvisors = async () => {
@@ -241,7 +259,7 @@ export default function OutsideWorldInteraction() {
           studentsIndustrialVisit,
           technicalSocieties,
           trainingToIndustry,
-          professionalBodyMembership
+          professionalBodyMembership,
         ] = await Promise.all([
           fetchData("mouGet", "mous"),
           fetchData("irpVisitGet", "irpVisits"),
@@ -298,7 +316,7 @@ export default function OutsideWorldInteraction() {
   const tabs = [
     { id: "mou", label: "MoU", icon: Handshake },
     { id: "irpVisit", label: "IRP Visit", icon: Lightbulb },
-    { id: "consultancy", label: "Consultancy", icon: Briefcase },
+    
     { id: "externalVipVisit", label: "External VIP Visit", icon: Users },
     {
       id: "facultyIndustryProjects",
@@ -844,15 +862,15 @@ export default function OutsideWorldInteraction() {
         return (
           <div className="cursor-pointer" onClick={() => openDetailModal(item, 'trainingToIndustry')}>
             <CardWrapper
-              title={item.event_name || item.EventName}
-              subtitle={item.industry_name || item.IndustryName}
-              status={item.owi_verification || item.OWIVerification}
+              title={item.eventName}
+              subtitle={item.industryName}
+              status={item.owiVerification}
             >
               <div className="space-y-2">
-                <p className="flex items-center"><Calendar className="h-4 w-4 mr-2 text-blue-500" /> {item.start_date ? new Date(item.start_date).toLocaleDateString() : 'N/A'} ({item.duration_days || item.DurationDays} days)</p>
-                <p><strong>Mode:</strong> {item.mode_of_training || item.ModeOfTraining}</p>
-                <p><strong>Persons Trained:</strong> {item.number_of_persons_trained || item.NumberOfPersonsTrained}</p>
-                <p><strong>Honorarium:</strong> ₹{item.honorarium_received || item.HonorariumReceived}</p>
+                <p className="flex items-center"><Calendar className="h-4 w-4 mr-2 text-blue-500" /> {item.startDate ? new Date(item.startDate).toLocaleDateString() : 'N/A'} ({item.durationDays} days)</p>
+                <p><strong>Mode:</strong> {item.modeOfTraining}</p>
+                <p><strong>Persons Trained:</strong> {item.numberOfPersonsTrained}</p>
+                <p><strong>Honorarium:</strong> ₹{item.honorariumReceived}</p>
               </div>
               <div className="mt-4 pt-3 border-t border-gray-100 flex justify-end">
                 <button className="text-rose-600 hover:text-rose-800 text-xs flex items-center font-medium bg-rose-50 px-3 py-1.5 rounded-lg">
@@ -1242,7 +1260,7 @@ function DetailModal({ item, type, onClose }) {
       case 'laboratoryDevelopedByIndustry': return item.name_of_laboratory || item.NameOfLaboratory || 'Laboratory';
       case 'studentsIndustrialVisit': return item.industry_name || item.IndustryName || 'Industrial Visit';
       case 'technicalSocieties': return item.society || item.Society || 'Technical Society';
-      case 'trainingToIndustry': return item.event_name || item.EventName || 'Training to Industry';
+      case 'trainingToIndustry': return item.eventName || 'Training to Industry';
       case 'professionalBodyMembership': return item.name_of_professional_body || item.NameOfProfessionalBody || 'Professional Membership';
       default: return 'Details';
     }
@@ -1325,20 +1343,33 @@ function DetailModal({ item, type, onClose }) {
       case 'facultyIndustryProjects':
         return (
           <div className="space-y-1">
+            <Field label="Task ID" value={item.task_id} />
+            <Field label="Special Labs Involved" value={item.special_labs_involved} />
+            <Field label="Special Lab" value={item.special_lab} />
             <Field label="Project Title" value={item.project_title} />
             <Field label="Industry Name" value={item.industry_name} />
             <Field label="Industry Type" value={item.type_of_industry} />
+            <Field label="Others Specify" value={item.others_specify} />
             <Field label="Project Type" value={item.industry_project} />
             <Field label="Duration" value={`${item.duration_months} months`} />
             <Field label="Start Date" value={item.start_date ? new Date(item.start_date).toLocaleDateString() : ''} />
             <Field label="End Date" value={item.end_date ? new Date(item.end_date).toLocaleDateString() : ''} />
             <Field label="Number of Faculty" value={item.number_of_faculty} />
+            <Field label="Faculty 1" value={item.faculty} />
             <Field label="Faculty 2" value={item.faculty2} />
+            <Field label="Faculty 2 SIG" value={item.faculty2_sig} />
             <Field label="Faculty 3" value={item.faculty3} />
+            <Field label="Faculty 3 SIG" value={item.faculty3_sig} />
+            <Field label="Faculty 4" value={item.faculty4} />
+            <Field label="Faculty 4 SIG" value={item.faculty4_sig} />
+            <Field label="Faculty 5" value={item.faculty5} />
+            <Field label="Faculty 5 SIG" value={item.faculty5_sig} />
             <Field label="Number of Students" value={item.number_of_students} />
             <Field label="Student 1" value={item.student1} />
             <Field label="Student 2" value={item.student2} />
             <Field label="Student 3" value={item.student3} />
+            <Field label="Student 4" value={item.student4} />
+            <Field label="Student 5" value={item.student5} />
             <Field label="Outcome" value={item.outcome} />
             <div className="flex flex-wrap gap-2 mt-4">
               <DocLink file={item.industry_project_proof} label="Project Proof" />
@@ -1359,10 +1390,12 @@ function DetailModal({ item, type, onClose }) {
             <Field label="Part of MoU" value={item.is_mou_part} />
             <Field label="MoU Name" value={item.mou_name} />
             <Field label="IRP Result" value={item.is_irp_result} />
+            <Field label="IRP Visits" value={item.irp_visits} />
             <Field label="Stock Register" value={item.stock_register_maintained} />
             <Field label="Total Amount" value={`₹${item.total_amount_incurred}`} />
             <Field label="BIT Contribution" value={`₹${item.bit_contribution}`} />
             <Field label="Industry (with GST)" value={`₹${item.industry_contribution_with_gst}`} />
+            <Field label="Industry (without GST)" value={`₹${item.industry_contribution_without_gst}`} />
             <Field label="Students per Batch" value={item.students_per_batch} />
             <Field label="Academic Course" value={item.academic_course} />
             <div className="flex flex-wrap gap-2 mt-4">
@@ -1526,26 +1559,26 @@ function DetailModal({ item, type, onClose }) {
       case 'trainingToIndustry':
         return (
           <div className="space-y-1">
-            <Field label="Event Name" value={item.event_name || item.EventName} />
-            <Field label="Industry Name" value={item.industry_name || item.IndustryName} />
-            <Field label="Industry Address" value={item.industry_address || item.IndustryAddress} />
-            <Field label="Domain Area" value={item.domain_area || item.DomainArea} />
-            <Field label="Industry Type" value={item.industry_type || item.IndustryType} />
-            <Field label="Mode of Training" value={item.mode_of_training || item.ModeOfTraining} />
-            <Field label="Industry Website" value={item.industry_website || item.IndustryWebsite} />
-            <Field label="Persons Trained" value={item.number_of_persons_trained || item.NumberOfPersonsTrained} />
-            <Field label="Duration (Days)" value={item.duration_days || item.DurationDays} />
-            <Field label="Start Date" value={item.start_date ? new Date(item.start_date).toLocaleDateString() : ''} />
-            <Field label="End Date" value={item.end_date ? new Date(item.end_date).toLocaleDateString() : ''} />
-            <Field label="Outcome" value={item.outcome_of_training || item.OutcomeOfTraining} />
-            <Field label="Honorarium Received" value={item.honorarium_received ? `₹${item.honorarium_received}` : ''} />
+            <Field label="Event Name" value={item.eventName} />
+            <Field label="Industry Name" value={item.industryName} />
+            <Field label="Industry Address" value={item.industryAddress} />
+            <Field label="Domain Area" value={item.domainArea} />
+            <Field label="Industry Type" value={item.industryType} />
+            <Field label="Mode of Training" value={item.modeOfTraining} />
+            <Field label="Industry Website" value={item.industryWebsite} />
+            <Field label="Persons Trained" value={item.numberOfPersonsTrained} />
+            <Field label="Duration (Days)" value={item.durationDays} />
+            <Field label="Start Date" value={item.startDate ? new Date(item.startDate).toLocaleDateString() : ''} />
+            <Field label="End Date" value={item.endDate ? new Date(item.endDate).toLocaleDateString() : ''} />
+            <Field label="Outcome" value={item.outcomeOfTraining} />
+            <Field label="Honorarium Received" value={item.honorariumReceived ? `₹${item.honorariumReceived}` : ''} />
             <div className="flex flex-wrap gap-2 mt-4">
-              <DocLink file={item.communication_proof || item.CommunicationProof} label="Communication" />
-              <DocLink file={item.approval_letter || item.ApprovalLetter} label="Approval" />
-              <DocLink file={item.geotag_photos || item.GeotagPhotos} label="Photos" />
-              <DocLink file={item.participants_attendance || item.ParticipantsAttendance} label="Attendance" />
-              <DocLink file={item.payment_proofs || item.PaymentProofs} label="Payment" />
-              <DocLink file={item.consolidated_document || item.ConsolidatedDocument} label="Consolidated" />
+              <DocLink file={item.communicationProof} label="Communication" />
+              <DocLink file={item.approvalLetter} label="Approval" />
+              <DocLink file={item.geotagPhotos} label="Photos" />
+              <DocLink file={item.participantsAttendance} label="Attendance" />
+              <DocLink file={item.paymentProofs} label="Payment" />
+              <DocLink file={item.consolidatedDocument} label="Consolidated" />
             </div>
           </div>
         );

@@ -178,9 +178,7 @@ export default function IndustryAdvisorForm() {
   const validate = () => {
     const newErrors = {};
 
-    if (!formData.faculty.trim()) {
-      newErrors.faculty = "Faculty is required";
-    }
+    // Faculty is set by backend from session, no need to validate it here
 
     if (!formData.sigNumber.trim()) {
       newErrors.sigNumber = "SIG Number is required";
@@ -196,8 +194,7 @@ export default function IndustryAdvisorForm() {
     }
 
     if (
-      !formData.industryType ||
-      formData.industryType === "Choose an option"
+      !formData.industryType || formData.industryType === "Choose an option"
     ) {
       newErrors.industryType = "Type of Industry / Organization is required";
     }
@@ -269,9 +266,13 @@ export default function IndustryAdvisorForm() {
       try {
         const submitData = new FormData();
 
-        // Append all text fields
+        // Append all text fields (skip faculty as it's set by backend from session)
         Object.keys(formData).forEach((key) => {
-          if (formData[key] !== null && key !== "approvalDocument") {
+          if (
+            key !== "faculty" && // Don't send faculty - backend uses rollNo from session
+            formData[key] !== null &&
+            key !== "approvalDocument"
+          ) {
             submitData.append(key, formData[key]);
           }
         });
@@ -341,7 +342,7 @@ export default function IndustryAdvisorForm() {
                     htmlFor="faculty"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
-                    Faculty <RequiredAst />
+                    Faculty (Auto-filled)
                   </label>
                   <input
                     type="text"
@@ -349,16 +350,10 @@ export default function IndustryAdvisorForm() {
                     id="faculty"
                     value={formData.faculty}
                     onChange={handleChange}
-                    className={`mt-1 block w-full px-3 py-2 border ${
-                      errors.faculty ? "border-red-500" : "border-gray-300"
-                    } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-                    placeholder="Enter faculty name"
+                    disabled
+                    className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-50 text-gray-500 sm:text-sm cursor-not-allowed`}
+                    placeholder="Auto-filled from your account"
                   />
-                  {errors.faculty && (
-                    <p className="mt-1 text-sm text-red-600">
-                      {errors.faculty}
-                    </p>
-                  )}
                 </div>
 
                 <div>

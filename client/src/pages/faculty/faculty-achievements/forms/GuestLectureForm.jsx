@@ -191,6 +191,17 @@ export default function GuestLectureForm() {
       newErrors.eventName = "Name of the Event is required";
     if (!formData.fromDate) newErrors.fromDate = "From Date is required";
     if (!formData.toDate) newErrors.toDate = "To Date is required";
+<<<<<<< HEAD
+    if (!formData.typeOfOrganization || formData.typeOfOrganization === "Choose an option") newErrors.typeOfOrganization = "Type of Organization is required";
+    if (!formData.numberOfParticipants) newErrors.numberOfParticipants = "No of participants is required";
+    if (!formData.typeOfAudience || formData.typeOfAudience === "Choose an option") newErrors.typeOfAudience = "Type of Audience is required";
+    if (!formData.documentProof) newErrors.documentProof = "Document Proof is required";
+    // Apex Proof (no star in prompt? But standard forms often require it. User prompt says simply 'Apex Proof'. I will keep it optional if not specified)
+    // Actually user prompt looks like: Apex Proof \n No file chosen...
+    // Let's assume generic file field. I won't mark it mandatory unless * is present. User prompt: "Apex Proof" (no star).
+    // Wait, prompt: "Document Proof ... *", "Apex Proof", "Sample Photographs ... *"
+    
+=======
     if (!formData.numberOfDays)
       newErrors.numberOfDays = "No of Days is required";
     if (
@@ -215,6 +226,7 @@ export default function GuestLectureForm() {
 
     if (!formData.documentProof)
       newErrors.documentProof = "Document Proof is required";
+>>>>>>> 78a1ae17599d6f37e2ab508259e0400547afe292
     if (!formData.photos) newErrors.photos = "Sample Photographs are required";
 
     if (formData.fromDate && formData.toDate) {
@@ -230,6 +242,33 @@ export default function GuestLectureForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (validate()) {
+<<<<<<< HEAD
+      try {
+        const data = new FormData();
+        Object.keys(formData).forEach((key) => {
+          if (formData[key] !== null) {
+            data.append(key, formData[key]);
+          }
+        });
+
+        const API_URL = import.meta.env.VITE_API_URL;
+        const response = await fetch(`${API_URL}api/faculty/guestLecturePost`, {
+          method: "POST",
+          body: data,
+          credentials: "include",
+        });
+
+        if (response.ok) {
+          alert("Guest Lecture details submitted successfully!");
+          navigate("/faculty/uploadview");
+        } else {
+          const errorData = await response.json();
+          alert(`Failed to submit: ${errorData.message || "Unknown error"}`);
+        }
+      } catch (error) {
+        console.error("Error submitting form:", error);
+        alert("An error occurred while submitting the form.");
+=======
       setIsSubmitting(true);
       try {
         const data = new FormData();
@@ -284,6 +323,7 @@ export default function GuestLectureForm() {
         alert(`Failed to submit form: ${errorMessage}`);
       } finally {
         setIsSubmitting(false);
+>>>>>>> 78a1ae17599d6f37e2ab508259e0400547afe292
       }
     }
   };
@@ -773,10 +813,21 @@ export default function GuestLectureForm() {
                       </label>
                       <p className="pl-1">or drag and drop</p>
                     </div>
+<<<<<<< HEAD
+                     {formData.documentProof && (
+                        <div className="mt-2 flex items-center text-sm text-gray-600 bg-gray-50 p-2 rounded-md border border-gray-200">
+                            <FileText size={16} className="mr-2 shrink-0 text-indigo-600" />
+                            <span className="font-medium mr-2 truncate">{formData.documentProof.name}</span>
+                            <button type="button" onClick={(e) => { e.stopPropagation(); clearFile('documentProof'); }} className="ml-auto text-red-500 hover:text-red-700 p-1"><X size={16} /></button>
+                        </div>
+                    )}
+                    {errors.documentProof && <p className="mt-1 text-sm text-red-600">{errors.documentProof}</p>}
+=======
                     <p className="text-xs text-gray-500">
                       PDF, JPG, PNG up to 10MB
                     </p>
                   </div>
+>>>>>>> 78a1ae17599d6f37e2ab508259e0400547afe292
                 </div>
                 {formData.documentProof && (
                   <div className="mt-2 flex items-center text-sm text-gray-600 bg-gray-50 p-2 rounded-md border border-gray-200">
@@ -845,10 +896,20 @@ export default function GuestLectureForm() {
                       </label>
                       <p className="pl-1">or drag and drop</p>
                     </div>
+<<<<<<< HEAD
+                    {formData.apexProof && (
+                         <div className="mt-2 flex items-center text-sm text-gray-600 bg-gray-50 p-2 rounded-md border border-gray-200">
+                            <FileText size={16} className="mr-2 shrink-0 text-indigo-600" />
+                            <span className="font-medium mr-2 truncate">{formData.apexProof.name}</span>
+                            <button type="button" onClick={(e) => { e.stopPropagation(); clearFile('apexProof'); }} className="ml-auto text-red-500 hover:text-red-700 p-1"><X size={16} /></button>
+                        </div>
+                    )}
+=======
                     <p className="text-xs text-gray-500">
                       PDF, JPG, PNG up to 10MB
                     </p>
                   </div>
+>>>>>>> 78a1ae17599d6f37e2ab508259e0400547afe292
                 </div>
                 {formData.apexProof && (
                   <div className="mt-2 flex items-center text-sm text-gray-600 bg-gray-50 p-2 rounded-md border border-gray-200">
@@ -915,8 +976,19 @@ export default function GuestLectureForm() {
                       </label>
                       <p className="pl-1">or drag and drop</p>
                     </div>
+<<<<<<< HEAD
+                    {formData.photos && (
+                         <div className="mt-2 flex items-center text-sm text-gray-600 bg-gray-50 p-2 rounded-md border border-gray-200">
+                            <FileText size={16} className="mr-2 shrink-0 text-indigo-600" />
+                            <span className="font-medium mr-2 truncate">{formData.photos.name}</span>
+                            <button type="button" onClick={(e) => { e.stopPropagation(); clearFile('photos'); }} className="ml-auto text-red-500 hover:text-red-700 p-1"><X size={16} /></button>
+                        </div>
+                    )}
+                    {errors.photos && <p className="mt-1 text-sm text-red-600">{errors.photos}</p>}
+=======
                     <p className="text-xs text-gray-500">JPG, PNG up to 10MB</p>
                   </div>
+>>>>>>> 78a1ae17599d6f37e2ab508259e0400547afe292
                 </div>
                 {formData.photos && (
                   <div className="mt-2 flex items-center text-sm text-gray-600 bg-gray-50 p-2 rounded-md border border-gray-200">

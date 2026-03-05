@@ -93,19 +93,25 @@ func HandleIndustryProjectsForm(c *gin.Context) {
 		return s
 	}
 
+	// Get verification status or default to Initiated
+	verificationStatus := nullString(formData["owiVerification"])
+	if verificationStatus == nil {
+		verificationStatus = "Initiated"
+	}
+
 	// Insert into database
 	query := `INSERT INTO faculty_industry_projects (
-		faculty, task_id, special_labs_involved, special_lab,
+		faculty_id, faculty, task_id, special_labs_involved, special_lab,
 		number_of_faculty, faculty2, faculty2_sig, faculty3, faculty3_sig,
 		faculty4, faculty4_sig, faculty5, faculty5_sig,
 		number_of_students, student1, student2, student3, student4, student5,
 		industry_name, type_of_industry, others_specify, industry_project,
 		project_title, duration_months, start_date, end_date, outcome,
 		industry_project_proof, verification_status
-	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Initiated')`
+	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
 	_, err := config.DB.Exec(query,
-		nullString(formData["faculty"]), nullString(formData["taskID"]), nullString(formData["specialLabsInvolved"]),
+		facultyID, nullString(formData["faculty"]), nullString(formData["taskID"]), nullString(formData["specialLabsInvolved"]),
 		nullString(formData["specialLab"]), nullInt(formData["numberOfFaculty"]),
 		nullString(formData["faculty2"]), nullString(formData["faculty2SIG"]),
 		nullString(formData["faculty3"]), nullString(formData["faculty3SIG"]),
@@ -119,7 +125,7 @@ func HandleIndustryProjectsForm(c *gin.Context) {
 		nullString(formData["othersSpecify"]), nullString(formData["industryProject"]),
 		nullString(formData["projectTitle"]), nullInt(formData["durationMonths"]),
 		nullDate(formData["startDate"]), nullDate(formData["endDate"]),
-		nullString(formData["outcome"]), nullString(proofPath),
+		nullString(formData["outcome"]), nullString(proofPath), verificationStatus,
 	)
 
 	if err != nil {
@@ -132,88 +138,105 @@ func HandleIndustryProjectsForm(c *gin.Context) {
 }
 
 func FetchIndustryProjects(c *gin.Context) {
-	facultyID := c.GetString("rollNo")
-	if facultyID == "" {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-		return
-	}
+    facultyID := c.GetString("rollNo")
+    if facultyID == "" {
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+        return
+    }
 
-	query := `SELECT id, faculty, task_id, special_labs_involved, special_lab, 
-	          number_of_faculty, faculty2, faculty2_sig, faculty3, faculty3_sig, 
-			  faculty4, faculty4_sig, faculty5, faculty5_sig, number_of_students, 
-			  student1, student2, student3, student4, student5, industry_name, 
-			  type_of_industry, others_specify, industry_project, project_title, 
-			  duration_months, start_date, end_date, outcome, industry_project_proof, 
-			  verification_status, created_at
-	          FROM faculty_industry_projects WHERE faculty = ? ORDER BY created_at DESC`
+    log.Println("[FetchIndustryProjects] Fetching for facultyID:", facultyID)
 
-	rows, err := config.DB.Query(query, facultyID)
-	if err != nil {
-		log.Println("Error fetching Industry Projects:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
-		return
-	}
-	defer rows.Close()
+    query := `SELECT id, faculty_id, faculty, task_id, special_labs_involved, special_lab, 
+              number_of_faculty, faculty2, faculty2_sig, faculty3, faculty3_sig, 
+              faculty4, faculty4_sig, faculty5, faculty5_sig, number_of_students, 
+              student1, student2, student3, student4, student5, industry_name, 
+              type_of_industry, others_specify, industry_project, project_title, 
+              duration_months, start_date, end_date, outcome, industry_project_proof, 
+              verification_status, created_at
+              FROM faculty_industry_projects WHERE faculty_id = ? ORDER BY created_at DESC`
 
-	var results []map[string]interface{}
-	for rows.Next() {
-		var (
-			id                                                                                    int
-			faculty, taskID, specialLabsInvolved, specialLab                                      sql.NullString
-			numberOfFaculty, faculty2, faculty2SIG, faculty3, faculty3SIG                         sql.NullString
-			faculty4, faculty4SIG, faculty5, faculty5SIG                                          sql.NullString
-			numberOfStudents, student1, student2, student3, student4, student5                    sql.NullString
-			industryName, typeOfIndustry, othersSpecify, industryProject, projectTitle            sql.NullString
-			durationMonths, startDate, endDate, outcome, industryProjectProof, verificationStatus sql.NullString
-			createdAt                                                                             []uint8
-		)
+    rows, err := config.DB.Query(query, facultyID)
+    if err != nil {
+        log.Println("[FetchIndustryProjects] Error executing query:", err.Error())
+        // fallback for older schema
+        fallbackQuery := `SELECT id, faculty, task_id, special_labs_involved, special_lab, 
+                          number_of_faculty, faculty2, faculty2_sig, faculty3, faculty3_sig, 
+                          faculty4, faculty4_sig, faculty5, faculty5_sig, number_of_students, 
+                          student1, student2, student3, student4, student5, industry_name, 
+                          type_of_industry, others_specify, industry_project, project_title, 
+                          duration_months, start_date, end_date, outcome, industry_project_proof, 
+                          verification_status, created_at
+                      FROM faculty_industry_projects WHERE faculty = ? ORDER BY created_at DESC`
+        log.Println("[FetchIndustryProjects] Trying fallback query with faculty name")
+        rows, err = config.DB.Query(fallbackQuery, facultyID)
+        if err != nil {
+            log.Println("[FetchIndustryProjects] Fallback query also failed:", err.Error())
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error", "details": err.Error()})
+            return
+        }
+    }
+    defer rows.Close()
 
-		if err := rows.Scan(&id, &faculty, &taskID, &specialLabsInvolved, &specialLab,
-			&numberOfFaculty, &faculty2, &faculty2SIG, &faculty3, &faculty3SIG,
-			&faculty4, &faculty4SIG, &faculty5, &faculty5SIG,
-			&numberOfStudents, &student1, &student2, &student3, &student4, &student5,
-			&industryName, &typeOfIndustry, &othersSpecify, &industryProject, &projectTitle,
-			&durationMonths, &startDate, &endDate, &outcome, &industryProjectProof,
-			&verificationStatus, &createdAt); err != nil {
-			log.Println("Error scanning Industry Projects:", err)
-			continue
-		}
+    var results []map[string]interface{}
+    for rows.Next() {
+        var (
+            id                                                                                    int
+            facultyIDVal, faculty, taskID, specialLabsInvolved, specialLab                         sql.NullString
+            numberOfFaculty, faculty2, faculty2SIG, faculty3, faculty3SIG                         sql.NullString
+            faculty4, faculty4SIG, faculty5, faculty5SIG                                          sql.NullString
+            numberOfStudents, student1, student2, student3, student4, student5                    sql.NullString
+            industryName, typeOfIndustry, othersSpecify, industryProject, projectTitle            sql.NullString
+            durationMonths, startDate, endDate, outcome, industryProjectProof, verificationStatus sql.NullString
+            createdAt                                                                             []uint8
+        )
 
-		results = append(results, map[string]interface{}{
-			"id":                     id,
-			"faculty":                faculty.String,
-			"task_id":                taskID.String,
-			"special_labs_involved":  specialLabsInvolved.String,
-			"special_lab":            specialLab.String,
-			"number_of_faculty":      numberOfFaculty.String,
-			"faculty2":               faculty2.String,
-			"faculty2_sig":           faculty2SIG.String,
-			"faculty3":               faculty3.String,
-			"faculty3_sig":           faculty3SIG.String,
-			"faculty4":               faculty4.String,
-			"faculty4_sig":           faculty4SIG.String,
-			"faculty5":               faculty5.String,
-			"faculty5_sig":           faculty5SIG.String,
-			"number_of_students":     numberOfStudents.String,
-			"student1":               student1.String,
-			"student2":               student2.String,
-			"student3":               student3.String,
-			"student4":               student4.String,
-			"student5":               student5.String,
-			"industry_name":          industryName.String,
-			"type_of_industry":       typeOfIndustry.String,
-			"others_specify":         othersSpecify.String,
-			"industry_project":       industryProject.String,
-			"project_title":          projectTitle.String,
-			"duration_months":        durationMonths.String,
-			"start_date":             startDate.String,
-			"end_date":               endDate.String,
-			"outcome":                outcome.String,
-			"industry_project_proof": industryProjectProof.String,
-			"verification_status":    verificationStatus.String,
-			"created_at":             string(createdAt),
-		})
-	}
+        if err := rows.Scan(&id, &facultyIDVal, &faculty, &taskID, &specialLabsInvolved, &specialLab,
+            &numberOfFaculty, &faculty2, &faculty2SIG, &faculty3, &faculty3SIG,
+            &faculty4, &faculty4SIG, &faculty5, &faculty5SIG,
+            &numberOfStudents, &student1, &student2, &student3, &student4, &student5,
+            &industryName, &typeOfIndustry, &othersSpecify, &industryProject, &projectTitle,
+            &durationMonths, &startDate, &endDate, &outcome, &industryProjectProof,
+            &verificationStatus, &createdAt); err != nil {
+            log.Println("[FetchIndustryProjects] Error scanning row:", err.Error())
+            continue
+        }
 
-	c.JSON(http.StatusOK, gin.H{"industryProjects": results})
+        results = append(results, map[string]interface{}{
+            "id":                     id,
+            "faculty_id":             facultyIDVal.String,
+            "faculty":                faculty.String,
+            "task_id":                taskID.String,
+            "special_labs_involved":  specialLabsInvolved.String,
+            "special_lab":            specialLab.String,
+            "number_of_faculty":      numberOfFaculty.String,
+            "faculty2":               faculty2.String,
+            "faculty2_sig":           faculty2SIG.String,
+            "faculty3":               faculty3.String,
+            "faculty3_sig":           faculty3SIG.String,
+            "faculty4":               faculty4.String,
+            "faculty4_sig":           faculty4SIG.String,
+            "faculty5":               faculty5.String,
+            "faculty5_sig":           faculty5SIG.String,
+            "number_of_students":     numberOfStudents.String,
+            "student1":               student1.String,
+            "student2":               student2.String,
+            "student3":               student3.String,
+            "student4":               student4.String,
+            "student5":               student5.String,
+            "industry_name":          industryName.String,
+            "type_of_industry":       typeOfIndustry.String,
+            "others_specify":         othersSpecify.String,
+            "industry_project":       industryProject.String,
+            "project_title":          projectTitle.String,
+            "duration_months":        durationMonths.String,
+            "start_date":             startDate.String,
+            "end_date":               endDate.String,
+            "outcome":                outcome.String,
+            "industry_project_proof": industryProjectProof.String,
+            "verification_status":    verificationStatus.String,
+            "created_at":             string(createdAt),
+        })
+    }
+
+    c.JSON(http.StatusOK, gin.H{"industryProjects": results})
 }

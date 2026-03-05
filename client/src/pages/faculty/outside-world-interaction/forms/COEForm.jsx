@@ -151,8 +151,7 @@ export default function COEForm() {
         Object.keys(formData).forEach((key) => {
           if (
             formData[key] !== null &&
-            typeof formData[key] !== "object" &&
-            key !== "owiVerification"
+            typeof formData[key] !== "object"
           ) {
             data.append(key, formData[key]);
           }
@@ -244,7 +243,7 @@ export default function COEForm() {
       </div>
       {formData[fieldName] && (
         <div className="mt-2 flex items-center text-sm text-gray-600 bg-gray-50 p-2 rounded-md border border-gray-200">
-          <FileText size={16} className="mr-2 flex-shrink-0 text-indigo-600" />
+          <FileText size={16} className="mr-2 shrink-0 text-indigo-600" />
           <span className="font-medium mr-2 truncate">
             {formData[fieldName].name}
           </span>

@@ -132,7 +132,7 @@ export default function FacultyDashboard() {
         </div>
 
         {/* Simple Tabs */}
-        <div className="flex p-1 bg-white rounded-xl shadow-sm border border-gray-100 inline-flex">
+        <div className="flex p-1 bg-white rounded-xl shadow-sm border border-gray-100 inline-flex gap-1">
           {['overview', 'achievements', 'targets'].map((tab) => (
             <button
               key={tab}
@@ -229,7 +229,7 @@ export default function FacultyDashboard() {
                     <Pie
                       data={pieData}
                       cx="50%"
-                      cy="50%"
+                      cy="35%"
                       innerRadius={60}
                       outerRadius={80}
                       paddingAngle={2}
@@ -240,7 +240,7 @@ export default function FacultyDashboard() {
                       ))}
                     </Pie>
                     <RechartsTooltip
-                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgb(0 0 0 / 0.1)' }}
+                      contentStyle={{ borderRadius: '12px', border: '1px solid #E5E7EB', boxShadow: '0 4px 20px rgb(0 0 0 / 0.1)' }}
                       itemStyle={{ fontWeight: 600 }}
                     />
                   </PieChart>
@@ -248,7 +248,7 @@ export default function FacultyDashboard() {
               </div>
 
               {/* Custom Legend */}
-              <div className="w-full mt-4 space-y-2 max-h-[160px] overflow-y-auto pr-2 custom-scrollbar">
+              <div className="w-full mt-6 space-y-2 max-h-[180px] overflow-y-auto pr-2 custom-scrollbar ">
                 {pieData.map((entry, index) => (
                   <div key={index} className="flex items-center justify-between text-xs">
                     <div className="flex items-center gap-2 truncate">
