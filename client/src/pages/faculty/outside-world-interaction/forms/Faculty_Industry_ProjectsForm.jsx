@@ -176,7 +176,7 @@ export default function Faculty_Industry_ProjectsForm() {
         }
 
         const response = await axios.post(
-          `${import.meta.env.VITE_API_URL}api/faculty/industryProjectPost`,
+          `${import.meta.env.VITE_API_URL}/api/faculty/industryProjectPost`,
           data,
           {
             withCredentials: true,

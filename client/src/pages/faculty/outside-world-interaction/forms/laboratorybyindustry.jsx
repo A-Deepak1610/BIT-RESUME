@@ -276,7 +276,7 @@ export default function LaboratoryByIndustryForm() {
           });
         }
 
-        const response = await fetch(`${API_URL}api/owi/laboratoryByIndustry`, {
+        const response = await fetch(`${API_URL}/api/owi/laboratoryByIndustry`, {
           method: "POST",
           body: submitData,
           credentials: "include",

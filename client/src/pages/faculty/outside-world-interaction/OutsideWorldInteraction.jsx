@@ -81,7 +81,7 @@ const StatusBadge = ({ status }) => {
 
 const fetchData = async (endpoint, key, basePath = "api/faculty") => {
   try {
-    const res = await axios.get(`${API_URL}${basePath}/${endpoint}`, {
+    const res = await axios.get(`${API_URL}/${basePath}/${endpoint}`, {
       withCredentials: true,
     });
 
@@ -152,7 +152,7 @@ export default function OutsideWorldInteraction() {
   // Fetch industry advisors separately since it uses a different endpoint
   const fetchIndustryAdvisors = async () => {
     try {
-      const response = await axios.get(`${API_URL}api/owi/industryAdvisor`, {
+      const response = await axios.get(`${API_URL}/api/owi/industryAdvisor`, {
         withCredentials: true,
       });
       return response.data.data || [];
@@ -166,7 +166,7 @@ export default function OutsideWorldInteraction() {
   const fetchLaboratoryByIndustry = async () => {
     try {
       const response = await axios.get(
-        `${API_URL}api/owi/laboratoryByIndustry`,
+        `${API_URL}/api/owi/laboratoryByIndustry`,
         {
           withCredentials: true,
         },
@@ -182,7 +182,7 @@ export default function OutsideWorldInteraction() {
   const fetchStudentsIndustrialVisit = async () => {
     try {
       const response = await axios.get(
-        `${API_URL}api/owi/studentsIndustrialVisit`,
+        `${API_URL}/api/owi/studentsIndustrialVisit`,
         {
           withCredentials: true,
         },
@@ -198,7 +198,7 @@ export default function OutsideWorldInteraction() {
   const fetchTechnicalSocieties = async () => {
     try {
       const response = await axios.get(
-        `${API_URL}api/owi/technicalSocieties`,
+        `${API_URL}/api/owi/technicalSocieties`,
         {
           withCredentials: true,
         },
@@ -214,7 +214,7 @@ export default function OutsideWorldInteraction() {
   const fetchTrainingToIndustry = async () => {
     try {
       const response = await axios.get(
-        `${API_URL}api/owi/trainingToIndustry`,
+        `${API_URL}/api/owi/trainingToIndustry`,
         {
           withCredentials: true,
         },
@@ -230,7 +230,7 @@ export default function OutsideWorldInteraction() {
   const fetchProfessionalMembership = async () => {
     try {
       const response = await axios.get(
-        `${API_URL}api/owi/professionalMembership`,
+        `${API_URL}/api/owi/professionalMembership`,
         {
           withCredentials: true,
         },
@@ -862,15 +862,15 @@ export default function OutsideWorldInteraction() {
         return (
           <div className="cursor-pointer" onClick={() => openDetailModal(item, 'trainingToIndustry')}>
             <CardWrapper
-              title={item.eventName}
-              subtitle={item.industryName}
-              status={item.owiVerification}
+              title={item.eventName || item.event_name}
+              subtitle={item.industryName || item.industry_name}
+              status={item.owiVerification || item.owi_verification}
             >
               <div className="space-y-2">
-                <p className="flex items-center"><Calendar className="h-4 w-4 mr-2 text-blue-500" /> {item.startDate ? new Date(item.startDate).toLocaleDateString() : 'N/A'} ({item.durationDays} days)</p>
-                <p><strong>Mode:</strong> {item.modeOfTraining}</p>
-                <p><strong>Persons Trained:</strong> {item.numberOfPersonsTrained}</p>
-                <p><strong>Honorarium:</strong> ₹{item.honorariumReceived}</p>
+                <p className="flex items-center"><Calendar className="h-4 w-4 mr-2 text-blue-500" /> {(item.startDate || item.start_date) ? new Date(item.startDate || item.start_date).toLocaleDateString() : 'N/A'} ({item.durationDays || item.duration_days} days)</p>
+                <p><strong>Mode:</strong> {item.modeOfTraining || item.mode_of_training}</p>
+                <p><strong>Persons Trained:</strong> {item.numberOfPersonsTrained || item.number_of_persons_trained}</p>
+                <p><strong>Honorarium:</strong> ₹{item.honorariumReceived || item.honorarium_received}</p>
               </div>
               <div className="mt-4 pt-3 border-t border-gray-100 flex justify-end">
                 <button className="text-rose-600 hover:text-rose-800 text-xs flex items-center font-medium bg-rose-50 px-3 py-1.5 rounded-lg">
@@ -1252,16 +1252,16 @@ function DetailModal({ item, type, onClose }) {
 
   const getTitle = () => {
     switch (type) {
-      case 'externalVipVisit': return item.event_name || 'External VIP Visit';
-      case 'facultyIndustryProjects': return item.project_title || 'Industry Project';
-      case 'coe': return item.coe_name || 'Centre of Excellence';
-      case 'facultyTrainedByIndustry': return item.training_program_name || 'Training Program';
-      case 'industryAdvisors': return item.expert_name || item.ExpertName || 'Industry Advisor';
-      case 'laboratoryDevelopedByIndustry': return item.name_of_laboratory || item.NameOfLaboratory || 'Laboratory';
-      case 'studentsIndustrialVisit': return item.industry_name || item.IndustryName || 'Industrial Visit';
+      case 'externalVipVisit': return item.event_name || item.eventName || 'External VIP Visit';
+      case 'facultyIndustryProjects': return item.project_title || item.projectTitle || 'Industry Project';
+      case 'coe': return item.coe_name || item.coeName || 'Centre of Excellence';
+      case 'facultyTrainedByIndustry': return item.training_program_name || item.trainingProgramName || 'Training Program';
+      case 'industryAdvisors': return item.expert_name || item.expertName || 'Industry Advisor';
+      case 'laboratoryDevelopedByIndustry': return item.name_of_laboratory || item.nameOfLaboratory || 'Laboratory';
+      case 'studentsIndustrialVisit': return item.industry_name || item.industryName || 'Industrial Visit';
       case 'technicalSocieties': return item.society || item.Society || 'Technical Society';
-      case 'trainingToIndustry': return item.eventName || 'Training to Industry';
-      case 'professionalBodyMembership': return item.name_of_professional_body || item.NameOfProfessionalBody || 'Professional Membership';
+      case 'trainingToIndustry': return item.eventName || item.event_name || 'Training to Industry';
+      case 'professionalBodyMembership': return item.name_of_professional_body || item.nameOfProfessionalBody || 'Professional Membership';
       default: return 'Details';
     }
   };
@@ -1559,26 +1559,26 @@ function DetailModal({ item, type, onClose }) {
       case 'trainingToIndustry':
         return (
           <div className="space-y-1">
-            <Field label="Event Name" value={item.eventName} />
-            <Field label="Industry Name" value={item.industryName} />
-            <Field label="Industry Address" value={item.industryAddress} />
-            <Field label="Domain Area" value={item.domainArea} />
-            <Field label="Industry Type" value={item.industryType} />
-            <Field label="Mode of Training" value={item.modeOfTraining} />
-            <Field label="Industry Website" value={item.industryWebsite} />
-            <Field label="Persons Trained" value={item.numberOfPersonsTrained} />
-            <Field label="Duration (Days)" value={item.durationDays} />
-            <Field label="Start Date" value={item.startDate ? new Date(item.startDate).toLocaleDateString() : ''} />
-            <Field label="End Date" value={item.endDate ? new Date(item.endDate).toLocaleDateString() : ''} />
-            <Field label="Outcome" value={item.outcomeOfTraining} />
-            <Field label="Honorarium Received" value={item.honorariumReceived ? `₹${item.honorariumReceived}` : ''} />
+            <Field label="Event Name" value={item.eventName || item.event_name} />
+            <Field label="Industry Name" value={item.industryName || item.industry_name} />
+            <Field label="Industry Address" value={item.industryAddress || item.industry_address} />
+            <Field label="Domain Area" value={item.domainArea || item.domain_area} />
+            <Field label="Industry Type" value={item.industryType || item.industry_type} />
+            <Field label="Mode of Training" value={item.modeOfTraining || item.mode_of_training} />
+            <Field label="Industry Website" value={item.industryWebsite || item.industry_website} />
+            <Field label="Persons Trained" value={item.numberOfPersonsTrained || item.number_of_persons_trained} />
+            <Field label="Duration (Days)" value={item.durationDays || item.duration_days} />
+            <Field label="Start Date" value={(item.startDate || item.start_date) ? new Date(item.startDate || item.start_date).toLocaleDateString() : ''} />
+            <Field label="End Date" value={(item.endDate || item.end_date) ? new Date(item.endDate || item.end_date).toLocaleDateString() : ''} />
+            <Field label="Outcome" value={item.outcomeOfTraining || item.outcome_of_training} />
+            <Field label="Honorarium Received" value={(item.honorariumReceived || item.honorarium_received) ? `₹${item.honorariumReceived || item.honorarium_received}` : ''} />
             <div className="flex flex-wrap gap-2 mt-4">
-              <DocLink file={item.communicationProof} label="Communication" />
-              <DocLink file={item.approvalLetter} label="Approval" />
-              <DocLink file={item.geotagPhotos} label="Photos" />
-              <DocLink file={item.participantsAttendance} label="Attendance" />
-              <DocLink file={item.paymentProofs} label="Payment" />
-              <DocLink file={item.consolidatedDocument} label="Consolidated" />
+              <DocLink file={item.communicationProof || item.communication_proof} label="Communication" />
+              <DocLink file={item.approvalLetter || item.approval_letter} label="Approval" />
+              <DocLink file={item.geotagPhotos || item.geotag_photos} label="Photos" />
+              <DocLink file={item.participantsAttendance || item.participants_attendance} label="Attendance" />
+              <DocLink file={item.paymentProofs || item.payment_proofs} label="Payment" />
+              <DocLink file={item.consolidatedDocument || item.consolidated_document} label="Consolidated" />
             </div>
           </div>
         );

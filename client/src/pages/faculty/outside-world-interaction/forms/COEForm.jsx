@@ -173,7 +173,7 @@ export default function COEForm() {
         });
 
         const response = await axios.post(
-          `${import.meta.env.VITE_API_URL}api/faculty/coePost`,
+          `${import.meta.env.VITE_API_URL}/api/faculty/coePost`,
           data,
           {
             withCredentials: true,

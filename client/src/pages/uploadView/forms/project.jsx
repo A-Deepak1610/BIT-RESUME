@@ -947,7 +947,7 @@ const Project = ({ onBack, initialData = {} }) => {
 
 
         try {
-            const response = await axios.post(`${import.meta.env.VITE_API_URL}api/projects`, payload, {
+            const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/projects`, payload, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },

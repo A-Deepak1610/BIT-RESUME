@@ -284,7 +284,7 @@ export default function IndustryAdvisorForm() {
           });
         }
 
-        const response = await fetch(`${API_URL}api/owi/industryAdvisor`, {
+        const response = await fetch(`${API_URL}/api/owi/industryAdvisor`, {
           method: "POST",
           body: submitData,
           credentials: "include",

@@ -141,7 +141,7 @@ export default function TechnicalSocietiesForm() {
         const formBody = Object.entries(formData)
           .map(([key, value]) => encodeURIComponent(key) + "=" + encodeURIComponent(value))
           .join("&");
-        const response = await fetch(`${API_URL}api/owi/technicalSocieties`, {
+        const response = await fetch(`${API_URL}/api/owi/technicalSocieties`, {
           method: "POST",
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
           body: formBody,

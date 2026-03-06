@@ -204,7 +204,7 @@ export default function External_VIP_VisitForm() {
           data.append("approvalLetter", formData.approvalLetter);
 
         const response = await axios.post(
-          `${import.meta.env.VITE_API_URL}api/faculty/externalVipVisitPost`,
+          `${import.meta.env.VITE_API_URL}/api/faculty/externalVipVisitPost`,
           data,
           {
             withCredentials: true,

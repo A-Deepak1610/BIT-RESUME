@@ -345,7 +345,7 @@ export default function TrainingToIndustryForm() {
           }
         });
 
-        const response = await fetch(`${API_URL}api/owi/trainingToIndustry`, {
+        const response = await fetch(`${API_URL}/api/owi/trainingToIndustry`, {
           method: "POST",
           body: submitData,
           credentials: "include",

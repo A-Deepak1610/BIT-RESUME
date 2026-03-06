@@ -718,7 +718,7 @@ const PaperPresentation = ({ onBack, initialData = {} }) => {
     try {
       // --- CHANGE 4: Updated API endpoint ---
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}api/paperpresentation`,
+        `${import.meta.env.VITE_API_URL}/api/paperpresentation`,
         payload,
         {
           withCredentials: true,

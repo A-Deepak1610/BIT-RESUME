@@ -183,7 +183,7 @@ export default function IRP_VisitForm() {
           data.append("geotagPhotos", formData.geotagPhotos);
 
         const response = await axios.post(
-          `${import.meta.env.VITE_API_URL}api/faculty/irpVisitPost`,
+          `${import.meta.env.VITE_API_URL}/api/faculty/irpVisitPost`,
           data,
           {
             withCredentials: true,

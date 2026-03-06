@@ -516,7 +516,7 @@ export default function StudentsIndustrialVisitForm() {
           });
         }
 
-        const response = await fetch(`${API_URL}api/owi/studentsIndustrialVisit`, {
+        const response = await fetch(`${API_URL}/api/owi/studentsIndustrialVisit`, {
           method: "POST",
           body: submitData,
           credentials: "include",

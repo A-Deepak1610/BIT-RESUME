@@ -1003,7 +1003,7 @@ export default function MoUForm() {
           data.append("allDocuments", formData.allDocuments);
 
         const response = await axios.post(
-          `${import.meta.env.VITE_API_URL}api/faculty/mouPost`,
+          `${import.meta.env.VITE_API_URL}/api/faculty/mouPost`,
           data,
           {
             withCredentials: true,

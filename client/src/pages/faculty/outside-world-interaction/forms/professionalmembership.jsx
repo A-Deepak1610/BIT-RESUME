@@ -351,7 +351,7 @@ export default function ProfessionalMembershipForm() {
           });
         }
 
-        const response = await fetch(`${API_URL}api/owi/professionalMembership`, {
+        const response = await fetch(`${API_URL}/api/owi/professionalMembership`, {
           method: "POST",
           body: submitData,
           credentials: "include",

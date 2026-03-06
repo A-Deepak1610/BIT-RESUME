@@ -655,7 +655,7 @@ const Patent = ({ onBack, initialData = {} }) => {
 
 
     try {
-      const response = await axios.post(`${import.meta.env.VITE_API_URL}api/patents`, payload, {
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/patents`, payload, {
         withCredentials: true,
       });
 
