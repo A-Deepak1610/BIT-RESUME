@@ -4,7 +4,6 @@ import FormDataCard from "./forms/FormDataCard";
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:6001";
 
-/* ─── helpers ────────────────────────────────────────────────────── */
 const fmtDate = (d) => {
   try { return new Date(d).toLocaleDateString("en-IN"); } catch { return "—"; }
 };
@@ -20,7 +19,7 @@ const StatusBadge = ({ rawStatus }) => {
   };
   const cfg = map[rawStatus] || { label: rawStatus, cls: "bg-gray-50 text-gray-600 border-gray-200" };
   return (
-    <span className={`inline-flex items-center px-3 py-1 rounded text-sm font-medium border ${cfg.cls}`}>
+    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border tracking-wide ${cfg.cls}`}>
       {cfg.label}
     </span>
   );
@@ -50,10 +49,10 @@ const AttachLink = ({ url }) =>
 
 /* ─── section panel ──────────────────────────────────────────────── */
 const Panel = ({ title, date, children, accent }) => (
-  <div className="bg-white border border-gray-200 rounded p-4 space-y-3">
-    <div className="flex items-center justify-between pb-2 border-b border-gray-100">
-      <span className={`text-sm font-bold uppercase tracking-widest ${accent || "text-slate-500"}`}>{title}</span>
-      {date && <span className="text-sm text-gray-400">{date}</span>}
+  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-3">
+    <div className="flex items-center justify-between pb-2 border-b border-gray-200">
+      <span className={`text-xs font-bold uppercase tracking-widest ${accent || "text-slate-500"}`}>{title}</span>
+      {date && <span className="text-xs text-gray-400 bg-white border border-gray-200 px-2 py-0.5 rounded-md">{date}</span>}
     </div>
     {children}
   </div>
@@ -121,6 +120,7 @@ const ConsultancyPrincipal = () => {
   const [uploading, setUploading] = useState(false);
   const [uploadedFile, setUploadedFile] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     const fetchWorks = async () => {
@@ -243,107 +243,216 @@ const ConsultancyPrincipal = () => {
     setShowForm(true);
   };
 
+  const filteredWorks = submittedWorks.filter((w) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      w.projectTitle?.toLowerCase().includes(q) ||
+      w.clientOrganization?.toLowerCase().includes(q) ||
+      w.workDescription?.toLowerCase().includes(q) ||
+      w.rawStatus?.toLowerCase().includes(q)
+    );
+  });
+
+  const stats = {
+    total: submittedWorks.length,
+    pending: submittedWorks.filter((w) => ["pending_iqac","pending_hod","pending_faculty","form_pending"].includes(w.rawStatus)).length,
+    completed: submittedWorks.filter((w) => w.rawStatus === "completed").length,
+  };
+
   const inputCls = "w-full px-3 py-2.5 text-base border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-400 focus:border-slate-400 transition";
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Page header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold text-gray-900 tracking-tight">Consultancy Works</h1>
-            <p className="text-sm text-gray-500 mt-1">Manage and track all external consultancy initiatives</p>
+      <div className="bg-white border-b border-gray-200">
+        <div className="px-6 py-5">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="flex-shrink-0 w-10 h-10 bg-slate-800 rounded-lg flex items-center justify-center">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900 tracking-tight">Consultancy Works</h1>
+                <p className="text-sm text-gray-500">Track and manage all external consultancy initiatives</p>
+              </div>
+            </div>
+            <button
+              onClick={handleNewInitiative}
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 active:bg-slate-900 text-white text-sm font-semibold rounded-lg shadow-sm transition-all"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+              </svg>
+              New Initiative
+            </button>
           </div>
-          <button
-            onClick={handleNewInitiative}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-base font-medium rounded transition-colors"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            New Initiative
-          </button>
+
+          {/* Stats bar */}
+          {!loading && submittedWorks.length > 0 && (
+            <div className="mt-4 flex items-center gap-6 pt-4 border-t border-gray-100">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-slate-400"></span>
+                <span className="text-sm text-gray-500">Total</span>
+                <span className="text-sm font-bold text-gray-800">{stats.total}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-amber-400"></span>
+                <span className="text-sm text-gray-500">In Progress</span>
+                <span className="text-sm font-bold text-amber-700">{stats.pending}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-green-400"></span>
+                <span className="text-sm text-gray-500">Completed</span>
+                <span className="text-sm font-bold text-green-700">{stats.completed}</span>
+              </div>
+              <div className="ml-auto w-64">
+                <div className="relative">
+                  <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 105 11a6 6 0 0012 0z" />
+                  </svg>
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search initiatives…"
+                    className="w-full pl-9 pr-8 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-300 focus:border-slate-400 transition-all placeholder-gray-400"
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery("")}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="p-6 flex gap-6 items-start">
-        {/* ── Submission Form ── */}
-        {showForm && (
-          <div className="w-72 flex-shrink-0">
-            <div className="bg-white border border-gray-200 rounded shadow-sm">
-              <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-                <h2 className="text-base font-semibold text-gray-800">Initiate New Work</h2>
+      {/* ── New Initiative Modal ── */}
+      {showForm && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ backgroundColor: "rgba(0,0,0,0.45)" }}
+          onClick={(e) => { if (e.target === e.currentTarget) setShowForm(false); }}
+        >
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden">
+            {/* Modal header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-slate-800 rounded-lg flex items-center justify-center">
+                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="text-base font-semibold text-gray-900">New Consultancy Initiative</h2>
+                  <p className="text-xs text-gray-400">IQAC will be notified upon submission</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowForm(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors p-1.5 rounded-lg hover:bg-gray-100"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Modal body */}
+            <form onSubmit={handleSubmit} className="overflow-y-auto flex-1 px-6 py-5 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Client Organization</label>
+                <input type="text" name="clientOrganization" value={formData.clientOrganization}
+                  onChange={handleInputChange} placeholder="e.g. City Municipal Corporation"
+                  className={inputCls} required />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Project Title</label>
+                <input type="text" name="projectTitle" value={formData.projectTitle}
+                  onChange={handleInputChange} placeholder="Short descriptive title"
+                  className={inputCls} required />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Work Description &amp; Requirements</label>
+                <textarea name="workDescription" value={formData.workDescription}
+                  onChange={handleInputChange}
+                  placeholder="Scope, deliverables, and timelines..."
+                  rows={4} className={`${inputCls} resize-vertical`} required />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Expected Completion Date</label>
+                <input type="date" name="expectedCompletionDate" value={formData.expectedCompletionDate}
+                  onChange={handleInputChange} className={inputCls} required />
+              </div>
+
+              {/* File upload */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Attachment <span className="text-gray-400 font-normal">(PDF / DOC — optional)</span>
+                </label>
+                <div className="relative">
+                  <input type="file" name="attachments" onChange={handleFileChange}
+                    accept=".pdf,.doc,.docx" disabled={uploading}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed z-10" />
+                  <div className={`border rounded-lg px-3 py-3 text-center text-sm transition-colors
+                    ${uploadedFile ? "border-green-300 bg-green-50 text-green-700"
+                      : uploading ? "border-slate-300 bg-slate-50 text-slate-500"
+                      : "border-dashed border-gray-300 hover:border-gray-400 text-gray-500"}`}>
+                    {uploading ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                        </svg>
+                        Uploading…
+                      </span>
+                    ) : uploadedFile ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                        </svg>
+                        {uploadedFile.filename}
+                      </span>
+                    ) : (
+                      <span className="flex items-center justify-center gap-2">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                        </svg>
+                        Click to attach a file
+                      </span>
+                    )}
+                  </div>
+                </div>
+                {uploadedFile && <AttachLink url={uploadedFile.url} />}
+              </div>
+
+              {/* Modal footer actions */}
+              <div className="flex items-center gap-3 pt-2 pb-1">
                 <button
                   type="button"
                   onClick={() => setShowForm(false)}
-                  className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded hover:bg-gray-50"
+                  className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
+                  Cancel
                 </button>
-              </div>
-
-              <form onSubmit={handleSubmit} className="p-4 space-y-4">
-                <p className="text-sm text-gray-500 leading-relaxed">
-                  Describe the external work request. IQAC will be notified upon submission.
-                </p>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">Client Organization</label>
-                  <input type="text" name="clientOrganization" value={formData.clientOrganization}
-                    onChange={handleInputChange} placeholder="e.g. City Municipal Corporation"
-                    className={inputCls} required />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">Project Title</label>
-                  <input type="text" name="projectTitle" value={formData.projectTitle}
-                    onChange={handleInputChange} placeholder="Short descriptive title"
-                    className={inputCls} required />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">Work Description &amp; Requirements</label>
-                  <textarea name="workDescription" value={formData.workDescription}
-                    onChange={handleInputChange}
-                    placeholder="Scope, deliverables, and timelines..."
-                    rows={3} className={`${inputCls} resize-vertical`} required />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">Expected Completion Date</label>
-                  <input type="date" name="expectedCompletionDate" value={formData.expectedCompletionDate}
-                    onChange={handleInputChange} className={inputCls} required />
-                </div>
-
-                {/* File upload */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">
-                    Attachment <span className="text-gray-400 font-normal">(PDF / DOC)</span>
-                  </label>
-                  <div className="relative">
-                    <input type="file" name="attachments" onChange={handleFileChange}
-                      accept=".pdf,.doc,.docx" disabled={uploading}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed z-10" />
-                    <div className={`border rounded px-3 py-2.5 text-center text-sm transition-colors
-                      ${uploadedFile ? "border-green-300 bg-green-50 text-green-700"
-                        : uploading ? "border-slate-300 bg-slate-50 text-slate-500"
-                        : "border-dashed border-gray-300 hover:border-gray-400 text-gray-500"}`}>
-                      {uploading ? "Uploading…"
-                        : uploadedFile ? `✓ ${uploadedFile.filename}`
-                        : "Click to choose file"}
-                    </div>
-                  </div>
-                  {uploadedFile && (
-                    <AttachLink url={uploadedFile.url} />
-                  )}
-                </div>
-
                 <button
                   type="submit"
                   disabled={submitting || uploading}
-                  className="w-full px-4 py-2.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-base font-medium rounded transition-colors flex items-center justify-center gap-2"
+                  className="flex-1 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
                 >
                   {submitting ? (
                     <>
@@ -353,28 +462,56 @@ const ConsultancyPrincipal = () => {
                       </svg>
                       Submitting…
                     </>
-                  ) : "Submit & Notify IQAC"}
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                      </svg>
+                      Submit &amp; Notify IQAC
+                    </>
+                  )}
                 </button>
-              </form>
-            </div>
+              </div>
+            </form>
           </div>
-        )}
+        </div>
+      )}
 
+      <div className="p-6">
         {/* ── Works list ── */}
         <div className="flex-1 min-w-0">
           {loading ? (
-            <p className="text-base text-gray-500 py-10 text-center">Loading…</p>
-          ) : submittedWorks.length === 0 ? (
-            <div className="text-center py-16 text-gray-400">
-              <svg className="mx-auto h-10 w-10 mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            <div className="flex flex-col items-center justify-center py-20 gap-3">
+              <svg className="w-8 h-8 animate-spin text-slate-400" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
               </svg>
-              <p className="text-base font-medium text-gray-500">No consultancy works yet</p>
-              <p className="text-sm mt-1">Click "New Initiative" to get started.</p>
+              <p className="text-sm text-gray-400 font-medium">Loading consultancy works…</p>
+            </div>
+          ) : submittedWorks.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mb-4">
+                <svg className="h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <p className="text-base font-semibold text-gray-700">No consultancy works yet</p>
+              <p className="text-sm text-gray-400 mt-1 max-w-xs">Click "New Initiative" to submit a work request. IQAC will be notified automatically.</p>
+            </div>
+          ) : filteredWorks.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mb-4">
+                <svg className="h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-4.35-4.35M17 11A6 6 0 105 11a6 6 0 0012 0z" />
+                </svg>
+              </div>
+              <p className="text-base font-semibold text-gray-700">No results found</p>
+              <p className="text-sm text-gray-400 mt-1">No initiatives match <span className="font-medium text-gray-600">"{searchQuery}"</span>. Try a different search.</p>
+              <button onClick={() => setSearchQuery("")} className="mt-3 text-sm text-slate-600 hover:text-slate-800 underline underline-offset-2 transition-colors">Clear search</button>
             </div>
           ) : (
             <div className="space-y-4">
-              {submittedWorks.map((work) => (
+              {filteredWorks.map((work) => (
                 <WorkCard key={work.id} work={work} />
               ))}
             </div>
@@ -387,21 +524,33 @@ const ConsultancyPrincipal = () => {
 
 /* ─── work card ──────────────────────────────────────────────────── */
 const WorkCard = ({ work }) => (
-  <div className="bg-white border border-gray-200 rounded shadow-sm overflow-hidden">
+  <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
     {/* Card header */}
-    <div className="flex items-start justify-between px-5 py-3.5 border-b border-gray-100">
-      <div className="min-w-0">
-        <h4 className="text-base font-semibold text-gray-900 truncate">{work.projectTitle}</h4>
-        <p className="text-sm text-gray-500 mt-0.5">{work.clientOrganization}</p>
+    <div className="flex items-start justify-between px-5 py-4 border-b border-gray-100">
+      <div className="min-w-0 flex items-start gap-3">
+        <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center mt-0.5">
+          <svg className="w-4.5 h-4.5 w-[18px] h-[18px] text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+        </div>
+        <div className="min-w-0">
+          <h4 className="text-base font-semibold text-gray-900 leading-snug">{work.projectTitle}</h4>
+          <p className="text-sm text-gray-500 mt-0.5 flex items-center gap-1.5">
+            <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5" />
+            </svg>
+            {work.clientOrganization}
+          </p>
+        </div>
       </div>
       <div className="flex items-center gap-3 ml-4 flex-shrink-0">
-        <span className="text-sm text-gray-400">{work.submittedAt}</span>
+        <span className="text-xs text-gray-400 bg-gray-50 border border-gray-100 px-2 py-1 rounded-md">Submitted {work.submittedAt}</span>
         <StatusBadge rawStatus={work.rawStatus} />
       </div>
     </div>
 
     {/* Workflow stepper */}
-    <div className="px-5 py-3 border-b border-gray-100 bg-gray-50">
+    <div className="px-5 py-3 border-b border-gray-100 bg-slate-50">
       <WorkflowStepper status={work.status} />
     </div>
 

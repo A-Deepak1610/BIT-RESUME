@@ -182,6 +182,7 @@ func RegisterRoutes(r *gin.Engine) {
 	r.GET("/api/hod/facultyList", consultancy.HandleHODFacultyList)
 	r.GET("/api/hod/myDepartment", consultancy.HandleHODMyDepartment)
 	r.POST("/api/hod/consultancyAssign", consultancy.HandleHODAssign)
+	r.POST("/api/hod/consultancyReassign", consultancy.HandleHODReassign)
 
 	// Faculty Consultancy Work Routes (principal-assigned works workflow)
 	r.GET("/api/faculty/consultancyWorkGet", consultancy.HandleFacultyGet)

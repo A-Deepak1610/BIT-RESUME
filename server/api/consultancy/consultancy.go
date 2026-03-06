@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -121,10 +122,40 @@ func HandleConsultancyPost(c *gin.Context) {
 		work.AttachmentURL = attURL.String
 	}
 
+	// Notify all IQAC users via email (async — never blocks the response)
+	go notifyIQACOnSubmit(work.ProjectTitle, work.ClientOrganization, work.SubmittedAt)
+
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "Consultancy work submitted successfully",
 		"data":    work,
 	})
+}
+
+// notifyIQACOnSubmit fetches the single IQAC user's email and sends a notification.
+func notifyIQACOnSubmit(projectTitle, clientOrg, submittedAt string) {
+	var iqacEmail string
+	err := config.DB.QueryRow(
+		`SELECT user_email FROM login WHERE role = 'IQAC' AND user_email IS NOT NULL AND user_email != '' LIMIT 1`,
+	).Scan(&iqacEmail)
+	if err == sql.ErrNoRows {
+		log.Println("[email] no IQAC user found, skipping notification")
+		return
+	}
+	if err != nil {
+		log.Printf("[email] failed to query IQAC email: %v", err)
+		return
+	}
+
+	displayDate := submittedAt
+	if t, err := time.Parse("2006-01-02 15:04:05", submittedAt); err == nil {
+		displayDate = t.Format("02 Jan 2006, 03:04 PM")
+	}
+
+	subject := fmt.Sprintf("New Consultancy Work Submitted — %s", projectTitle)
+	body := utils.ConsultancySubmittedEmailBody(projectTitle, clientOrg, displayDate)
+	if err := utils.SendMail([]string{iqacEmail}, subject, body); err != nil {
+		log.Printf("[email] IQAC notification failed: %v", err)
+	}
 }
 
 // GET /api/principal/consultancyGet
@@ -144,6 +175,7 @@ func HandleConsultancyGet(c *gin.Context) {
 		LEFT JOIN hod_assignments ha ON ha.consultancy_work_id = cw.id
 		LEFT JOIN login fl ON fl.id = ha.faculty_id
 		LEFT JOIN faculty_responses fr ON fr.consultancy_work_id = cw.id
+		WHERE cw.status != 'faculty_rejected'
 		ORDER BY cw.created_at DESC
 	`
 
