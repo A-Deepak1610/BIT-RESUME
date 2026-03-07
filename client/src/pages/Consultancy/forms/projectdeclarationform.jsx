@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 
-export default function ProjectDeclarationForm({ selectedWork, onBack, onSubmit }) {
+export default function ProjectDeclarationForm({ selectedWork, onBack, onSubmit, isSubmitting = false }) {
   const initialDeclarationData = useMemo(
     () => ({
       owiRefNo: "BITCPP",
@@ -33,8 +33,20 @@ export default function ProjectDeclarationForm({ selectedWork, onBack, onSubmit 
   );
 
   const [declarationData, setDeclarationData] = useState(initialDeclarationData);
+  const [errors, setErrors] = useState({});
 
-  // Helper function to get institute percentage from split code
+  const validate = (data) => {
+    const e = {};
+    if (!data.projectDurationFrom) e.projectDurationFrom = "Required";
+    if (!data.projectDurationTo) e.projectDurationTo = "Required";
+    if (!data.totalAmountWithGst) e.totalAmountWithGst = "Required";
+    if (!data.totalAmountWithoutGst) e.totalAmountWithoutGst = "Required";
+    if (!data.financialSplit) e.financialSplit = "Please select a financial split";
+    const hasNamedMember = data.members.slice(1).some((m) => m.name.trim());
+    if (!hasNamedMember) e.members = "At least one member name is required";
+    return e;
+  };
+
   const getInstitutePercentage = (splitCode) => {
     const splitMap = {
       "40-60": 40,
@@ -225,6 +237,15 @@ export default function ProjectDeclarationForm({ selectedWork, onBack, onSubmit 
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const validationErrors = validate(declarationData);
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      const firstKey = Object.keys(validationErrors)[0];
+      const el = document.querySelector(`[data-field="${firstKey}"]`);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+    setErrors({});
     onSubmit?.(declarationData);
   };
 
@@ -272,23 +293,27 @@ export default function ProjectDeclarationForm({ selectedWork, onBack, onSubmit 
             <div className="mt-4 space-y-2">
               <div>
                 <span className="font-semibold">B.1</span> Project Duration (Planned): From
-                <span className="inline-block align-bottom mx-1 min-w-[160px] border-b border-dotted border-gray-400">
+                <span className="inline-block align-bottom mx-1 min-w-[160px] border-b border-dotted border-gray-400" data-field="projectDurationFrom">
                   <input
                     name="projectDurationFrom"
                     value={declarationData.projectDurationFrom}
                     onChange={handleDeclarationInputChange}
                     className="w-full bg-transparent outline-none px-1"
+                    placeholder="DD/MM/YYYY"
                   />
                 </span>
+                {errors.projectDurationFrom && <span className="text-red-500 text-xs ml-1">{errors.projectDurationFrom}</span>}
                 To
-                <span className="inline-block align-bottom mx-1 min-w-[160px] border-b border-dotted border-gray-400">
+                <span className="inline-block align-bottom mx-1 min-w-[160px] border-b border-dotted border-gray-400" data-field="projectDurationTo">
                   <input
                     name="projectDurationTo"
                     value={declarationData.projectDurationTo}
                     onChange={handleDeclarationInputChange}
                     className="w-full bg-transparent outline-none px-1"
+                    placeholder="DD/MM/YYYY"
                   />
                 </span>
+                {errors.projectDurationTo && <span className="text-red-500 text-xs ml-1">{errors.projectDurationTo}</span>}
                 <span className="text-sm text-gray-600">
                   (To be filled after allotment, before project commencement)
                 </span>
@@ -296,7 +321,7 @@ export default function ProjectDeclarationForm({ selectedWork, onBack, onSubmit 
 
               <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
                 <span className="whitespace-nowrap">Total Consultancy Amount in Rs. (With GST):</span>
-                <span className="inline-block align-bottom mx-1 min-w-[180px] border-b border-dotted border-gray-400">
+                <span className="inline-block align-bottom mx-1 min-w-[180px] border-b border-dotted border-gray-400" data-field="totalAmountWithGst">
                   <input
                     name="totalAmountWithGst"
                     value={declarationData.totalAmountWithGst}
@@ -304,9 +329,10 @@ export default function ProjectDeclarationForm({ selectedWork, onBack, onSubmit 
                     className="w-full bg-transparent outline-none px-1"
                   />
                 </span>
+                {errors.totalAmountWithGst && <span className="text-red-500 text-xs">{errors.totalAmountWithGst}</span>}
 
                 <span className="whitespace-nowrap">(Without GST):</span>
-                <span className="inline-block align-bottom mx-1 min-w-[180px] border-b border-dotted border-gray-400">
+                <span className="inline-block align-bottom mx-1 min-w-[180px] border-b border-dotted border-gray-400" data-field="totalAmountWithoutGst">
                   <input
                     name="totalAmountWithoutGst"
                     value={declarationData.totalAmountWithoutGst}
@@ -314,6 +340,7 @@ export default function ProjectDeclarationForm({ selectedWork, onBack, onSubmit 
                     className="w-full bg-transparent outline-none px-1"
                   />
                 </span>
+                {errors.totalAmountWithoutGst && <span className="text-red-500 text-xs">{errors.totalAmountWithoutGst}</span>}
 
                 <div className="flex items-center gap-2">
                   <span className="font-medium whitespace-nowrap">Quotation Report (PDF):</span>
@@ -327,9 +354,10 @@ export default function ProjectDeclarationForm({ selectedWork, onBack, onSubmit 
               </div>
 
               <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-                <span className="font-semibold whitespace-nowrap">
+                <span className="font-semibold whitespace-nowrap" data-field="financialSplit">
                   Recommended Financial Split:
                 </span>
+                {errors.financialSplit && <span className="text-red-500 text-xs">{errors.financialSplit}</span>}
                 <label className="flex items-center gap-1 whitespace-nowrap cursor-pointer">
                   <input
                     type="checkbox"
@@ -380,7 +408,10 @@ export default function ProjectDeclarationForm({ selectedWork, onBack, onSubmit 
 
             <div className="mt-3">
               <div className="mb-2 flex items-center justify-between gap-3">
-                <div className="font-medium">List of members involved:</div>
+                <div className="font-medium" data-field="members">
+                  List of members involved:
+                  {errors.members && <span className="text-red-500 text-xs ml-2">{errors.members}</span>}
+                </div>
                 <button
                   type="button"
                   onClick={addMemberRow}
@@ -619,8 +650,17 @@ export default function ProjectDeclarationForm({ selectedWork, onBack, onSubmit 
           </div>
 
           <div className="flex justify-center pt-6">
-            <button type="submit" className="px-6 py-2 bg-blue-600 text-white rounded">
-              Submit
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className={`flex items-center gap-2 px-6 py-2 rounded text-white font-medium transition-all ${
+                isSubmitting ? "bg-blue-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+              }`}
+            >
+              {isSubmitting && (
+                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              )}
+              {isSubmitting ? "Submitting..." : "Submit"}
             </button>
           </div>
         </form>

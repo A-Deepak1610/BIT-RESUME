@@ -109,7 +109,15 @@ func buildMIMEMessage(to []string, subject, htmlBody string) string {
 
 // ─── Email template helpers ──────────────────────────────────────────────────
 
+func appURL() string {
+	if u := os.Getenv("APP_URL"); u != "" {
+		return u
+	}
+	return "http://localhost:5173"
+}
+
 func ConsultancySubmittedEmailBody(projectTitle, clientOrg, submittedAt string) string {
+	loginURL := appURL() + "/login"
 	return fmt.Sprintf(`
 <!DOCTYPE html>
 <html>
@@ -138,7 +146,10 @@ func ConsultancySubmittedEmailBody(projectTitle, clientOrg, submittedAt string) 
               <td style="color:#1e293b;padding:12px 16px;border-top:1px solid #e2e8f0;">%s</td>
             </tr>
           </table>
-          <p style="color:#64748b;margin:0;">Please log in to the BIT Resume portal to review and assign the consultancy work to the appropriate department.</p>
+          <p style="color:#64748b;margin:0 0 24px;">Please log in to the BIT Resume portal to review and assign the consultancy work to the appropriate department.</p>
+          <div style="text-align:center;">
+            <a href="%s" style="display:inline-block;background:#1e293b;color:#fff;text-decoration:none;padding:12px 32px;border-radius:6px;font-size:15px;font-weight:600;letter-spacing:.3px;">Login to View</a>
+          </div>
         </td></tr>
         <tr><td style="background:#f8fafc;padding:16px 32px;border-top:1px solid #e2e8f0;">
           <p style="color:#94a3b8;font-size:13px;margin:0;">This is an automated notification from BIT Resume System. Do not reply to this email.</p>
@@ -147,10 +158,11 @@ func ConsultancySubmittedEmailBody(projectTitle, clientOrg, submittedAt string) 
     </td></tr>
   </table>
 </body>
-</html>`, projectTitle, clientOrg, submittedAt)
+</html>`, projectTitle, clientOrg, submittedAt, loginURL)
 }
 
 func ConsultancyAssignedToHODEmailBody(projectTitle, clientOrg, deptName, workType, iqacRemarks string) string {
+	loginURL := appURL() + "/login"
 	return fmt.Sprintf(`
 <!DOCTYPE html>
 <html>
@@ -187,7 +199,10 @@ func ConsultancyAssignedToHODEmailBody(projectTitle, clientOrg, deptName, workTy
               <td style="color:#1e293b;padding:12px 16px;border-top:1px solid #e2e8f0;">%s</td>
             </tr>
           </table>
-          <p style="color:#64748b;margin:0;">Please log in to the BIT Resume portal to assign this work to a faculty member.</p>
+          <p style="color:#64748b;margin:0 0 24px;">Please log in to the BIT Resume portal to assign this work to a faculty member.</p>
+          <div style="text-align:center;">
+            <a href="%s" style="display:inline-block;background:#1e3a5f;color:#fff;text-decoration:none;padding:12px 32px;border-radius:6px;font-size:15px;font-weight:600;letter-spacing:.3px;">Login to View</a>
+          </div>
         </td></tr>
         <tr><td style="background:#f8fafc;padding:16px 32px;border-top:1px solid #e2e8f0;">
           <p style="color:#94a3b8;font-size:13px;margin:0;">This is an automated notification from BIT Resume System. Do not reply to this email.</p>
@@ -196,10 +211,11 @@ func ConsultancyAssignedToHODEmailBody(projectTitle, clientOrg, deptName, workTy
     </td></tr>
   </table>
 </body>
-</html>`, projectTitle, clientOrg, deptName, workType, iqacRemarks)
+</html>`, projectTitle, clientOrg, deptName, workType, iqacRemarks, loginURL)
 }
 
 func ConsultancyAssignedToFacultyEmailBody(projectTitle, clientOrg, hodRemarks string) string {
+	loginURL := appURL() + "/login"
 	return fmt.Sprintf(`
 <!DOCTYPE html>
 <html>
@@ -228,7 +244,10 @@ func ConsultancyAssignedToFacultyEmailBody(projectTitle, clientOrg, hodRemarks s
               <td style="color:#1e293b;padding:12px 16px;border-top:1px solid #e2e8f0;">%s</td>
             </tr>
           </table>
-          <p style="color:#64748b;margin:0;">Please log in to the BIT Resume portal to accept or reject this consultancy assignment and fill in the required form upon completion.</p>
+          <p style="color:#64748b;margin:0 0 24px;">Please log in to the BIT Resume portal to accept or reject this consultancy assignment and fill in the required form upon completion.</p>
+          <div style="text-align:center;">
+            <a href="%s" style="display:inline-block;background:#1e3a5f;color:#fff;text-decoration:none;padding:12px 32px;border-radius:6px;font-size:15px;font-weight:600;letter-spacing:.3px;">Login to View</a>
+          </div>
         </td></tr>
         <tr><td style="background:#f8fafc;padding:16px 32px;border-top:1px solid #e2e8f0;">
           <p style="color:#94a3b8;font-size:13px;margin:0;">This is an automated notification from BIT Resume System. Do not reply to this email.</p>
@@ -237,5 +256,5 @@ func ConsultancyAssignedToFacultyEmailBody(projectTitle, clientOrg, hodRemarks s
     </td></tr>
   </table>
 </body>
-</html>`, projectTitle, clientOrg, hodRemarks)
+</html>`, projectTitle, clientOrg, hodRemarks, loginURL)
 }
