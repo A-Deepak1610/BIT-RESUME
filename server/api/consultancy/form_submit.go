@@ -182,8 +182,8 @@ func HandleFacultyFormSubmit(c *gin.Context) {
 		return
 	}
 
-	// Mark work as completed
-	if _, err = tx.Exec(`UPDATE consultancy_works SET status = 'completed' WHERE id = ?`, req.ConsultancyWorkID); err != nil {
+	// Mark work as awaiting consultancy form (next step in the workflow)
+	if _, err = tx.Exec(`UPDATE consultancy_works SET status = 'consultancy_form_pending' WHERE id = ?`, req.ConsultancyWorkID); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update work status"})
 		return
 	}
@@ -193,7 +193,7 @@ func HandleFacultyFormSubmit(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"message": "Form submitted successfully"})
+	c.JSON(http.StatusCreated, gin.H{"message": "Form submitted. Please complete the Consultancy Details Form to finalise the submission."})
 }
 
 // ---- Insert helpers ----

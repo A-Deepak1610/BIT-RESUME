@@ -348,7 +348,159 @@ func HandleHODAssign(c *gin.Context) {
 		return
 	}
 
+	// Notify the faculty member via email (async)
+	go notifyFacultyOnHODAssign(req.ConsultancyWorkID, req.FacultyID, req.HODRemarks)
+
 	c.JSON(http.StatusCreated, gin.H{"message": "Faculty assigned successfully"})
+}
+
+// notifyFacultyOnHODAssign fetches project + faculty email and sends a notification.
+func notifyFacultyOnHODAssign(workID, facultyID int64, hodRemarks string) {
+	var projectTitle, clientOrg string
+	if err := config.DB.QueryRow(
+		`SELECT project_title, client_organization FROM consultancy_works WHERE id = ?`, workID,
+	).Scan(&projectTitle, &clientOrg); err != nil {
+		log.Printf("[email] fetch work for faculty notify failed: %v", err)
+		return
+	}
+
+	var facultyEmail string
+	if err := config.DB.QueryRow(
+		`SELECT user_email FROM login WHERE id = ? AND user_email IS NOT NULL AND user_email != ''`, facultyID,
+	).Scan(&facultyEmail); err != nil {
+		log.Printf("[email] fetch faculty email failed (id=%d): %v", facultyID, err)
+		return
+	}
+
+	remarks := hodRemarks
+	if remarks == "" {
+		remarks = "—"
+	}
+
+	subject := fmt.Sprintf("Consultancy Work Assigned to You — %s", projectTitle)
+	body := utils.ConsultancyAssignedToFacultyEmailBody(projectTitle, clientOrg, remarks)
+	if err := utils.SendMail([]string{facultyEmail}, subject, body); err != nil {
+		log.Printf("[email] faculty notification failed: %v", err)
+	}
+}
+
+// POST /api/hod/consultancyReassign
+// HOD reassigns a different faculty after previous faculty rejected
+func HandleHODReassign(c *gin.Context) {
+	cookie, err := c.Cookie("BITRESUME")
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Missing auth cookie"})
+		return
+	}
+	claims, err := utils.ParseJWT(cookie)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})
+		return
+	}
+	idFloat, ok := claims["id"].(float64)
+	if !ok || idFloat == 0 {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user id in token"})
+		return
+	}
+	assignedBy := int64(idFloat)
+
+	var req HODAssignRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Validate faculty is mapped to this HOD
+	var mappingCount int
+	err = config.DB.QueryRow(
+		`SELECT COUNT(*) FROM hod_faculty_mapping WHERE hod_id = ? AND faculty_id = ?`,
+		assignedBy, req.FacultyID,
+	).Scan(&mappingCount)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("DB error checking faculty mapping: %v", err)})
+		return
+	}
+	if mappingCount == 0 {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Selected faculty is not assigned under your department"})
+		return
+	}
+
+	// Validate work status is faculty_rejected
+	var currentStatus string
+	err = config.DB.QueryRow(
+		`SELECT status FROM consultancy_works WHERE id = ?`, req.ConsultancyWorkID,
+	).Scan(&currentStatus)
+	if err == sql.ErrNoRows {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Consultancy work not found"})
+		return
+	}
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("DB error: %v", err)})
+		return
+	}
+	if currentStatus != "faculty_rejected" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Work cannot be reassigned (status: %s)", currentStatus)})
+		return
+	}
+
+	tx, err := config.DB.Begin()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to begin transaction"})
+		return
+	}
+	defer tx.Rollback()
+
+	// Clear previous faculty response and hod assignment
+	if _, err = tx.Exec(`DELETE FROM faculty_responses WHERE consultancy_work_id = ?`, req.ConsultancyWorkID); err != nil {
+		log.Printf("[hod] DELETE faculty_responses (reassign) error: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to clear faculty response: %v", err)})
+		return
+	}
+	if _, err = tx.Exec(`DELETE FROM hod_assignments WHERE consultancy_work_id = ?`, req.ConsultancyWorkID); err != nil {
+		log.Printf("[hod] DELETE hod_assignments (reassign) error: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to clear hod assignment: %v", err)})
+		return
+	}
+
+	// Insert new hod_assignment
+	var remarksVal interface{} = nil
+	if req.HODRemarks != "" {
+		remarksVal = req.HODRemarks
+	}
+	_, err = tx.Exec(`
+		INSERT INTO hod_assignments
+			(consultancy_work_id, iqac_assignment_id, assigned_by, faculty_id, hod_remarks)
+		VALUES (?, ?, ?, ?, ?)
+	`,
+		req.ConsultancyWorkID,
+		req.IQACAssignmentID,
+		assignedBy,
+		req.FacultyID,
+		remarksVal,
+	)
+	if err != nil {
+		log.Printf("[hod] INSERT hod_assignments (reassign) error: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to create re-assignment: %v", err)})
+		return
+	}
+
+	// Set status back to pending_faculty
+	_, err = tx.Exec(
+		`UPDATE consultancy_works SET status = 'pending_faculty' WHERE id = ?`,
+		req.ConsultancyWorkID,
+	)
+	if err != nil {
+		log.Printf("[hod] UPDATE consultancy_works (reassign) error: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to update work status: %v", err)})
+		return
+	}
+
+	if err := tx.Commit(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to commit transaction"})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{"message": "Faculty reassigned successfully"})
 }
 
 // GET /api/hod/myDepartment

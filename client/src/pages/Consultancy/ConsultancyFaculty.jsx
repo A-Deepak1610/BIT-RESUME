@@ -3,6 +3,7 @@ import useAuth from "../../store/UseAuth";
 import DroneForm from "./forms/droneform";
 import IndustrialProjectForm from "./forms/industrialprojectform";
 import ProjectDeclarationForm from "./forms/projectdeclarationform";
+import ConsultancyForm from "./forms/ConsultancyForm"
 
 const BASE_URL = import.meta.env.VITE_API_URL || "";
 
@@ -49,12 +50,13 @@ const fmtDate = (d) => {
 };
 
 const STATUS_MAP = {
-  pending_faculty:  { label: "Awaiting Your Response", cls: "bg-amber-50 text-amber-700 border-amber-200" },
-  form_pending:     { label: "Form Pending",            cls: "bg-orange-50 text-orange-700 border-orange-200" },
-  completed:        { label: "Completed",               cls: "bg-green-50 text-green-700 border-green-200" },
-  faculty_rejected: { label: "Rejected",                cls: "bg-red-50 text-red-700 border-red-200" },
-  pending_hod:      { label: "Pending HOD",             cls: "bg-blue-50 text-blue-700 border-blue-200" },
-  pending_iqac:     { label: "Pending IQAC",            cls: "bg-purple-50 text-purple-700 border-purple-200" },
+  pending_faculty:          { label: "Awaiting Your Response",    cls: "bg-amber-50 text-amber-700 border-amber-200" },
+  form_pending:             { label: "Filling Project Form",       cls: "bg-orange-50 text-orange-700 border-orange-200" },
+  consultancy_form_pending: { label: "Consultancy Form Pending",   cls: "bg-violet-50 text-violet-700 border-violet-200" },
+  completed:                { label: "Completed",                  cls: "bg-green-50 text-green-700 border-green-200" },
+  faculty_rejected:         { label: "Rejected",                   cls: "bg-red-50 text-red-700 border-red-200" },
+  pending_hod:              { label: "Pending HOD",                cls: "bg-blue-50 text-blue-700 border-blue-200" },
+  pending_iqac:             { label: "Pending IQAC",               cls: "bg-purple-50 text-purple-700 border-purple-200" },
 };
 
 const StatusBadge = ({ rawStatus }) => {
@@ -83,12 +85,13 @@ const Panel = ({ title, date, children, accent }) => (
   </div>
 );
 
-const STEPS = ["IQAC Review", "HOD Assignment", "Faculty Response"];
+const STEPS = ["IQAC Review", "HOD Assignment", "Faculty Acceptance", "Consultancy Form"];
 const stepIdx = (s) => {
   if (!s || s === "pending_iqac") return 0;
   if (s === "pending_hod") return 1;
-  if (s === "pending_faculty") return 2;
-  return 3;
+  if (s === "pending_faculty" || s === "form_pending") return 2;
+  if (s === "consultancy_form_pending") return 3;
+  return 4; // completed
 };
 
 const WorkflowStepper = ({ status }) => {
@@ -163,10 +166,13 @@ const ConsultancyFaculty = () => {
   const [submitting, setSubmitting] = useState(false);
   const [submitMsg, setSubmitMsg] = useState(null);
 
-  // Form submission state
+  // Drone/project form submission state
   const [activeFormWork, setActiveFormWork] = useState(null);
   const [formSubmitting, setFormSubmitting] = useState(false);
   const [formSubmitMsg, setFormSubmitMsg] = useState(null);
+
+  // Consultancy form (8-step) overlay state
+  const [activeConsultancyFormWork, setActiveConsultancyFormWork] = useState(null);
 
   const fetchWorks = async () => {
     try {
@@ -357,6 +363,11 @@ const ConsultancyFaculty = () => {
     }
   };
 
+  const handleConsultancyFormSuccess = async () => {
+    setActiveConsultancyFormWork(null);
+    await fetchWorks();
+  };
+
   const inputCls = "w-full px-3 py-2.5 text-base border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-400 focus:border-slate-400 transition";
 
   if (loading) return (
@@ -430,6 +441,13 @@ const ConsultancyFaculty = () => {
                           onClick={() => { setFormSubmitMsg(null); setActiveFormWork(work); }}
                           className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-sm font-medium rounded transition-colors">
                           Fill {getFormTypeLabel(ia?.workType)}
+                        </button>
+                      )}
+                      {work.status === "consultancy_form_pending" && (
+                        <button
+                          onClick={() => setActiveConsultancyFormWork(work)}
+                          className="px-4 py-2 bg-violet-700 hover:bg-violet-800 text-white text-sm font-medium rounded transition-colors">
+                          Fill Consultancy Form
                         </button>
                       )}
                     </div>
@@ -520,6 +538,17 @@ const ConsultancyFaculty = () => {
         </div>
       )}
 
+      {/* Consultancy (8-step) Form Overlay — shown after drone/project form */}
+      {activeConsultancyFormWork && (
+        <div className="fixed inset-0 z-50 bg-white overflow-y-auto">
+          <ConsultancyForm
+            consultancyWorkId={String(activeConsultancyFormWork.id)}
+            onSuccess={handleConsultancyFormSuccess}
+            onClose={() => setActiveConsultancyFormWork(null)}
+          />
+        </div>
+      )}
+
       {/* Full-Screen Form Overlay */}
       {activeFormWork && (() => {
       const wt = normalizeWorkType(activeFormWork.iqacAssignment?.workType);
@@ -527,6 +556,7 @@ const ConsultancyFaculty = () => {
           selectedWork: activeFormWork,
           onBack: () => setActiveFormWork(null),
           onSubmit: handleFormSubmit,
+          isSubmitting: formSubmitting,
         };
         return (
           <div className="fixed inset-0 z-50 bg-white overflow-y-auto">
@@ -553,12 +583,23 @@ const ConsultancyFaculty = () => {
             )}
 
             {formSubmitting && (
-              <div className="mx-6 mt-4 p-3 bg-blue-50 border border-blue-200 text-blue-700 rounded-md text-sm flex items-center gap-2">
-                <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
-                </svg>
-                Submitting form...
+              <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+                <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-sm mx-4 flex flex-col items-center text-center">
+                  <div className="relative w-16 h-16 mb-4">
+                    <div className="absolute inset-0 rounded-full border-4 border-blue-100" />
+                    <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-blue-600 animate-spin" />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                  </div>
+                  <h2 className="text-lg font-bold text-gray-900 mb-1">Submitting Form</h2>
+                  <p className="text-sm text-gray-500">Please wait while your declaration is being saved…</p>
+                  <div className="mt-4 w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-blue-600 rounded-full animate-[progress_1.6s_ease-in-out_infinite]" style={{width:"60%"}} />
+                  </div>
+                </div>
               </div>
             )}
 

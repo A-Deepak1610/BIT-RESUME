@@ -4,6 +4,7 @@ export default function IndustrialProjectForm({
   selectedWork,
   onBack,
   onSubmit,
+  isSubmitting = false,
 }) {
   const initialFormData = useMemo(
     () => ({
@@ -113,8 +114,20 @@ export default function IndustrialProjectForm({
   );
 
   const [formData, setFormData] = useState(initialFormData);
+  const [errors, setErrors] = useState({});
 
-  // Helper function to get institute percentage from split code
+  const validate = (data) => {
+    const e = {};
+    if (!data.trainingDurationFrom) e.trainingDurationFrom = "Required";
+    if (!data.trainingDurationTo) e.trainingDurationTo = "Required";
+    if (!data.totalAmountWithGst) e.totalAmountWithGst = "Required";
+    if (!data.totalAmountWithoutGst) e.totalAmountWithoutGst = "Required";
+    if (!data.financialSplit) e.financialSplit = "Please select a financial split";
+    const hasNamedMember = data.members.slice(1).some((m) => m.name.trim());
+    if (!hasNamedMember) e.members = "At least one member name is required";
+    return e;
+  };
+
   const getInstitutePercentage = (splitCode) => {
     const splitMap = {
       "40-60": 40,
@@ -330,6 +343,15 @@ export default function IndustrialProjectForm({
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const validationErrors = validate(formData);
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      const firstKey = Object.keys(validationErrors)[0];
+      const el = document.querySelector(`[data-field="${firstKey}"]`);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+    setErrors({});
     onSubmit?.(formData);
   };
 
@@ -394,23 +416,27 @@ export default function IndustrialProjectForm({
               <div>
                 <span className="font-semibold">B.1</span> Training Programme
                 Duration (Planned): From
-                <span className="inline-block align-bottom mx-1 min-w-[160px] border-b border-dotted border-gray-400">
+                <span className="inline-block align-bottom mx-1 min-w-[160px] border-b border-dotted border-gray-400" data-field="trainingDurationFrom">
                   <input
                     name="trainingDurationFrom"
                     value={formData.trainingDurationFrom}
                     onChange={handleInputChange}
                     className="w-full bg-transparent outline-none px-1"
+                    placeholder="DD/MM/YYYY"
                   />
                 </span>
+                {errors.trainingDurationFrom && <span className="text-red-500 text-xs ml-1">{errors.trainingDurationFrom}</span>}
                 To
-                <span className="inline-block align-bottom mx-1 min-w-[160px] border-b border-dotted border-gray-400">
+                <span className="inline-block align-bottom mx-1 min-w-[160px] border-b border-dotted border-gray-400" data-field="trainingDurationTo">
                   <input
                     name="trainingDurationTo"
                     value={formData.trainingDurationTo}
                     onChange={handleInputChange}
                     className="w-full bg-transparent outline-none px-1"
+                    placeholder="DD/MM/YYYY"
                   />
                 </span>
+                {errors.trainingDurationTo && <span className="text-red-500 text-xs ml-1">{errors.trainingDurationTo}</span>}
                 <span className="text-sm text-gray-600">
                   (To be filled after allotment, before project commencement)
                 </span>
@@ -453,9 +479,10 @@ export default function IndustrialProjectForm({
               </div>
 
               <div className="flex flex-wrap items-center gap-x-3 gap-y-2 mt-2">
-                <span className="font-semibold whitespace-nowrap">
+                <span className="font-semibold whitespace-nowrap" data-field="financialSplit">
                   Recommended Financial Split:
                 </span>
+                {errors.financialSplit && <span className="text-red-500 text-xs">{errors.financialSplit}</span>}
                 <label className="flex items-center gap-1 whitespace-nowrap cursor-pointer">
                   <input
                     type="checkbox"
@@ -507,7 +534,10 @@ export default function IndustrialProjectForm({
             {/* List of Members Involved */}
             <div className="mt-6">
               <div className="mb-2 flex items-center justify-between gap-3">
-                <div className="font-medium">List of members involved:</div>
+                <div className="font-medium" data-field="members">
+                  List of members involved:
+                  {errors.members && <span className="text-red-500 text-xs ml-2">{errors.members}</span>}
+                </div>
                 <button
                   type="button"
                   onClick={addMemberRow}
@@ -885,9 +915,15 @@ export default function IndustrialProjectForm({
           <div className="flex justify-center pt-6">
             <button
               type="submit"
-              className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-200"
+              disabled={isSubmitting}
+              className={`flex items-center gap-2 px-6 py-2 rounded text-white font-medium transition-all ${
+                isSubmitting ? "bg-blue-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+              }`}
             >
-              Submit
+              {isSubmitting && (
+                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              )}
+              {isSubmitting ? "Submitting..." : "Submit"}
             </button>
           </div>
         </form>

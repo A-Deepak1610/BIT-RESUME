@@ -46,6 +46,7 @@ func HandleIQACGet(c *gin.Context) {
 		LEFT JOIN hod_assignments ha ON ha.consultancy_work_id = cw.id
 		LEFT JOIN login fl ON fl.id = ha.faculty_id
 		LEFT JOIN faculty_responses fr ON fr.consultancy_work_id = cw.id
+		WHERE cw.status != 'faculty_rejected'
 		ORDER BY cw.created_at DESC
 	`
 
@@ -276,5 +277,58 @@ func HandleIQACAssign(c *gin.Context) {
 		return
 	}
 
+	// Notify HOD of the department via email (async)
+	go notifyHODOnIQACAssign(req.ConsultancyWorkID, req.DepartmentID, req.ConsultancyWorkType, req.IQACRemarks)
+
 	c.JSON(http.StatusCreated, gin.H{"message": "Department assigned successfully"})
+}
+
+// notifyHODOnIQACAssign looks up the single HOD for the given department and sends an email.
+func notifyHODOnIQACAssign(workID int64, departmentID int, workType, iqacRemarks string) {
+	// Fetch project details
+	var projectTitle, clientOrg string
+	if err := config.DB.QueryRow(
+		`SELECT project_title, client_organization FROM consultancy_works WHERE id = ?`, workID,
+	).Scan(&projectTitle, &clientOrg); err != nil {
+		log.Printf("[email] fetch work for HOD notify failed: %v", err)
+		return
+	}
+
+	// Fetch department name
+	var deptName string
+	if err := config.DB.QueryRow(
+		`SELECT department_name FROM departments WHERE id = ?`, departmentID,
+	).Scan(&deptName); err != nil {
+		log.Printf("[email] fetch department name failed: %v", err)
+		deptName = "Your Department"
+	}
+
+	// Fetch the single HOD email for this department
+	var hodEmail string
+	err := config.DB.QueryRow(`
+		SELECT l.user_email
+		FROM login l
+		JOIN hod_department hd ON hd.hod_id = l.id
+		WHERE hd.department_id = ? AND l.user_email IS NOT NULL AND l.user_email != ''
+		LIMIT 1
+	`, departmentID).Scan(&hodEmail)
+	if err == sql.ErrNoRows {
+		log.Printf("[email] no HOD found for department %d", departmentID)
+		return
+	}
+	if err != nil {
+		log.Printf("[email] fetch HOD email failed: %v", err)
+		return
+	}
+
+	remarks := iqacRemarks
+	if remarks == "" {
+		remarks = "—"
+	}
+
+	subject := fmt.Sprintf("Consultancy Work Assigned to Your Department — %s", projectTitle)
+	body := utils.ConsultancyAssignedToHODEmailBody(projectTitle, clientOrg, deptName, workType, remarks)
+	if err := utils.SendMail([]string{hodEmail}, subject, body); err != nil {
+		log.Printf("[email] HOD notification failed: %v", err)
+	}
 }
