@@ -4,9 +4,11 @@ import MasterCard from "./masterCard";
 import MeetingOrSessionCard from "./meetingorsessioncard";
 import EventDetailModal from "./EventModal";
 import { Search, ChevronDown } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import useAuth from "../../../store/UseAuth";
 
 const ActivityMaster = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("activities");
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -276,6 +278,13 @@ const ActivityMaster = () => {
             />
           </div>
           <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-3 w-full sm:w-auto">
+            <button
+              type="button"
+              onClick={() => navigate("/event-recommendation")}
+              className="cursor-pointer rounded-md bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+            >
+              AI Recommendations
+            </button>
             {activeTab === 'activities' && (
               <FilterDropdown
                 value={eventFilterStatus}
