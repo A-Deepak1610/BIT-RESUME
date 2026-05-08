@@ -16,6 +16,7 @@ import ProtectedRoute from "../components/auth/ProtectedRoute";
 import LoadingBar from "../components/loading/Loading";
 import PageNotFound from "../pages/404/PageNotFound";
 import ActivityMaster from "../pages/Achivements/ActivityMaster/ActivityMaster";
+import EventRecommendation from "../pages/Achivements/ActivityMaster/EventRecommendation";
 import RegisteredEvents from "../pages/Achivements/ActivityLogger/RegisteredEvents";
 import RequestedEvents from "../pages/Achivements/ActivityLogger/RequestedCard";
 import ResumeDraft from "../pages/faculty/resumeDraft/resumeDraft";
@@ -92,6 +93,10 @@ export default function Applayout() {
               <Route
                 path="/Achivement/ActivityMaster"
                 element={<ActivityMaster />}
+              />
+              <Route
+                path="/event-recommendation"
+                element={<EventRecommendation />}
               />
               <Route
                 path="/Achivement/ActivityLogger"
